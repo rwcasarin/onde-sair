@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Onde Sair · Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Design system page specifics */
+    body { font-family: var(--font); background: var(--bg); color: var(--ink); }
+    .ds-shell { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+    .ds-header {
+      padding: 64px 0 40px;
+      border-bottom: 1px solid var(--line);
+    }
+    .ds-header h1 {
+      font-weight: 700;
+      font-size: clamp(48px, 6vw, 88px);
+      line-height: 1;
+      letter-spacing: -0.025em;
+      margin: 16px 0 16px;
+      max-width: 16ch;
+    }
+    .ds-header h1 .accent { color: var(--primary); }
+    .ds-header p { max-width: 60ch; color: var(--ink-2); font-size: 18px; line-height: 1.6; margin: 0; }
+    .ds-meta {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+      margin-top: 36px;
+    }
+    .ds-meta-item .lbl {
+      font-weight: 500; font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+      display: block; margin-bottom: 6px;
+    }
+    .ds-meta-item .val { font-weight: 500; font-size: 16px; color: var(--ink); }
+
+    .ds-section {
+      padding: 64px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .ds-section:last-of-type { border-bottom: 0; }
+    .ds-section-head { display: grid; grid-template-columns: 280px 1fr; gap: 48px; margin-bottom: 40px; align-items: start; }
+    .ds-section-head .lbl {
+      font-weight: 500; font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--primary);
+      display: block; margin-bottom: 6px;
+    }
+    .ds-section-head h2 {
+      font-weight: 700; font-size: 32px;
+      letter-spacing: -0.02em; margin: 4px 0 0;
+      line-height: 1.1;
+    }
+    .ds-section-head p { color: var(--ink-3); font-size: 16px; max-width: 60ch; margin: 0; }
+
+    /* Tagline cards */
+    .tagline-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .tagline-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+    .tagline-card.featured { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .tagline-card.featured .lbl { color: rgba(255,255,255,0.55); }
+    .tagline-card.featured .ling { color: rgba(255,255,255,0.7); }
+    .tagline-card .lbl {
+      font-weight: 500; font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .tagline-card .line {
+      font-weight: 700; font-size: 32px;
+      letter-spacing: -0.02em; line-height: 1.1;
+      margin: 14px 0 12px;
+    }
+    .tagline-card .line .accent { color: var(--primary); }
+    .tagline-card .ling { color: var(--ink-3); font-size: 14px; margin: 0; }
+
+    /* Color tokens */
+    .palette-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .swatch {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .swatch-block { aspect-ratio: 5/3; }
+    .swatch-meta { padding: 14px 16px 16px; }
+    .swatch-name { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+    .swatch-token { font-weight: 500; font-size: 11px; letter-spacing: 0.05em; color: var(--ink-3); margin-top: 4px; }
+    .swatch-hex { font-weight: 500; font-size: 12px; color: var(--ink-2); margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+    /* Type spec */
+    .type-spec { display: grid; grid-template-columns: 200px 1fr; gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+    .type-spec:last-child { border-bottom: 0; }
+    .type-spec .meta { font-weight: 500; font-size: 12px; color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase; }
+    .type-spec .sample { color: var(--ink); }
+
+    /* Component grid */
+    .comp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .comp-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .comp-card .lbl {
+      font-weight: 500; font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .comp-card .name { font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+    .comp-card .desc { color: var(--ink-3); font-size: 14px; line-height: 1.55; }
+    .comp-demo {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 24px;
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    }
+
+    /* Voice */
+    .voice-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .voice-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+    }
+    .voice-card.no  { border-left: 4px solid #c4302b; }
+    .voice-card.yes { border-left: 4px solid var(--vip); }
+    .voice-card .lbl {
+      font-weight: 500; font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      display: block; margin-bottom: 10px;
+    }
+    .voice-card.no  .lbl { color: #c4302b; }
+    .voice-card.yes .lbl { color: var(--vip); }
+    .voice-card p { font-size: 15px; line-height: 1.55; color: var(--ink); margin: 0; }
+
+    /* Personality */
+    .pers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .pers-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+    }
+    .pers-card .name {
+      font-weight: 700; font-size: 18px;
+      letter-spacing: -0.01em;
+      color: var(--primary);
+      display: block; margin-bottom: 6px;
+    }
+    .pers-card .desc { color: var(--ink-3); font-size: 14px; line-height: 1.5; margin: 0; }
+
+    /* Affinities preview */
+    .ds-aff-row { display: grid; grid-template-columns: 220px 1fr 80px; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: center; }
+    .ds-aff-row:last-child { border-bottom: 0; }
+    .ds-aff-row .label { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+    .ds-aff-row .slug { font-weight: 500; font-size: 12px; color: var(--ink-3); font-family: ui-monospace, Menlo, monospace; }
+    .ds-aff-row .sub { color: var(--ink-3); font-size: 14px; }
+
+    .footer-ds {
+      padding: 36px 0;
+      color: var(--ink-3); font-size: 13px;
+      display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .ds-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--primary); font-weight: 500;
+    }
+    .ds-back:hover { color: var(--primary-dark); }
+
+    @media (max-width: 900px) {
+      .ds-meta { grid-template-columns: 1fr 1fr; }
+      .palette-grid, .comp-grid, .pers-grid, .tagline-grid, .voice-grid { grid-template-columns: 1fr; }
+      .ds-section-head { grid-template-columns: 1fr; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-shell">
+
+    <!-- HEADER -->
+    <header class="ds-header">
+      <a href="index.html" class="ds-back">← Voltar ao protótipo</a>
+      <h1>Design system<br><span class="accent">Onde Sair.</span></h1>
+      <p>Sistema visual e verbal extraído do Documento Master · Maio 2026. Calibrado pra falar com o morador local, em qualquer cidade, com tom de amigo que conhece os cantos.</p>
+
+      <div class="ds-meta">
+        <div class="ds-meta-item"><span class="lbl">Cobertura</span><span class="val">Multi-cidade</span></div>
+        <div class="ds-meta-item"><span class="lbl">Tipografia</span><span class="val">Lora + Inter</span></div>
+        <div class="ds-meta-item"><span class="lbl">Cor primária</span><span class="val">#3B2A7C</span></div>
+        <div class="ds-meta-item"><span class="lbl">Tom de voz</span><span class="val">Amigo local</span></div>
+      </div>
+    </header>
+
+    <!-- TAGLINES -->
+    <section class="ds-section">
+      <div class="ds-section-head">
+        <div>
+          <span class="lbl">01 · Voz da marca</span>
+          <h2>Taglines</h2>
+        </div>
+        <p>Quatro frases que carregam o posicionamento. "Não é um guia, é uma dica" é a principal — aparece no header do site, bio das redes e pitch de venda.</p>
+      </div>
+
+      <div class="tagline-grid">
+        <div class="tagline-card featured">
+          <span class="lbl">Principal</span>
+          <p class="line">Não é um guia.<br><span class="accent">É uma dica.</span></p>
+          <p class="ling">Header do site · bio de redes · pitch</p>
+        </div>
+        <div class="tagline-card">
+          <span class="lbl">Subtítulo</span>
+          <p class="line">Curadoria por afinidade.</p>
+          <p class="ling">Hero da Home · apresentações</p>
+        </div>
+        <div class="tagline-card">
+          <span class="lbl">Campanha</span>
+          <p class="line">Sua cidade tem mais do que você imagina.</p>
+          <p class="ling">Fala direto com o residente entediado</p>
+        </div>
+        <div class="tagline-card">
+          <span class="lbl">Secundária</span>
+          <p class="line">O roteiro é nosso. <span class="accent">A escolha é sua.</span></p>
+          <p class="ling">Comunica curadoria sem tirar autonomia</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLOR -->
+    <section class="ds-section">
+      <div class="ds-section-head">
+        <div>
+          <span class="lbl">02 · Cor</span>
+          <h2>Paleta</h2>
+        </div>
+        <p>Roxo profundo conduz tudo. Laranja, teal, amarelo e magenta entram como blocos geométricos — nunca como texto. Teal sinaliza VIP; magenta é o CTA de alta conversão.</p>
+      </div>
+
+      <h3 style="font-weight:700; font-size:16px; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-3); margin:0 0 16px;">Família principal · Roxo</h3>
+      <div class="palette-grid" style="margin-bottom: 32px;">
+        <div class="swatch"><div class="swatch-block" style="background:#3B2A7C"></div><div class="swatch-meta"><div class="swatch-name">Primária</div><div class="swatch-token">--primary</div><div class="swatch-hex">#3B2A7C</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#2A1C5E"></div><div class="swatch-meta"><div class="swatch-name">Hover / pressed</div><div class="swatch-token">--primary-dark</div><div class="swatch-hex">#2A1C5E</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#E8E4F5"></div><div class="swatch-meta"><div class="swatch-name">Superfície leve</div><div class="swatch-token">--primary-soft</div><div class="swatch-hex">#E8E4F5</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#C3B9E2"></div><div class="swatch-meta"><div class="swatch-name">Borda lavanda</div><div class="swatch-token">--primary-border</div><div class="swatch-hex">#C3B9E2</div></div></div>
+      </div>
+
+      <h3 style="font-weight:700; font-size:16px; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-3); margin:0 0 16px;">Paleta geométrica · blocos de cor</h3>
+      <div class="palette-grid" style="margin-bottom: 32px;">
+        <div class="swatch"><div class="swatch-block" style="background:#F58220"></div><div class="swatch-meta"><div class="swatch-name">Laranja</div><div class="swatch-token">--c-orange</div><div class="swatch-hex">#F58220</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#20C4B4"></div><div class="swatch-meta"><div class="swatch-name">Teal</div><div class="swatch-token">--c-teal</div><div class="swatch-hex">#20C4B4</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#FFD02E"></div><div class="swatch-meta"><div class="swatch-name">Amarelo</div><div class="swatch-token">--c-yellow</div><div class="swatch-hex">#FFD02E</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#EE2A6E"></div><div class="swatch-meta"><div class="swatch-name">Magenta</div><div class="swatch-token">--c-magenta</div><div class="swatch-hex">#EE2A6E</div></div></div>
+      </div>
+
+      <h3 style="font-weight:700; font-size:16px; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-3); margin:0 0 16px;">Tinta · Texto (levemente roxo)</h3>
+      <div class="palette-grid" style="margin-bottom: 32px;">
+        <div class="swatch"><div class="swatch-block" style="background:#241C4A"></div><div class="swatch-meta"><div class="swatch-name">Ink — texto principal</div><div class="swatch-token">--ink</div><div class="swatch-hex">#241C4A</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#3B3363"></div><div class="swatch-meta"><div class="swatch-name">Ink 2 — secundário</div><div class="swatch-token">--ink-2</div><div class="swatch-hex">#3B3363</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#6B6490"></div><div class="swatch-meta"><div class="swatch-name">Ink 3 — terciário</div><div class="swatch-token">--ink-3</div><div class="swatch-hex">#6B6490</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#F7F4EC; border:1px solid var(--line)"></div><div class="swatch-meta"><div class="swatch-name">Background</div><div class="swatch-token">--bg</div><div class="swatch-hex">#F7F4EC</div></div></div>
+      </div>
+
+      <h3 style="font-weight:700; font-size:16px; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-3); margin:0 0 16px;">Funcionais — uso restrito</h3>
+      <div class="palette-grid">
+        <div class="swatch"><div class="swatch-block" style="background:#0E7E72"></div><div class="swatch-meta"><div class="swatch-name">VIP — teal</div><div class="swatch-token">--vip</div><div class="swatch-hex">#0E7E72</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#D2F3EF"></div><div class="swatch-meta"><div class="swatch-name">VIP soft</div><div class="swatch-token">--vip-soft</div><div class="swatch-hex">#D2F3EF</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#EE2A6E"></div><div class="swatch-meta"><div class="swatch-name">CTA — magenta</div><div class="swatch-token">--cta</div><div class="swatch-hex">#EE2A6E</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#ffffff; border:1px solid var(--line)"></div><div class="swatch-meta"><div class="swatch-name">Paper / cards</div><div class="swatch-token">--paper</div><div class="swatch-hex">#ffffff</div></div></div>
+      </div>
+    </section>
+
+    <!-- TYPE -->
+    <section class="ds-section">
+      <div class="ds-section-head">
+        <div>
+          <span class="lbl">03 · Tipografia</span>
+          <h2>Lora + Inter</h2>
+        </div>
+        <p>Lora (500) nos títulos — serifa editorial de boa cor em tela, com tracking fechado (-0.025em). Inter em 300/400/500/700 para interface, corpo e labels, com tracking aberto de 0.26em nos eyebrows. Nada de monoespaçada.</p>
+      </div>
+
+      <div class="type-spec">
+        <div class="meta">700 · 64px · -0.025em</div>
+        <div class="sample" style="font-weight:700; font-size:64px; line-height:1; letter-spacing:-0.025em;">Não é um guia. É uma dica.</div>
+      </div>
+      <div class="type-spec">
+        <div class="meta">700 · 32px · H1</div>
+        <div class="sample" style="font-weight:700; font-size:32px; line-height:1.15; letter-spacing:-0.02em;">Escolhidos a dedo, um a um.</div>
+      </div>
+      <div class="type-spec">
+        <div class="meta">500 · 20px · H2</div>
+        <div class="sample" style="font-weight:500; font-size:20px; line-height:1.3; letter-spacing:-0.01em;">Lugares que passaram pelo crivo</div>
+      </div>
+      <div class="type-spec">
+        <div class="meta">400 · 16px · Body</div>
+        <div class="sample" style="font-weight:400; font-size:16px; line-height:1.65; max-width:60ch;">Sua cidade tem mais do que você imagina. A gente monta um rolê que faz sentido pra você — sem 200 abas abertas, sem perder a noite no Google.</div>
+      </div>
+      <div class="type-spec">
+        <div class="meta">300 · 14px · Body small</div>
+        <div class="sample" style="font-weight:300; font-size:14px; line-height:1.6; color:var(--ink-3);">Quinta às 21h tem roda de samba. Chega cedo, peça a porção de torresmo — pra duas pessoas dá pra três.</div>
+      </div>
+      <div class="type-spec">
+        <div class="meta">500 · 11px · 0.18em · UPPER</div>
+        <div class="sample" style="font-weight:500; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-3);">EYEBROW · LABEL · KICKER</div>
+      </div>
+    </section>
+
+    <!-- CHIPS -->
+    <section class="ds-section">
+      <div class="ds-section-head">
+        <div>
+          <span class="lbl">04 · Sistema de chips</span>
+          <h2>Dois níveis<br>de navegação</h2>
+        </div>
+        <p>Contexto é o destaque. Tipo é o filtro. A hierarquia é visual — sem isso, o site fica como concorrente: lista plana de categorias. Com isso, fica curadoria.</p>
+      </div>
+
+      <div class="comp-grid">
+        <div class="comp-card">
+          <span class="lbl">Camada 1 · Contexto</span>
+          <div class="name">Roxo cheio · destaque</div>
+          <p class="desc">Para dates · Pra impressionar · Pra turistar · Pra relaxar · Pra economizar · Pra criançada. Aparece na grade principal da Home e como tag em cards. Sempre roxo cheio, sem outline.</p>
+          <div class="comp-demo">
+            <button class="chip">Para dates</button>
+            <button class="chip">Pra impressionar</button>
+            <button class="chip">Pra turistar</button>
+          </div>
+          <div class="comp-demo" style="background: var(--paper);">
+            <button class="chip muted">Para dates</button>
+            <button class="chip muted active">Pra impressionar</button>
+            <button class="chip muted">Pra turistar</button>
+          </div>
+          <p class="desc" style="margin-top:-4px;">Variante <code style="background:var(--bg); padding:2px 6px; border-radius:4px;">muted</code> pra cenários onde o cheio compete com o conteúdo (mapa, filtros).</p>
+        </div>
+
+        <div class="comp-card">
+          <span class="lbl">Camada 2 · Tipo</span>
+          <div class="name">Outline lavanda · filtro</div>
+          <p class="desc">Restaurantes · Bares · Parques · Shows e baladas · Eventos. Fica subordinado ao contexto — outline com fundo lavanda. Nunca compete em peso com a Camada 1.</p>
+          <div class="comp-demo">
+            <button class="chip-type">Restaurantes</button>
+            <button class="chip-type">Bares</button>
+            <button class="chip-type">Parques</button>
+            <button class="chip-type active">Eventos</button>
+          </div>
+        </div>
+
+        <div class="comp-card">
+          <span class="lbl">VIP · tag</span>
+          <div class="name">Verde · sinaliza experiência paga</div>
+          <p class="desc">Sempre que o lugar ou roteiro tem reserva VIP disponível. Verde é EXCLUSIVO desse contexto — nada mais usa essa cor.</p>
+          <div class="comp-demo">
+            <span class="tag-vip">VIP disponível</span>
+            <span class="tag-vip solid">Experiência VIP</span>
+          </div>
+        </div>
+
+        <div class="comp-card">
+          <span class="lbl">Botões</span>
+          <div class="name">Quatro intenções</div>
+          <p class="desc">Roxo pra ação padrão. Laranja só pra CTA de alta conversão (VIP, inscrição). Verde quando a ação É a conversão VIP. Ghost pra secundária.</p>
+          <div class="comp-demo">
+            <button class="btn btn-primary">Quero meu roteiro</button>
+            <button class="btn btn-cta">Quero VIP · R$ 89</button>
+            <button class="btn btn-vip">Reservar VIP</button>
+            <button class="btn btn-ghost">Ver no mapa</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AFFINITIES -->
+    <section class="ds-section">
+      <div class="ds-section-head">
+        <div>
+          <span class="lbl">05 · Afinidades</span>
+          <h2>As 6 intenções</h2>
+        </div>
+        <p>Cada uma vira página própria com slug em português pra SEO local. Combinações com tipos criam páginas de long-tail (ex: <code style="background:var(--bg); padding:2px 6px; border-radius:4px;">/para-dates/restaurantes</code>).</p>
+      </div>
+
+      <div class="ds-aff-row">
+        <span class="label">Para dates</span>
+        <span class="sub">"onde ir no date" · começar bem</span>
+        <span class="slug">/para-dates</span>
+      </div>
+      <div class="ds-aff-row">
+        <span class="label">Pra impressionar</span>
+        <span class="sub">"lugares diferentes" · reunião, sogra, BFF</span>
+        <span class="slug">/para-impressionar</span>
+      </div>
+      <div class="ds-aff-row">
+        <span class="label">Pra turistar</span>
+        <span class="sub">"o que fazer na cidade" · chegou agora</span>
+        <span class="slug">/para-turistar</span>
+      </div>
+      <div class="ds-aff-row">
+        <span class="label">Pra relaxar</span>
+        <span class="sub">"passeios" · domingo sem pressa</span>
+        <span class="slug">/para-relaxar</span>
+      </div>
+      <div class="ds-aff-row">
+        <span class="label">Pra economizar</span>
+        <span class="sub">"o que fazer de graça" · vale cada real</span>
+        <span class="slug">/para-economizar</span>
+      </div>
+      <div class="ds-aff-row">
+        <span class="label">Pra criançada</span>
+        <span class="sub">"o que fazer com criança" · família feliz</span>
+        <span class="slug">/para-a-criancada</span>
+      </div>
+    </section>
+
+    <!-- VOICE -->
+    <section class="ds-section">
+      <div class="ds-section-head">
+        <div>
+          <span class="lbl">06 · Tom de voz</span>
+          <h2>Como a gente fala</h2>
+        </div>
+        <p>A marca soa como o amigo que mora na cidade há 10 anos, conhece os cantos e sempre sabe onde levar alguém pra impressionar — sem esnobismo, sem frescura.</p>
+      </div>
+
+      <div class="voice-grid">
+        <div class="voice-card no">
+          <span class="lbl">Não usar</span>
+          <p>"Restaurante Tal oferece cardápio variado com opções para todos os gostos."</p>
+        </div>
+        <div class="voice-card yes">
+          <span class="lbl">Usar</span>
+          <p>"Esse lugar tem a energia certa pra quem quer chegar e já causar."</p>
+        </div>
+        <div class="voice-card no">
+          <span class="lbl">Não usar</span>
+          <p>"Confira as melhores opções de lazer para o final de semana."</p>
+        </div>
+        <div class="voice-card yes">
+          <span class="lbl">Usar</span>
+          <p>"Sua cidade tem mais pra oferecer do que você imagina. Vai perder?"</p>
+        </div>
+        <div class="voice-card no">
+          <span class="lbl">Não usar</span>
+          <p>"Realize seu cadastro para receber nossas comunicações."</p>
+        </div>
+        <div class="voice-card yes">
+          <span class="lbl">Usar</span>
+          <p>"Recebe o roteiro da semana direto no seu e-mail. Grátis."</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PERSONALITY -->
+    <section class="ds-section">
+      <div class="ds-section-head">
+        <div>
+          <span class="lbl">07 · Personalidade</span>
+          <h2>Em 6 atributos</h2>
+        </div>
+        <p>Use esses 6 como filtro de decisão sempre que estiver em dúvida — "isso soa como amigo de 10 anos de cidade?"</p>
+      </div>
+
+      <div class="pers-grid">
+        <div class="pers-card"><span class="name">Curioso</span><p class="desc">Sempre buscando o que ainda não virou clichê</p></div>
+        <div class="pers-card"><span class="name">Próximo</span><p class="desc">Fala como gente, não como empresa</p></div>
+        <div class="pers-card"><span class="name">Criterioso</span><p class="desc">Seleciona com critério, não lista tudo</p></div>
+        <div class="pers-card"><span class="name">Dinâmico</span><p class="desc">Conteúdo vivo, sempre atualizado</p></div>
+        <div class="pers-card"><span class="name">Local</span><p class="desc">Fala a língua de cada cidade que cobre</p></div>
+        <div class="pers-card"><span class="name">Genuíno</span><p class="desc">Recomenda o que acredita, não o que paga mais</p></div>
+      </div>
+    </section>
+
+    <!-- CARDS PREVIEW -->
+    <section class="ds-section">
+      <div class="ds-section-head">
+        <div>
+          <span class="lbl">08 · Componentes</span>
+          <h2>Cartões em uso</h2>
+        </div>
+        <p>Três tipos: roteiro (com chip de contexto), lugar (com chip de tipo) e VIP (escuro, com chip verde). Toda foto tem placeholder editorial tintado pela afinidade enquanto a real não chega.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <article class="card place">
+          <div class="placeholder tint-eco" style="aspect-ratio:4/3;">PARA ECONOMIZAR</div>
+          <div class="body" style="padding: 18px 20px 6px;">
+            <span class="chip-type">Bares</span>
+            <h4 style="font-weight:700; font-size:20px; letter-spacing:-0.01em; margin:10px 0 6px;">Quintal do Centro</h4>
+            <p class="sub" style="color: var(--ink-3); font-size: 14px;">Centro · Boteco com mesa na calçada, chope honesto e o melhor pastel da região.</p>
+          </div>
+          <div class="footer" style="display:flex; justify-content:space-between; padding:14px 20px; border-top:1px solid var(--line); font-size:13px; color:var(--ink-3); margin-top: 10px;">
+            <span style="color: var(--ink); font-weight: 500;">★ 4.7 · 248</span>
+            <span>R$</span>
+          </div>
+        </article>
+
+        <article class="card" style="background: var(--ink); color: #fff; border-color: var(--ink); position: relative; overflow: hidden;">
+          <div style="position: absolute; right: -80px; top: -80px; width: 240px; height: 240px; background: radial-gradient(circle, rgba(26,110,69,0.4), transparent 70%); pointer-events: none;"></div>
+          <div style="padding: 28px; position: relative;">
+            <span class="tag-vip solid">VIP disponível</span>
+            <h4 style="font-weight:700; font-size:24px; letter-spacing:-0.01em; margin:14px 0 8px; line-height:1.2;">Mesa reservada<br>+ brinde de cortesia</h4>
+            <p style="color:rgba(255,255,255,0.7); margin:0 0 20px;">Pague aqui, chegue como convidado. Cuidamos do resto.</p>
+            <button class="btn btn-cta">Quero VIP · R$ 89 →</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer-ds">
+      <span>Onde Sair · Design System · v1.0 · 2026</span>
+      <a href="index.html" class="ds-back">← Voltar ao protótipo</a>
+    </footer>
+  </div>
+</body>
+</html>

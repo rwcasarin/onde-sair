@@ -1,0 +1,909 @@
+ONDE SAIR
+
+Sorocaba
+
+Documento Master do Projeto
+
+Modelo de Negócio · Plataforma · SEO · Concorrentes · Receita
+
+Maio 2026
+
+1. Visão Geral do Negócio
+
+Conceito
+
+O Onde Sair é uma plataforma de curadoria de experiências locais em Sorocaba. Diferente de guias genéricos ou listas infinitas, o produto organiza lugares e roteiros por contexto de intenção — para dates, para impressionar, para turistar, para relaxar — conectando o usuário certo ao lugar certo no momento certo.
+
+A proposta central: não é um guia genérico, nem uma lista infinita. É curadoria por afinidade.
+
+POSICIONAMENTO
+
+Campo
+
+Definição
+
+Estágio
+
+Inicial — pré-receita
+
+Sede
+
+Sorocaba, SP
+
+Setor
+
+Serviços / Plataforma digital
+
+Modelo de negócio
+
+B2B2C — usuário gratuito, receita via anunciantes e VIP
+
+Público primário
+
+Moradores de Sorocaba que querem sair da rotina
+
+Cliente pagante
+
+Estabelecimentos locais (B2B)
+
+Proposta de Valor
+
+Para o usuário final
+
+Roteiros curados por contexto de intenção, não apenas listas de lugares
+
+Recomendações personalizadas: date, exploração, chegou na cidade, quer impressionar
+
+Descoberta de lugares autênticos antes de virarem mainstream
+
+Conexão por afinidade entre pessoas e espaços da cidade
+
+Para os negócios parceiros (B2B)
+
+Acesso a público qualificado e engajado com intenção de sair
+
+Visibilidade contextualizada — aparecer no momento certo, para a pessoa certa
+
+Experiências VIP como canal de aquisição de novos clientes
+
+2. Business Model Canvas
+
+Os 9 Blocos
+
+1 · Parceiros-chave
+
+Estabelecimentos locais: bares, restaurantes, ateliês, espaços culturais
+
+Produtores de eventos independentes
+
+Influenciadores e criadores de conteúdo locais
+
+Prefeituras e secretarias de cultura e turismo
+
+Plataformas de pagamento e reserva (integrações futuras)
+
+2 · Atividades-chave
+
+Curadoria e atualização constante da base de conteúdo
+
+Onboarding de negócios parceiros (B2B)
+
+Produção de conteúdo editorial e roteiros
+
+Gestão da comunidade e engajamento nas redes sociais
+
+SEO local — criação contínua de páginas indexáveis
+
+3 · Proposta de Valor (resumo)
+
+Roteiros por intenção — não por tipo de lugar
+
+Experiências VIP com reserva antecipada e benefícios exclusivos
+
+Para negócios: novo público qualificado com intenção de consumo
+
+4 · Relacionamento com clientes
+
+Comunidade ativa nas redes sociais
+
+Conteúdo editorial recorrente (roteiros semanais)
+
+UGC: usuários compartilham experiências vividas
+
+Newsletter com roteiro da semana
+
+5 · Segmentos de clientes
+
+Usuário A: Recém-chegado em Sorocaba querendo explorar a cidade
+
+Usuário B: Residente cansado da rotina que quer sair da mesmice
+
+Usuário C: Quem quer impressionar em um date ou ocasião especial
+
+Cliente B2B: Estabelecimentos que querem visibilidade qualificada
+
+Anunciante: Marcas locais querendo atingir público engajado
+
+6 · Recursos-chave
+
+Base de dados de lugares e experiências curadas — principal ativo
+
+Comunidade e audiência engajada
+
+Equipe com conhecimento editorial e local
+
+Reputação e boca a boca ativo
+
+7 · Canais
+
+Site com SEO local — canal principal de aquisição orgânica
+
+Redes sociais e grupos temáticos (orgânico)
+
+Boca a boca e indicação
+
+Presença em grandes eventos de Sorocaba
+
+8 · Estrutura de custos
+
+Equipe fixa: editorial, comercial, tecnologia
+
+Infraestrutura de plataforma e hospedagem
+
+Produção de conteúdo e roteiros
+
+Aquisição e onboarding de parceiros B2B
+
+Ferramentas de gestão, e-mail marketing e automação
+
+9 · Fontes de receita
+
+Publicidade e destaque pago para estabelecimentos (B2B)
+
+Pacotes de Experiência VIP (usuário final)
+
+Clube de assinatura mensal
+
+Gift Cards de experiência — especialmente em datas comemorativas
+
+Patrocínio de roteiros e conteúdo editorial
+
+3. Modelo de Receita
+
+Fontes e Sequência de Implantação
+
+Princípio: construa audiência primeiro, monetize depois.
+
+Com métricas reais de engajamento em mãos, a venda de publicidade e VIP se torna mais fácil e com ticket maior.
+
+Fonte 1 — Pacote de Experiência VIP
+
+Modelo recomendado para validação imediata. O usuário paga por uma experiência curada e exclusiva: mesa reservada com brinde, menu especial ou acesso diferenciado. A plataforma vende e cuida da expectativa. O parceiro entrega.
+
+Parâmetro
+
+Detalhe
+
+Split de receita
+
+30% plataforma · 70% parceiro
+
+Ticket médio
+
+R$ 80 – R$ 250
+
+Custo operacional
+
+Baixo — sem infraestrutura adicional
+
+Velocidade de validação
+
+Alta — pode ser vendido via WhatsApp no piloto
+
+Quando lançar
+
+Fase 1 (meses 1–2)
+
+Fonte 2 — Destaque Pago para Estabelecimentos (B2B)
+
+Pacote mensal com posição destacada nos roteiros, editorial patrocinado e presença visual na plataforma. Alta margem, fácil de vender, não depende do usuário pagar nada.
+
+Parâmetro
+
+Detalhe
+
+Split de receita
+
+100% plataforma
+
+Ticket médio
+
+R$ 200 – R$ 800/mês
+
+Custo operacional
+
+Médio — produção de conteúdo editorial
+
+Quando lançar
+
+Fase 1–2 (paralelo ao VIP)
+
+Fonte 3 — Clube de Assinatura Mensal
+
+Por R$ 39–79/mês, o assinante recebe: 1 experiência VIP por mês + descontos exclusivos + acesso antecipado a roteiros. Cria receita previsível e fideliza o usuário.
+
+Parâmetro
+
+Detalhe
+
+Split de receita
+
+100% plataforma (parceiro recebe visibilidade e movimento)
+
+Ticket mensal
+
+R$ 39 – R$ 79
+
+LTV potencial
+
+Alto — modelo de recorrência
+
+Quando lançar
+
+Fase 2 (meses 3–5)
+
+Fonte 4 — Gift Card de Experiência
+
+Presente curado para datas especiais: aniversário, Dia dos Namorados, amigo secreto. Quem dá escolhe o valor, quem recebe escolhe o roteiro. Alta conversão sazonal.
+
+Parâmetro
+
+Detalhe
+
+Split de receita
+
+25% plataforma · 75% parceiro
+
+Valor médio
+
+R$ 100 – R$ 300
+
+Característica
+
+Sazonal, alto ticket, viral por natureza
+
+Quando lançar
+
+Fase 3 (mês 6+, datas comemorativas)
+
+Roadmap de Receita · Sorocaba
+
+Fase
+
+Ação e Meta
+
+Fase 1 · Mês 1–2
+
+Vender 10 pacotes VIP manualmente (WhatsApp/Instagram). Fechar 3–5 parceiros B2B. Meta: R$ 1.200–3.000 em receita piloto.
+
+Fase 2 · Mês 3–5
+
+Lançar clube de assinatura. Expandir B2B para 8 parceiros. Criar página /vip no site. Meta: R$ 4.000–8.000/mês recorrente.
+
+Fase 3 · Mês 6+
+
+Lançar Gift Cards em datas comemorativas. 15+ parceiros ativos. Avaliar comissão por reserva. Meta: R$ 15.000–30.000/mês.
+
+4. Plataforma — Site
+
+Objetivos e Prioridades · 90 dias
+
+Prioridade
+
+Objetivo
+
+#1
+
+SEO local — aparecer no Google para buscas em Sorocaba
+
+#2
+
+Captura de cadastros — construir base de e-mails
+
+#3
+
+Design profissional — credibilidade de marca
+
+#4
+
+Vendas diretas — experiências VIP (fase posterior)
+
+Mapa de Páginas · V1
+
+URL
+
+Propósito e Prioridade
+
+/
+
+Home — apresentação da plataforma, destaque de roteiros, CTA de cadastro. Prioridade: Alta · Semana 1
+
+/roteiros
+
+Listagem de roteiros por contexto (date, exploração, família). Prioridade: Alta · Semana 1
+
+/roteiros/[slug]
+
+Roteiro individual — página mais importante para SEO. Título com keyword local. Prioridade: Crítica · Semana 2
+
+/lugares
+
+Diretório de estabelecimentos parceiros com filtros. Prioridade: Média · Semana 3
+
+/vip
+
+Experiências VIP disponíveis com preço e reserva. Prioridade: Média · Semana 4
+
+/parceiros
+
+Página B2B — proposta para estabelecimentos. Prioridade: Apoio · Semana 3–4
+
+Arquitetura de Navegação
+
+O site opera com dois tipos de categoria convivendo com hierarquia clara:
+
+Camada 1 — Contexto (destaque, chips roxos cheios)
+
+/para-dates — "onde ir no date em Sorocaba"
+
+/para-impressionar — "lugares diferentes Sorocaba"
+
+/para-turistar — "o que fazer em Sorocaba"
+
+/para-relaxar, /para-economizar, /para-a-criancada
+
+Camada 2 — Tipo (filtro, chips com outline)
+
+/restaurantes, /bares, /parques, /shows-e-baladas, /eventos
+
+Páginas Cruzadas — ouro para SEO
+
+Combinações de contexto + tipo criam páginas de long-tail com altíssima intenção de busca e zero concorrência local. Criar apenas quando houver 4–5 lugares cadastrados por combinação.
+
+/para-dates/restaurantes — "restaurante romântico Sorocaba"
+
+/para-impressionar/bares — "bar diferente Sorocaba"
+
+/para-turistar/parques — "parques Sorocaba"
+
+Palavras-chave Prioritárias · SEO Local
+
+Volume
+
+Palavra-chave alvo
+
+Alto
+
+o que fazer em Sorocaba
+
+Alto
+
+roteiro em Sorocaba
+
+Alto
+
+melhores bares Sorocaba
+
+Alto
+
+restaurante Sorocaba
+
+Médio
+
+onde ir no date em Sorocaba
+
+Médio
+
+passeios em Sorocaba
+
+Baixo · sem concorrência
+
+bar diferente Sorocaba
+
+Baixo · sem concorrência
+
+experiência diferente Sorocaba
+
+Baixo · sem concorrência
+
+bares escondidos em Sorocaba
+
+Estratégia de Captura de E-mails
+
+CTA
+
+Texto e localização
+
+Principal (toda página)
+
+"Receba um roteiro novo toda semana — de graça"
+
+Secundário (/vip)
+
+"Entre na lista VIP e seja o primeiro a saber das experiências"
+
+Contextual (dentro de roteiros)
+
+"Gostou desse roteiro? Salve e receba mais como esse"
+
+Parceiros (/parceiros)
+
+"Quero que meu negócio apareça aqui"
+
+Decisões Técnicas
+
+Ferramenta
+
+Decisão
+
+CMS
+
+WordPress (Yoast para SEO) ou Webflow — ambos adequados para o perfil de marketing
+
+E-mail marketing
+
+Mailchimp ou Brevo — configurar antes do lançamento com boas-vindas automático
+
+Google Business Profile
+
+Criar e verificar imediatamente — aparece em buscas locais sem depender de SEO
+
+Google Analytics + Search Console
+
+Instalar antes de publicar — indispensável para otimização
+
+App mobile
+
+Não agora — site responsivo resolve o início
+
+Sistema de reserva
+
+WhatsApp + formulário no piloto; integrar após 5 experiências ativas
+
+5. Análise de Concorrentes
+
+Agenda Sorocaba · Concorrente #1
+
+Site: agendasorocaba.com · Desde 2011 · Maior autoridade local
+
+Dimensão
+
+Análise
+
+Forças
+
+Autoridade de domínio alta, cobertura ampla (cinema, shows, gastronomia), parcerias com grandes anunciantes, atualização frequente
+
+Fraquezas
+
+Design poluído e datado com excesso de anúncios, sem curadoria por intenção, UX defasada em mobile, conteúdo informativo (não inspira), sem monetização voltada ao usuário final
+
+Lacuna que você ocupa
+
+Eles informam o que está acontecendo — você diz por que ir. Não existe curadoria "para dates" ou "para impressionar" lá.
+
+Leitura estratégica
+
+Concorrente em volume, mas não em posicionamento. Eles são um jornal de agenda. Você é um curador de experiências.
+
+TripAdvisor · Concorrente #2
+
+Site global · Foco em turistas e avaliações · Forte em SEO genérico
+
+Dimensão
+
+Análise
+
+Forças
+
+Autoridade global, base enorme de avaliações, integração com reservas, filtros por tipo de experiência
+
+Fraquezas
+
+Foco em turista (ignora morador local), sem curadoria editorial, impessoal, cobertura rasa de Sorocaba, interface complexa
+
+Lacuna que você ocupa
+
+O morador de Sorocaba não se enxerga no TripAdvisor. Sorocaba está subrepresentada lá — você pode dominar o território local.
+
+Leitura estratégica
+
+Não é concorrente direto — é o inimigo a vencer no Google. Possível com conteúdo local denso e autoridade construída.
+
+Bares de Sorocaba · Concorrente #3
+
+Instagram @baresdesorocaba · Sem site · Foco em bares e gastronomia
+
+Dimensão
+
+Análise
+
+Forças
+
+Comunidade engajada no Instagram, conteúdo focado, parceiros ativos, linguagem próxima e informal
+
+Fraquezas
+
+Sem site (zero SEO), alcance limitado ao algoritmo do Instagram, sem curadoria editorial, escopo restrito, sem monetização estruturada
+
+Lacuna que você ocupa
+
+Você aparece no Google — eles não. Cobre mais categorias com mais contexto e curadoria.
+
+Leitura estratégica
+
+Mais parceiro do que concorrente. Eles têm comunidade e relacionamento com bares — você tem plataforma e SEO. Parceria futura faz sentido.
+
+Rolê Sorocaba · Concorrente #4
+
+Instagram @rolesorocaba · Sem site · Generalista e dinâmico
+
+Dimensão
+
+Análise
+
+Forças
+
+Linguagem jovem e engajante, descobre lugares novos rapidamente, formato Reels funciona bem, tom de "dica de amigo"
+
+Fraquezas
+
+Sem site (zero SEO), sem curadoria por contexto, conteúdo efêmero (some em dias), sem roteiros, sem monetização estruturada
+
+Lacuna que você ocupa
+
+Seu conteúdo persiste no Google — o deles some em dias. Roteiros conectam os lugares — eles mostram um de cada vez.
+
+Leitura estratégica
+
+Concorrente mais próximo em posicionamento e público. Monitore de perto — onde eles vão, você deve ter um roteiro. Use o estilo deles como inspiração para as redes sociais.
+
+Matriz Comparativa
+
+Dimensão
+
+Agenda Sor.
+
+TripAdvisor
+
+Bares Sor.
+
+Rolê Sor.
+
+Onde Sair ★
+
+SEO (Google)
+
+●●● Alta
+
+●●● Global
+
+○ Zero
+
+○ Zero
+
+● A construir
+
+Curadoria por intenção
+
+○ Não
+
+◐ Parcial
+
+○ Não
+
+○ Não
+
+●●● Sim ★
+
+Roteiros editoriais
+
+○ Não
+
+○ Não
+
+○ Não
+
+○ Não
+
+●●● Sim ★
+
+Monetização do usuário
+
+○ Não
+
+◐ Parcial
+
+○ Não
+
+○ Não
+
+●●● Sim ★
+
+Design / UX moderno
+
+○ Defasado
+
+◐ Funcional
+
+◐ OK (IG)
+
+◐ OK (IG)
+
+●●● Sim ★
+
+Cobertura local
+
+●●● Alta
+
+◐ Rasa
+
+◐ Média
+
+◐ Média
+
+● A construir
+
+Escalabilidade
+
+○ Não
+
+●●● Global
+
+○ Não
+
+○ Não
+
+●●● Sim ★
+
+Lacunas do Mercado · Suas para Explorar
+
+Posicionamento: Ninguém faz curadoria por intenção em Sorocaba — território completamente aberto
+
+SEO: Bares de Sorocaba e Rolê Sorocaba não existem no Google — SEO é vantagem imediata
+
+Receita: Nenhum concorrente monetiza o usuário final — modelo VIP é inédito localmente
+
+UX: Agenda Sorocaba tem autoridade mas UX péssima — espaço aberto para design superior
+
+Marca: O morador local não tem "seu" guia — oportunidade de criar pertencimento de marca
+
+Conteúdo: Conteúdo editorial persistente não existe localmente — Reels somem, suas páginas ficam
+
+6. Decisões-Chave do Projeto
+
+Estratégia
+
+Começar com Sorocaba — dominar antes de expandir. O modelo depende de densidade de conteúdo local.
+
+Contexto é o destaque, tipo de lugar é o filtro. A curadoria por intenção é o diferencial inegociável.
+
+A base de dados é o maior ativo — curadoria com qualidade supera quantidade.
+
+Usuário final é a isca, anunciante é o peixe — crescer audiência é a estratégia de receita.
+
+Boca a boca precisa virar canal gerenciável — programa de indicação e conteúdo compartilhável.
+
+Operação
+
+Validar o modelo VIP manualmente (sem plataforma) nos meses 1–2 antes de construir infraestrutura.
+
+Não criar páginas cruzadas vazias — mínimo 4–5 lugares cadastrados por combinação de contexto + tipo.
+
+Configurar Google Business Profile imediatamente — impacto em buscas locais antes do SEO do site.
+
+Instalar Analytics e Search Console antes do lançamento — sem dados, sem otimização.
+
+Newsletter com roteiro semanal configurada antes de capturar o primeiro e-mail.
+
+Riscos a Monitorar
+
+Custo fixo alto com receita lenta no início — priorizar vendas diretas simples antes de escalar equipe.
+
+Boca a boca não escala sozinho — estruturar canal de indicação desde o início.
+
+Agenda Sorocaba pode reagir ao crescimento — construir autoridade de SEO é o melhor escudo.
+
+Páginas indexadas sem conteúdo prejudicam SEO — crescer com qualidade, não com pressa.
+
+7. Identidade Visual
+
+Nome e Taglines
+
+Nome: Onde Sair. Mantido pela clareza, naturalidade e alinhamento com buscas orgânicas — é a pergunta exata que o público digita no Google.
+
+Tagline
+
+Uso
+
+"Não é um guia. É uma dica."
+
+Principal — posicionamento, header do site, bio de redes
+
+"Curadoria por afinidade."
+
+Subtítulo — hero da Home, apresentações
+
+"Sorocaba tem mais do que você imagina."
+
+Campanhas — fala diretamente com o residente entediado
+
+"O roteiro é nosso. A escolha é sua."
+
+Secundária — comunica curadoria sem tirar autonomia
+
+Paleta de Cores
+
+Token
+
+Hex · Uso
+
+Primária
+
+#673de6 — cor principal, chips de contexto, botões primários, logo
+
+Escura (hover)
+
+#4d22cc — estados hover e pressionados
+
+Clara (superfície)
+
+#ede8fd — fundo de tags, badges e chips de tipo
+
+Borda roxa
+
+#c4b5f9 — bordas de chips de tipo e inputs
+
+Ink (texto)
+
+#1a1625 — texto principal (tom levemente roxo)
+
+Ink 2
+
+#2e2640 — texto secundário
+
+Ink 3
+
+#5c5275 — texto terciário, metadados
+
+Background
+
+#f7f5ff — fundo de página (off-white roxado)
+
+Verde (VIP)
+
+#1a6e45 — tudo relacionado a Experiência VIP
+
+Verde claro
+
+#d4ede0 — fundo de badges VIP
+
+Laranja (CTA)
+
+#d94f1a — CTAs de alta conversão ("Quero meu roteiro")
+
+Tipografia — DM Sans
+
+Fonte única: DM Sans (Google Fonts, gratuita). Importar os pesos 300, 400, 500 e 700 apenas.
+
+Aplicação
+
+Peso · Tamanho · Observação
+
+Display / hero
+
+700 · 48px+ · letter-spacing -0.02em
+
+H1
+
+700 · 28–32px · letter-spacing -0.02em
+
+H2
+
+500 · 18–20px
+
+Body
+
+400 · 15–16px · line-height 1.65
+
+Body small / metadados
+
+300 · 13–14px · line-height 1.6
+
+Label / eyebrow
+
+500 · 11px · uppercase · letter-spacing 0.18em
+
+Uso das Cores na Interface
+
+Elemento
+
+Cor
+
+Chips de contexto (Para dates, Para impressionar…)
+
+#673de6 fundo · branco texto
+
+Chips de tipo (Restaurantes, Bares…)
+
+#ede8fd fundo · #3a1db5 texto · borda #c4b5f9
+
+Badge / tag VIP
+
+#d4ede0 fundo · #0f4a2d texto
+
+Botão primário de conversão
+
+#d94f1a (laranja) fundo · branco texto
+
+Botão secundário
+
+transparente · borda #c4b5f9 · texto #4d22cc
+
+Banner VIP (dark)
+
+#1a1625 fundo · texto branco e rgba(255,255,255,0.7)
+
+Background de página
+
+#f7f5ff
+
+Cards e superfícies
+
+#ffffff · borda rgba(103,61,230,0.14)
+
+Tom de Voz
+
+A marca fala como o amigo que mora há 10 anos em Sorocaba, conhece todos os cantos e sempre sabe onde levar alguém para impressionar — sem esnobismo, sem frescura.
+
+Não usar
+
+Usar
+
+"Restaurante Tal oferece cardápio variado com opções para todos os gostos."
+
+"Esse lugar tem a energia certa pra quem quer chegar e já causar."
+
+"Confira as melhores opções de lazer para o final de semana."
+
+"Sorocaba tem mais pra oferecer do que você imagina. Vai perder?"
+
+"Realize seu cadastro para receber nossas comunicações."
+
+"Recebe o roteiro da semana direto no seu e-mail. Grátis."
+
+Personalidade em 6 Atributos
+
+Curioso — Sempre buscando o que ainda não virou clichê
+
+Próximo — Fala como gente, não como empresa
+
+Criterioso — Seleciona com critério, não lista tudo
+
+Dinâmico — Conteúdo vivo, sempre atualizado
+
+Local — De Sorocaba, para Sorocaba — por enquanto
+
+Genuíno — Recomenda o que acredita, não o que paga mais
+
+Próximos Passos
+
+Estrutura editorial dos primeiros 5 roteiros
+
+Pitch para os primeiros parceiros B2B em Sorocaba
+
+Configurar Google Business Profile e ferramentas de SEO
+
+Construir e lançar V1 do site com primeiros roteiros indexados
+
+Onde Sair · Sorocaba · Documento confidencial · Maio 2026

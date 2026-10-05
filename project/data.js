@@ -1,0 +1,282 @@
+// =====================================================================
+// Onde Sair — mock data
+// Cobertura nacional · cidade ativa definida pelo usuário
+// Brief: 6 afinidades de contexto + 5 tipos de lugar (filtros)
+// =====================================================================
+
+const CITIES = [
+  { id: "sp",   name: "São Paulo",      sub: "SP", active: true },
+  { id: "rio",  name: "Rio de Janeiro", sub: "RJ", active: true },
+  { id: "bh",   name: "Belo Horizonte", sub: "MG", active: true },
+  { id: "cwb",  name: "Curitiba",       sub: "PR", active: true },
+  { id: "poa",  name: "Porto Alegre",   sub: "RS", active: true },
+  { id: "rec",  name: "Recife",         sub: "PE", active: true },
+];
+
+// Camada 1 — Contexto (chips roxos cheios · DESTAQUE)
+const AFFINITIES = [
+  { id: "dates",    label: "Para dates",       sub: "Pra começar bem",     slug: "para-dates",       tint: "tint-date",    count: 18 },
+  { id: "impress",  label: "Pra impressionar", sub: "Reunião, sogra, BFF", slug: "para-impressionar",tint: "tint-impress", count: 12 },
+  { id: "turist",   label: "Pra turistar",     sub: "Chegou agora",        slug: "para-turistar",    tint: "tint-turist",  count: 22 },
+  { id: "relax",    label: "Pra relaxar",      sub: "Domingo sem pressa",  slug: "para-relaxar",     tint: "tint-relax",   count: 16 },
+  { id: "eco",      label: "Pra economizar",   sub: "Vale cada real",      slug: "para-economizar",  tint: "tint-eco",     count: 19 },
+  { id: "crianca",  label: "Pra criançada",    sub: "Família toda feliz",  slug: "para-a-criancada", tint: "tint-crianca", count: 11 },
+];
+
+// Camada 2 — Tipo (chips outline · FILTRO)
+const TYPES = [
+  { id: "restaurantes",   label: "Restaurantes",     slug: "restaurantes" },
+  { id: "bares",          label: "Bares",            slug: "bares" },
+  { id: "parques",        label: "Parques",          slug: "parques" },
+  { id: "shows-baladas",  label: "Shows e baladas",  slug: "shows-e-baladas" },
+  { id: "eventos",        label: "Eventos",          slug: "eventos" },
+];
+
+const ROTEIROS = [
+  {
+    id: "r1",
+    aff: "dates", affLabel: "Para dates", tint: "tint-date",
+    title: "Date sem clichê: do drinque ao último gole",
+    desc: "Bar com pegada, jantar que rende conversa, sobremesa que ninguém esquece. Tudo a poucos passos um do outro.",
+    paradas: 4, vip: true,
+    bairros: "Jardins · Vila Nova",
+  },
+  {
+    id: "r2",
+    aff: "turist", affLabel: "Pra turistar", tint: "tint-turist",
+    title: "Chegou agora? Comece pelo Centro Histórico",
+    desc: "Catedral, mercado municipal, parque histórico e os cafés que os locais mantêm em segredo.",
+    paradas: 5, vip: false,
+    bairros: "Centro · Boa Vista",
+  },
+  {
+    id: "r3",
+    aff: "impress", affLabel: "Pra impressionar", tint: "tint-impress",
+    title: "Lugares que pouca gente conhece (e que vão te fazer parecer entendido)",
+    desc: "Endereços escondidos, atmosfera única. Pra chegar e já causar antes da carta sair.",
+    paradas: 3, vip: true,
+    bairros: "Vila Nova · Santa Cecília",
+  },
+  {
+    id: "r4",
+    aff: "relax", affLabel: "Pra relaxar", tint: "tint-relax",
+    title: "Domingo sem pressa: parque, café e pôr do sol",
+    desc: "Quando a semana foi pesada, esse é o roteiro. Verde, calma e nada de pressa.",
+    paradas: 3, vip: false,
+    bairros: "Parque Municipal · Centro",
+  },
+  {
+    id: "r5",
+    aff: "eco", affLabel: "Pra economizar", tint: "tint-eco",
+    title: "Rolê completo por menos de R$ 80",
+    desc: "Comida boa, programa de graça, drinque honesto. Cabe no bolso e não cabe no esquecimento.",
+    paradas: 4, vip: false,
+    bairros: "Centro · Boa Vista",
+  },
+  {
+    id: "r6",
+    aff: "crianca", affLabel: "Pra criançada", tint: "tint-crianca",
+    title: "Sábado com as crianças: do parque ao sorvete artesanal",
+    desc: "Quatro paradas testadas com criança de verdade — todas com troca, banheiro decente e sombra.",
+    paradas: 4, vip: false,
+    bairros: "Parque Municipal · Jardins",
+  },
+];
+
+// Lugares fictícios · nomes, bairros e endereços plausíveis
+const PLACES = [
+  {
+    id: "p1",
+    name: "Quintal do Centro",
+    type: "Bares",
+    bairro: "Centro",
+    desc: "Boteco com mesa na calçada, chope honesto e o melhor pastel da região. Conversa que dura até fechar.",
+    dica: "Chega antes das 19h e pega a mesa do fundo. Peça o pastel de pernil — não tá no cardápio, tá no balcão.",
+    by: "Curadoria · Marina F.",
+    affs: ["dates", "eco"],
+    tint: "tint-eco",
+    rating: 4.7, reviews: 248,
+    priceLevel: 1,
+    vip: false,
+    open: "Ter–Sáb · 17h – 00h",
+    end: "R. Padre Luiz, 84 · Centro",
+    map: { x: 32, y: 56, label: "QC" },
+  },
+  {
+    id: "p2",
+    name: "Mesa 14",
+    type: "Restaurantes",
+    bairro: "Jardins",
+    desc: "Cozinha autoral, balcão aberto pra cozinha, menu que muda toda semana. Sem reserva é loteria.",
+    dica: "Mesa do balcão é a melhor da casa. Reserva com 1 semana, peça o degustação de 5 tempos.",
+    by: "Curadoria · Lucas P.",
+    affs: ["impress", "dates"],
+    tint: "tint-impress",
+    rating: 4.9, reviews: 312,
+    priceLevel: 3,
+    vip: true,
+    open: "Qua–Sáb · 19h – 23h",
+    end: "Al. dos Ipês, 1024 · Jardins",
+    map: { x: 56, y: 30, label: "M14" },
+  },
+  {
+    id: "p3",
+    name: "Florado Café",
+    type: "Restaurantes",
+    bairro: "Vila Nova",
+    desc: "Especialidade, brunch de fim de semana, pão de fermentação natural. Luz da manhã imbatível.",
+    dica: "Sábado 10h, mesa da janela. Coado do dia + pão na chapa = combinação assinada da casa.",
+    by: "Curadoria · Ana C.",
+    affs: ["relax", "eco"],
+    tint: "tint-relax",
+    rating: 4.8, reviews: 412,
+    priceLevel: 2,
+    vip: false,
+    open: "Diariamente · 8h – 19h",
+    end: "R. Cesário Mota, 217 · Vila Nova",
+    map: { x: 22, y: 38, label: "FC" },
+  },
+  {
+    id: "p4",
+    name: "Parque das Águas",
+    type: "Parques",
+    bairro: "Zona Norte",
+    desc: "O oásis verde da cidade. Pista, lago, sombra em peso. Família, casal, corredor — cabe todo mundo.",
+    dica: "Domingo 16h: caminhada no entorno do lago, depois pipoca na barraca da entrada. Tradição.",
+    by: "Curadoria · time Onde Sair",
+    affs: ["relax", "crianca", "eco"],
+    tint: "tint-relax",
+    rating: 4.8, reviews: 1840,
+    priceLevel: 0,
+    vip: false,
+    open: "Diariamente · 6h – 19h",
+    end: "Av. das Nações · Zona Norte",
+    map: { x: 70, y: 60, label: "PA" },
+  },
+  {
+    id: "p5",
+    name: "Clube Aurora",
+    type: "Shows e baladas",
+    bairro: "Boa Vista",
+    desc: "Pista boa, line-up que respeita house e disco. Atmosfera continua até o sol nascer.",
+    dica: "Antes das 23h30 entra sem fila. Depois disso, só com lista — siga o perfil da casa.",
+    by: "Curadoria · Rafael S.",
+    affs: ["impress"],
+    tint: "tint-impress",
+    rating: 4.6, reviews: 184,
+    priceLevel: 2,
+    vip: true,
+    open: "Sex–Sáb · 23h – 5h",
+    end: "R. Padre Anchieta, 412 · Boa Vista",
+    map: { x: 80, y: 22, label: "AS" },
+  },
+  {
+    id: "p6",
+    name: "Cine Vitória",
+    type: "Eventos",
+    bairro: "Centro",
+    desc: "Sala única, curadoria de cinema independente, pipocário gourmet. O cinema que a cidade estava devendo.",
+    dica: "Sessão de quinta tem chope de cortesia. Filme cult + chope = combinação correta.",
+    by: "Curadoria · Marina F.",
+    affs: ["dates", "eco"],
+    tint: "tint-eco",
+    rating: 4.7, reviews: 296,
+    priceLevel: 1,
+    vip: false,
+    open: "Programação semanal",
+    end: "R. da Penha, 165 · Centro",
+    map: { x: 44, y: 70, label: "CV" },
+  },
+  {
+    id: "p7",
+    name: "Feira do Largo",
+    type: "Eventos",
+    bairro: "Centro",
+    desc: "Chorinho ao vivo, antiguidades, pastel de feira de verdade. A cidade antiga inteira na rua.",
+    dica: "Sábado às 13h. Pastel de queijo + caldo de cana — e depois quiosque do Seu Toninho.",
+    by: "Curadoria · time Onde Sair",
+    affs: ["crianca", "turist", "eco"],
+    tint: "tint-crianca",
+    rating: 4.7, reviews: 540,
+    priceLevel: 0,
+    vip: false,
+    open: "Sábados · 9h – 18h",
+    end: "Largo do São Bento · Centro",
+    map: { x: 12, y: 70, label: "LSB" },
+  },
+  {
+    id: "p8",
+    name: "Casa Komorebi",
+    type: "Restaurantes",
+    bairro: "Santa Cecília",
+    desc: "Asiático contemporâneo. Bao de costela, drink de soju, atmosfera de jantar de amigos.",
+    dica: "Reserva pra dois, mesa do balcão. Comece pelo bao e termine no bibimbap.",
+    by: "Curadoria · Lucas P.",
+    affs: ["dates", "impress"],
+    tint: "tint-impress",
+    rating: 4.8, reviews: 224,
+    priceLevel: 2,
+    vip: true,
+    open: "Ter–Sáb · 19h – 23h30",
+    end: "R. Souza Pereira, 538 · Santa Cecília",
+    map: { x: 62, y: 80, label: "KMR" },
+  },
+  {
+    id: "p9",
+    name: "Bar do Z'é",
+    type: "Bares",
+    bairro: "Boa Vista",
+    desc: "Boteco de raiz, balcão de mármore, caipirinha forte. Roda de samba toda quinta.",
+    dica: "Quinta 21h é roda. Chega cedo, peça a porção de torresmo — pra duas pessoas dá pra três.",
+    by: "Curadoria · Carlos M.",
+    affs: ["eco", "turist"],
+    tint: "tint-turist",
+    rating: 4.6, reviews: 178,
+    priceLevel: 1,
+    vip: false,
+    open: "Qua–Dom · 18h – 00h",
+    end: "R. Aparecida, 312 · Boa Vista",
+    map: { x: 50, y: 50, label: "Z" },
+  },
+];
+
+const REVIEWS = [
+  { name: "Bruna T.",  when: "há 3 dias",   text: "Segui o roteiro inteiro num sábado. Não precisei improvisar nem uma vez — chegou na hora certa, comeu bem, voltou rindo." },
+  { name: "Caio R.",   when: "há 1 semana", text: "Dica do balcão antes das 19h salvou a noite. A fila depois disso é absurda, ninguém me avisou antes." },
+  { name: "Helena M.", when: "há 2 semanas",text: "Atendimento atento sem ser exagerado. Conta saiu redonda, o lugar tem alma. Já voltei duas vezes." },
+];
+
+const NOTIFICATIONS = [
+  { id: "n1", kind: "ROTEIRO NOVO", title: "Um rolê novo pro seu domingo", body: "Marina montou um circuito de cafés no centro. 4 paradas, R$ 0 de entrada.", when: "agora", unread: true },
+  { id: "n2", kind: "VIP",          title: "Mesa garantida na Mesa 14 na sexta", body: "Você pediu o degustação. Reserva confirmada para 21h, brinde de cortesia incluso.", when: "2h", unread: true },
+  { id: "n3", kind: "FAVORITO",     title: "Florado Café liberou brunch aos sábados", body: "Você salvou. Agora rola coado especial das 10h às 14h.", when: "ontem", unread: false },
+  { id: "n4", kind: "AGENDA",       title: "Sábado tem feira do Largo São Bento", body: "Chorinho começa às 13h, pastel de queijo é parada obrigatória.", when: "2 dias", unread: false },
+  { id: "n5", kind: "AMIGO",        title: "Rafa salvou 3 lugares na sua lista 'aniversário'", body: "Aurora, Komorebi e Mesa 14. Que tal abrir um plano em grupo?", when: "3 dias", unread: false },
+];
+
+const FAV_LISTS = [
+  { id: "l1", title: "Aniversário da Bia",       count: 6, when: "Sáb, 14 jun",       tint: "tint-impress", thumbs: ["tint-impress","tint-date","tint-impress"] },
+  { id: "l2", title: "Quando meus pais vierem",  count: 9, when: "Pendente",          tint: "tint-turist",  thumbs: ["tint-turist","tint-relax","tint-crianca"] },
+  { id: "l3", title: "Rolês de domingo",         count: 12,when: "Atualizado ontem",  tint: "tint-relax",   thumbs: ["tint-relax","tint-eco","tint-relax"] },
+  { id: "l4", title: "Pra impressionar o chefe", count: 4, when: "Atualizado há 1 sem", tint: "tint-impress", thumbs: ["tint-impress","tint-date","tint-impress"] },
+];
+
+const USER = {
+  name: "Maria Antônia",
+  initials: "MA",
+  city: "São Paulo",
+  joined: "Março 2026",
+  saves: 32,
+  done: 14,
+  lists: 4,
+};
+
+const TAGLINES = {
+  hero:     "Não é um guia.",
+  heroEm:   "É uma dica.",
+  sub:      "Curadoria por afinidade.",
+  campaign: "Sua cidade tem mais do que você imagina.",
+  about:    "O roteiro é nosso. A escolha é sua.",
+};
+
+window.OS_DATA = { CITIES, AFFINITIES, TYPES, ROTEIROS, PLACES, REVIEWS, NOTIFICATIONS, FAV_LISTS, USER, TAGLINES };

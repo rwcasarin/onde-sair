@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Onde Sair · Templates de Posts</title>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="image-slot.js"></script>
+<style>
+  :root {
+    --primary: #673de6;
+    --primary-dark: #4d22cc;
+    --primary-soft: #ede8fd;
+    --primary-border: #c4b5f9;
+    --primary-ink: #3a1db5;
+    --ink: #1a1625;
+    --ink-2: #2e2640;
+    --ink-3: #5c5275;
+    --bg: #f7f5ff;
+    --paper: #ffffff;
+    --line: rgba(103,61,230,0.14);
+    --vip: #1a6e45;
+    --vip-soft: #d4ede0;
+    --cta: #d94f1a;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --serif: "Lora", Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #e4defb; font-family: var(--font); }
+
+  .frame {
+    position: absolute;
+    width: 1080px;
+    height: 1080px;
+    overflow: hidden;
+    background: var(--ink);
+    box-shadow: 0 20px 60px rgba(26,22,37,0.25);
+  }
+
+  /* ---------- shared branding bits ---------- */
+  .os-logo {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .os-mark {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--primary);
+    color: #fff; font-weight: 800; font-size: 18px;
+    display: grid; place-items: center;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+  .os-word {
+    display: flex; flex-direction: column; line-height: 1;
+  }
+  .os-word .name { font-weight: 700; font-size: 21px; letter-spacing: -0.02em; color: #fff; }
+  .os-word .city { font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-top: 5px; }
+
+  .chip-ctx {
+    display: inline-flex; align-items: center;
+    height: 42px; padding: 0 22px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 500; font-size: 16px;
+    letter-spacing: -0.01em;
+  }
+  .chip-type-post {
+    display: inline-flex; align-items: center;
+    height: 38px; padding: 0 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.94);
+    color: var(--primary-ink);
+    font-weight: 500; font-size: 15px;
+  }
+  .tag-vip-post {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 38px; padding: 0 18px;
+    border-radius: 999px;
+    background: var(--vip);
+    color: #fff;
+    font-weight: 500; font-size: 13px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .tag-vip-post::before { content: "★"; font-size: 11px; }
+
+  .scrim-bottom {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 62%;
+    background: linear-gradient(to top, rgba(26,22,37,0.92) 0%, rgba(26,22,37,0.55) 45%, transparent 100%);
+    pointer-events: none;
+  }
+  .scrim-top {
+    position: absolute; left: 0; right: 0; top: 0; height: 30%;
+    background: linear-gradient(to bottom, rgba(26,22,37,0.6) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  image-slot { display: block; }
+
+  .label-tag {
+    position: absolute; top: -34px; left: 0;
+    font-family: var(--font);
+    font-weight: 600; font-size: 15px; color: var(--ink-2);
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- carousel-specific ---------- */
+  .dots-row { display: flex; gap: 7px; }
+  .dots-row .d { width: 22px; height: 5px; border-radius: 999px; background: rgba(255,255,255,0.3); }
+  .dots-row .d.on { background: #fff; }
+  .dots-row.dark .d { background: rgba(26,22,37,0.16); }
+  .dots-row.dark .d.on { background: var(--primary); }
+
+  .info-line { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,0.8); font-size: 19px; font-weight: 500; }
+  .info-line .ico { width: 26px; text-align: center; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     TEMPLATE 1 — Lugar em destaque
+     ========================================================= -->
+<div style="position:absolute; left: 60px; top: 60px;">
+  <div class="frame" style="position:relative;">
+    <span class="label-tag">01 · Lugar em destaque</span>
+
+    <image-slot id="tpl1-photo" style="position:absolute; inset:0; width:100%; height:100%;"
+      shape="rect" placeholder="Foto do local · 1080×1080"></image-slot>
+
+    <div class="scrim-top"></div>
+    <div class="scrim-bottom"></div>
+
+    <!-- top row: logo + type chip -->
+    <div style="position:absolute; top:48px; left:48px; right:48px; display:flex; justify-content:space-between; align-items:center;">
+      <div class="os-logo">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+      <div class="chip-type-post">Bares</div>
+    </div>
+
+    <!-- bottom: context chip + name + meta -->
+    <div style="position:absolute; left:48px; right:48px; bottom:48px;">
+      <div class="chip-ctx" style="margin-bottom:22px;">Pra impressionar</div>
+      <div style="font-weight:700; font-size:64px; line-height:1.02; letter-spacing:-0.03em; color:#fff; max-width:14ch;">Quintal do Centro</div>
+      <div style="margin-top:18px; display:flex; align-items:center; gap:16px; color:rgba(255,255,255,0.75); font-size:18px; font-weight:500;">
+        <span>Centro</span>
+        <span style="width:4px;height:4px;border-radius:999px;background:rgba(255,255,255,0.4);"></span>
+        <span>★ 4.7 · 248 avaliações</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     TEMPLATE 2 — Roteiro (grade de paradas)
+     ========================================================= -->
+<div style="position:absolute; left: 1220px; top: 60px;">
+  <div class="frame" style="position:relative; background:var(--bg);">
+    <span class="label-tag">02 · Roteiro</span>
+
+    <!-- 2x2 photo grid, occupies top ~760px -->
+    <div style="position:absolute; top:0; left:0; right:0; height:760px; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:4px; background:var(--ink);">
+      <div style="position:relative;">
+        <image-slot id="tpl2-photo1" style="width:100%; height:100%;" shape="rect" placeholder="Parada 1"></image-slot>
+        <div style="position:absolute; top:20px; left:20px; width:40px; height:40px; border-radius:999px; background:var(--primary); color:#fff; font-weight:700; font-size:17px; display:grid; place-items:center;">1</div>
+      </div>
+      <div style="position:relative;">
+        <image-slot id="tpl2-photo2" style="width:100%; height:100%;" shape="rect" placeholder="Parada 2"></image-slot>
+        <div style="position:absolute; top:20px; left:20px; width:40px; height:40px; border-radius:999px; background:var(--primary); color:#fff; font-weight:700; font-size:17px; display:grid; place-items:center;">2</div>
+      </div>
+      <div style="position:relative;">
+        <image-slot id="tpl2-photo3" style="width:100%; height:100%;" shape="rect" placeholder="Parada 3"></image-slot>
+        <div style="position:absolute; top:20px; left:20px; width:40px; height:40px; border-radius:999px; background:var(--primary); color:#fff; font-weight:700; font-size:17px; display:grid; place-items:center;">3</div>
+      </div>
+      <div style="position:relative;">
+        <image-slot id="tpl2-photo4" style="width:100%; height:100%;" shape="rect" placeholder="Parada 4"></image-slot>
+        <div style="position:absolute; top:20px; left:20px; width:40px; height:40px; border-radius:999px; background:var(--primary); color:#fff; font-weight:700; font-size:17px; display:grid; place-items:center;">4</div>
+      </div>
+    </div>
+
+    <!-- bottom info band -->
+    <div style="position:absolute; left:0; right:0; bottom:0; height:320px; background:var(--ink); padding:36px 48px; display:flex; flex-direction:column; justify-content:center;">
+      <div class="os-logo" style="margin-bottom:20px;">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+      <div style="font-weight:700; font-size:46px; line-height:1.08; letter-spacing:-0.025em; color:#fff; max-width:16ch;">Date noturno nos Jardins</div>
+      <div style="margin-top:16px; display:flex; align-items:center; gap:14px;">
+        <span class="chip-ctx" style="height:36px; padding:0 18px; font-size:14px;">Para dates</span>
+        <span style="color:rgba(255,255,255,0.6); font-weight:500; font-size:15px;">4 paradas · 1 noite</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     TEMPLATE 3 — VIP / Promo
+     ========================================================= -->
+<div style="position:absolute; left: 2380px; top: 60px;">
+  <div class="frame" style="position:relative;">
+    <span class="label-tag">03 · VIP / Promo</span>
+
+    <image-slot id="tpl3-photo" style="position:absolute; top:0; left:0; width:100%; height:640px;"
+      shape="rect" placeholder="Foto do local · 1080×640"></image-slot>
+
+    <div style="position:absolute; top:0; left:0; right:0; height:640px; background:linear-gradient(to top, var(--ink) 0%, transparent 35%);"></div>
+
+    <div style="position:absolute; top:48px; left:48px;">
+      <div class="os-logo">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+    </div>
+
+    <!-- solid ink block bottom -->
+    <div style="position:absolute; left:0; right:0; bottom:0; top:640px; background:var(--ink); padding:44px 52px; display:flex; flex-direction:column; justify-content:center;">
+      <div class="tag-vip-post" style="width:fit-content; margin-bottom:22px;">VIP disponível</div>
+      <div style="font-weight:700; font-size:52px; line-height:1.08; letter-spacing:-0.025em; color:#fff; max-width:15ch;">Mesa reservada + brinde de cortesia</div>
+      <div style="margin-top:18px; color:rgba(255,255,255,0.65); font-size:19px; max-width:34ch;">Pague aqui, chegue como convidado. Cuidamos do resto.</div>
+      <div style="margin-top:32px; display:inline-flex; align-items:center; height:58px; padding:0 32px; border-radius:999px; background:var(--cta); color:#fff; font-weight:600; font-size:19px; width:fit-content;">Quero VIP · R$ 89 →</div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     TEMPLATE 4 — Dica do dia
+     ========================================================= -->
+<div style="position:absolute; left: 60px; top: 1220px;">
+  <div class="frame" style="position:relative;">
+    <span class="label-tag">04 · Dica do dia</span>
+
+    <image-slot id="tpl4-photo" style="position:absolute; inset:0; width:100%; height:100%;"
+      shape="rect" placeholder="Foto do local · 1080×1080"></image-slot>
+
+    <div style="position:absolute; inset:0; background:rgba(26,22,37,0.42);"></div>
+
+    <div style="position:absolute; top:48px; left:48px;">
+      <div class="os-logo">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+    </div>
+
+    <!-- floating quote card -->
+    <div style="position:absolute; left:48px; right:48px; bottom:56px; background:#fff; border-radius:20px; padding:40px 44px; border-left:8px solid var(--primary);">
+      <div style="font-weight:500; font-size:13px; letter-spacing:0.18em; text-transform:uppercase; color:var(--primary-ink); margin-bottom:16px;">A dica de hoje</div>
+      <div style="font-weight:500; font-size:30px; line-height:1.32; letter-spacing:-0.01em; color:var(--ink); max-width:22ch;">"Chega antes das 19h e pega a mesa do fundo. O pastel de pernil não tá no cardápio — tá no balcão."</div>
+      <div style="margin-top:22px; font-weight:500; font-size:13px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-3);">Quintal do Centro · Bares</div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     TEMPLATE 5 — Capa de afinidade
+     ========================================================= -->
+<div style="position:absolute; left: 1220px; top: 1220px;">
+  <div class="frame" style="position:relative;">
+    <span class="label-tag">05 · Capa de afinidade</span>
+
+    <image-slot id="tpl5-photo" style="position:absolute; inset:0; width:100%; height:100%;"
+      shape="rect" placeholder="Foto do local · 1080×1080"></image-slot>
+
+    <div style="position:absolute; inset:0; background:linear-gradient(160deg, rgba(103,61,230,0.88) 0%, rgba(26,22,37,0.72) 100%);"></div>
+
+    <div style="position:absolute; top:48px; left:48px;">
+      <div class="os-logo">
+        <div class="os-mark" style="background:#fff; color:var(--primary);">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+    </div>
+
+    <div style="position:absolute; left:52px; right:52px; top:50%; transform:translateY(-50%);">
+      <div style="font-weight:500; font-size:15px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.7); margin-bottom:16px;">A afinidade da semana</div>
+      <div style="font-weight:800; font-size:96px; line-height:0.98; letter-spacing:-0.04em; color:#fff;">Pra<br>turistar.</div>
+      <div style="margin-top:26px; font-weight:400; font-size:22px; color:rgba(255,255,255,0.85); max-width:26ch;">Sua cidade tem mais do que você imagina.</div>
+    </div>
+
+    <div style="position:absolute; left:52px; bottom:48px; right:52px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-weight:500; font-size:16px; color:rgba(255,255,255,0.75);">ondesair.com.br</span>
+      <span style="font-weight:500; font-size:16px; color:rgba(255,255,255,0.75);">@ondesair</span>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     CARROSSEL — Quintal do Centro (6 slides)
+     ========================================================= -->
+
+<!-- Slide 1 — Capa: nome, endereço, horário -->
+<div style="position:absolute; left: 60px; top: 2380px;">
+  <div class="frame" style="position:relative;">
+    <span class="label-tag">Carrossel · 01/06 · Capa</span>
+
+    <image-slot id="car1-photo" style="position:absolute; inset:0; width:100%; height:100%;"
+      shape="rect" placeholder="Foto do local · 1080×1080"></image-slot>
+
+    <div class="scrim-top"></div>
+    <div class="scrim-bottom"></div>
+
+    <div style="position:absolute; top:48px; left:48px; right:48px; display:flex; justify-content:space-between; align-items:center;">
+      <div class="os-logo">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+      <div class="chip-type-post">Bares</div>
+    </div>
+
+    <div style="position:absolute; left:48px; right:48px; bottom:48px;">
+      <div style="font-weight:700; font-size:72px; line-height:1.0; letter-spacing:-0.03em; color:#fff; max-width:14ch;">Quintal do Centro</div>
+      <div style="margin-top:24px; display:flex; flex-direction:column; gap:12px;">
+        <div class="info-line"><span class="ico">📍</span><span>Rua Barão de Piratininga, 118 · Centro</span></div>
+        <div class="info-line"><span class="ico">🕒</span><span>Ter–Dom · 18h às 01h</span></div>
+      </div>
+      <div style="margin-top:26px; display:flex; align-items:center; justify-content:space-between;">
+        <div class="chip-ctx">Pra impressionar</div>
+        <div class="dots-row"><span class="d on"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 2 — Público-alvo -->
+<div style="position:absolute; left: 1220px; top: 2380px;">
+  <div class="frame" style="position:relative; background:var(--ink);">
+    <span class="label-tag">Carrossel · 02/06 · Quem cola</span>
+
+    <image-slot id="car2-photo" style="position:absolute; inset:0; width:100%; height:640px;"
+      shape="rect" placeholder="Foto do público · 1080×640"></image-slot>
+
+    <div style="position:absolute; top:0; left:0; right:0; height:640px; background:linear-gradient(to top, var(--ink) 0%, transparent 40%);"></div>
+
+    <div style="position:absolute; top:48px; left:48px;">
+      <div class="os-logo">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:0; top:600px; padding:44px 52px; display:flex; flex-direction:column; justify-content:center;">
+      <div style="font-weight:500; font-size:14px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.55); margin-bottom:18px;">Quem cola aqui</div>
+      <div style="font-weight:700; font-size:44px; line-height:1.15; letter-spacing:-0.02em; color:#fff; max-width:18ch;">Amigos de longa data, casal em segundo encontro, mesa de trabalho que virou happy hour.</div>
+      <div style="margin-top:26px; display:flex; gap:10px; flex-wrap:wrap;">
+        <span class="chip-type-post">25–40 anos</span>
+        <span class="chip-type-post">Turma grande</span>
+        <span class="chip-type-post">Conversa boa</span>
+      </div>
+    </div>
+    <div style="position:absolute; left:52px; bottom:36px;"><div class="dots-row dark"><span class="d"></span><span class="d on"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span></div></div>
+  </div>
+</div>
+
+<!-- Slide 3 — Categorias / afinidades -->
+<div style="position:absolute; left: 2380px; top: 2380px;">
+  <div class="frame" style="position:relative; background:var(--bg);">
+    <span class="label-tag">Carrossel · 03/06 · Categorias</span>
+
+    <div style="padding:52px;">
+      <div class="os-logo" style="margin-bottom:56px;">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name" style="color:var(--ink);">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+
+      <div style="font-weight:500; font-size:14px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-3); margin-bottom:20px;">Serve bem pra</div>
+      <div style="display:flex; flex-wrap:wrap; gap:14px; margin-bottom:52px;">
+        <span class="chip-ctx" style="font-size:22px; height:56px; padding:0 28px;">Para dates</span>
+        <span class="chip-ctx" style="font-size:22px; height:56px; padding:0 28px;">Pra impressionar</span>
+        <span class="chip-ctx" style="font-size:22px; height:56px; padding:0 28px;">Pra economizar</span>
+      </div>
+
+      <div style="font-weight:500; font-size:14px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-3); margin-bottom:20px;">Categoria</div>
+      <div style="display:flex; flex-wrap:wrap; gap:14px;">
+        <span class="chip-type-post" style="background:var(--primary-soft); color:var(--primary-ink); font-size:20px; height:52px; padding:0 26px;">Bares</span>
+        <span class="chip-type-post" style="background:var(--primary-soft); color:var(--primary-ink); font-size:20px; height:52px; padding:0 26px;">Boteco de rua</span>
+      </div>
+    </div>
+
+    <div style="position:absolute; left:52px; bottom:44px; right:52px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-weight:500; font-size:16px; color:var(--ink-3);">Quintal do Centro</span>
+      <div class="dots-row dark"><span class="d"></span><span class="d"></span><span class="d on"></span><span class="d"></span><span class="d"></span><span class="d"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4 — Melhor dia pra colar -->
+<div style="position:absolute; left: 3540px; top: 2380px;">
+  <div class="frame" style="position:relative;">
+    <span class="label-tag">Carrossel · 04/06 · Melhor dia</span>
+
+    <image-slot id="car4-photo" style="position:absolute; inset:0; width:100%; height:100%;"
+      shape="rect" placeholder="Foto do happy hour · 1080×1080"></image-slot>
+
+    <div style="position:absolute; inset:0; background:rgba(26,22,37,0.5);"></div>
+    <div class="scrim-top"></div>
+
+    <div style="position:absolute; top:48px; left:48px;">
+      <div class="os-logo">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+    </div>
+
+    <div style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); text-align:center; padding:0 52px;">
+      <div style="font-weight:500; font-size:15px; letter-spacing:0.2em; text-transform:uppercase; color:var(--vip-soft); margin-bottom:18px;">Melhor dia pra colar</div>
+      <div style="font-weight:800; font-size:110px; line-height:0.95; letter-spacing:-0.04em; color:#fff;">Quarta</div>
+      <div style="margin-top:28px; display:inline-flex; align-items:center; height:56px; padding:0 30px; border-radius:999px; background:var(--vip); color:#fff; font-weight:600; font-size:22px;">Happy hour · metade do preço na breja</div>
+    </div>
+
+    <div style="position:absolute; left:52px; bottom:44px;"><div class="dots-row"><span class="d"></span><span class="d"></span><span class="d"></span><span class="d on"></span><span class="d"></span><span class="d"></span></div></div>
+  </div>
+</div>
+
+<!-- Slide 5 — Próximo evento -->
+<div style="position:absolute; left: 4700px; top: 2380px;">
+  <div class="frame" style="position:relative; background:var(--ink);">
+    <span class="label-tag">Carrossel · 05/06 · Próximo evento</span>
+
+    <image-slot id="car5-photo" style="position:absolute; inset:0; width:100%; height:100%;"
+      shape="rect" placeholder="Foto do evento · 1080×1080"></image-slot>
+
+    <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(26,22,37,0.25) 0%, rgba(26,22,37,0.92) 68%);"></div>
+
+    <div style="position:absolute; top:48px; left:48px; right:48px; display:flex; justify-content:space-between; align-items:center;">
+      <div class="os-logo">
+        <div class="os-mark">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city">curadoria</span></div>
+      </div>
+      <div class="chip-ctx" style="background:var(--cta);">Próximo evento</div>
+    </div>
+
+    <div style="position:absolute; left:48px; right:48px; bottom:48px;">
+      <div style="display:flex; align-items:center; gap:20px; margin-bottom:26px;">
+        <div style="width:78px; height:78px; border-radius:16px; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0;">
+          <span style="font-weight:800; font-size:28px; line-height:1; color:var(--ink);">15</span>
+          <span style="font-weight:600; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-3); margin-top:2px;">Jul</span>
+        </div>
+        <div style="font-weight:700; font-size:42px; line-height:1.1; letter-spacing:-0.02em; color:#fff; max-width:12ch;">Jogo da Copa na telona</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.75); font-size:20px; max-width:34ch;">Telão gigante, som ligado, mesa lotada. Não perca.</div>
+      <div style="margin-top:28px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:inline-flex; align-items:center; height:52px; padding:0 26px; border-radius:999px; background:var(--cta); color:#fff; font-weight:600; font-size:17px;">Reservar mesa →</div>
+        <div class="dots-row"><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d on"></span><span class="d"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6 — Encerramento -->
+<div style="position:absolute; left: 5860px; top: 2380px;">
+  <div class="frame" style="position:relative; background:var(--primary);">
+    <span class="label-tag">Carrossel · 06/06 · Encerramento</span>
+
+    <div style="position:absolute; inset:0; background:linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 100%);"></div>
+
+    <div style="position:absolute; top:48px; left:48px;">
+      <div class="os-logo">
+        <div class="os-mark" style="background:#fff; color:var(--primary);">OS</div>
+        <div class="os-word"><span class="name">onde sair</span><span class="city" style="color:rgba(255,255,255,0.65);">curadoria</span></div>
+      </div>
+    </div>
+
+    <div style="position:absolute; left:52px; right:52px; top:50%; transform:translateY(-50%);">
+      <div style="font-weight:700; font-size:58px; line-height:1.08; letter-spacing:-0.025em; color:#fff; max-width:14ch;">Gostou do rolê?</div>
+      <div style="margin-top:20px; font-weight:400; font-size:22px; color:rgba(255,255,255,0.85); max-width:28ch;">Salva pra não perder, manda pra quem topa ir e deixa o like.</div>
+
+      <div style="margin-top:44px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; align-items:center; gap:16px; color:#fff; font-size:22px; font-weight:600;">
+          <span style="width:52px; height:52px; border-radius:999px; background:rgba(255,255,255,0.18); display:grid; place-items:center; font-size:22px;">🔖</span>Salve o post
+        </div>
+        <div style="display:flex; align-items:center; gap:16px; color:#fff; font-size:22px; font-weight:600;">
+          <span style="width:52px; height:52px; border-radius:999px; background:rgba(255,255,255,0.18); display:grid; place-items:center; font-size:22px;">↗</span>Envie pra alguém
+        </div>
+        <div style="display:flex; align-items:center; gap:16px; color:#fff; font-size:22px; font-weight:600;">
+          <span style="width:52px; height:52px; border-radius:999px; background:rgba(255,255,255,0.18); display:grid; place-items:center; font-size:22px;">♥</span>Curta esse post
+        </div>
+      </div>
+    </div>
+
+    <div style="position:absolute; left:52px; bottom:44px; right:52px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-weight:500; font-size:16px; color:rgba(255,255,255,0.75);">@ondesair</span>
+      <div class="dots-row"><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d on"></span></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Onde Sair · Tema WordPress (preview)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { background: var(--bg); }
+    .wp-shell { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+    .wp-head {
+      padding: 56px 0 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .wp-head h1 {
+      font-weight: 700;
+      font-size: clamp(40px, 5vw, 64px);
+      letter-spacing: -0.025em;
+      line-height: 1.05;
+      margin: 14px 0 16px;
+      max-width: 16ch;
+    }
+    .wp-head h1 .accent { color: var(--primary); }
+    .wp-head p { color: var(--ink-2); font-size: 17px; max-width: 60ch; margin: 0 0 24px; line-height: 1.6; }
+
+    .wp-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 48px;
+      padding: 48px 0;
+    }
+    .wp-sidebar { position: sticky; top: 32px; align-self: start; }
+    .wp-sidebar h3 {
+      font-weight: 500; font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+      margin: 0 0 14px;
+    }
+    .wp-files {
+      list-style: none; margin: 0; padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      overflow: hidden;
+    }
+    .wp-files li {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 13px;
+      color: var(--ink-2);
+      display: flex; gap: 10px; align-items: center;
+    }
+    .wp-files li:last-child { border-bottom: 0; }
+    .wp-files li.dir { color: var(--primary); font-weight: 500; }
+    .wp-files li.pad { padding-left: 28px; }
+    .wp-files li .ext { color: var(--ink-3); margin-left: auto; font-size: 11px; }
+
+    .wp-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .wp-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 22px 24px;
+    }
+    .wp-card .lbl {
+      font-weight: 500; font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .wp-card h4 {
+      font-weight: 700; font-size: 18px;
+      letter-spacing: -0.01em;
+      margin: 10px 0 8px;
+    }
+    .wp-card p { font-size: 14px; color: var(--ink-3); margin: 0; line-height: 1.55; }
+    .wp-card code {
+      display: inline-block;
+      background: var(--primary-soft);
+      color: var(--primary-ink);
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+    }
+
+    .wp-cpt {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    }
+    .wp-cpt .wp-card { padding: 24px; }
+    .wp-cpt h4 .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: #fff;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .wp-section {
+      padding: 48px 0;
+      border-top: 1px solid var(--line);
+    }
+    .wp-section h2 {
+      font-weight: 700; font-size: 28px;
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }
+    .wp-section .sub { color: var(--ink-3); margin: 0 0 24px; }
+
+    /* URL table */
+    .wp-urls {
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--paper); overflow: hidden;
+    }
+    .wp-urls .row {
+      display: grid;
+      grid-template-columns: 220px 320px 1fr;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+      gap: 16px;
+      flex-wrap: nowrap;
+    }
+    .wp-urls .row:last-child { border-bottom: 0; }
+    .wp-urls .row.head {
+      background: var(--bg);
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .wp-urls .tpl {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--primary);
+    }
+    .wp-urls .url {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--ink-2);
+    }
+    .wp-urls .desc { color: var(--ink-3); font-size: 14px; line-height: 1.5; }
+
+    /* Code window mock */
+    .code-window {
+      background: var(--ink);
+      color: #e7e3f1;
+      border-radius: 12px;
+      overflow: hidden;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .code-window .bar {
+      background: rgba(255,255,255,0.04);
+      padding: 10px 16px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .code-window pre {
+      margin: 0; padding: 20px 24px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .code-window .kw { color: #b794f6; }
+    .code-window .str { color: #f6ad55; }
+    .code-window .com { color: #6c6584; font-style: italic; }
+    .code-window .fn { color: #fbb6ce; }
+    .code-window .var { color: #90cdf4; }
+
+    .install-steps {
+      display: grid; gap: 12px;
+    }
+    .install-step {
+      display: grid; grid-template-columns: 38px 1fr; gap: 18px;
+      padding: 16px 20px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      align-items: start;
+    }
+    .install-step .n {
+      width: 32px; height: 32px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 999px;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 14px;
+    }
+    .install-step .body { font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+    .install-step .body strong { color: var(--ink); }
+    .install-step code {
+      background: var(--primary-soft);
+      color: var(--primary-ink);
+      padding: 1px 7px; border-radius: 4px;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .wp-grid { grid-template-columns: 1fr; }
+      .wp-cards, .wp-cpt { grid-template-columns: 1fr; }
+      .wp-urls .row { grid-template-columns: 1fr; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wp-shell">
+
+  <header class="wp-head">
+    <a href="design-system.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--primary);font-weight:500;font-size:14px;text-decoration:none;">← Design System</a>
+    <h1>Tema WordPress<br><span class="accent">simplificado.</span></h1>
+    <p>Tudo o que o Onde Sair precisa pra rodar em WordPress: Custom Post Types, taxonomias com slugs SEO-friendly, templates que refletem o design system, meta-boxes prontos pro time editorial.</p>
+
+    <div class="row gap-12">
+      <a class="btn btn-cta" href="theme/onde-sair/README.md" download>Baixar README</a>
+      <a class="btn btn-ghost" href="theme/onde-sair/" target="_blank">Ver arquivos do tema</a>
+    </div>
+  </header>
+
+  <!-- ESTRUTURA -->
+  <div class="wp-grid">
+
+    <aside class="wp-sidebar">
+      <h3>Estrutura do tema</h3>
+      <ul class="wp-files">
+        <li class="dir">📁 onde-sair/</li>
+        <li class="pad">style.css <span class="ext">cabeçalho</span></li>
+        <li class="pad">functions.php <span class="ext">setup</span></li>
+        <li class="pad">header.php</li>
+        <li class="pad">footer.php</li>
+        <li class="pad">front-page.php <span class="ext">home</span></li>
+        <li class="pad">single-lugar.php</li>
+        <li class="pad">single-roteiro.php</li>
+        <li class="pad">taxonomy-afinidade.php</li>
+        <li class="pad">archive.php</li>
+        <li class="pad">page.php</li>
+        <li class="pad">searchform.php</li>
+        <li class="pad">404.php</li>
+        <li class="pad">index.php</li>
+        <li class="dir pad">📁 assets/</li>
+        <li class="pad" style="padding-left:48px;">css/onde-sair.css</li>
+        <li class="pad" style="padding-left:48px;">js/app.js</li>
+      </ul>
+    </aside>
+
+    <div>
+      <h2 style="font-weight:700;font-size:28px;letter-spacing:-0.02em;margin:0 0 8px;">O essencial, nada mais</h2>
+      <p class="mute" style="margin:0 0 24px;">13 templates PHP + 1 stylesheet + 1 JS. Sem builder, sem ACF, sem plugin externo obrigatório.</p>
+
+      <div class="wp-cards">
+        <div class="wp-card">
+          <span class="lbl">Templates de listagem</span>
+          <h4>3 visualizações</h4>
+          <p><code>front-page.php</code> · Home com curadoria · <code>taxonomy-afinidade.php</code> com SEO local · <code>archive.php</code> para lugares/roteiros/search.</p>
+        </div>
+
+        <div class="wp-card">
+          <span class="lbl">Templates de detalhe</span>
+          <h4>2 layouts</h4>
+          <p><code>single-lugar.php</code> com card VIP + dica destacada · <code>single-roteiro.php</code> com paradas e bairros.</p>
+        </div>
+
+        <div class="wp-card">
+          <span class="lbl">Customização</span>
+          <h4>Tudo via tokens CSS</h4>
+          <p>Quer outra paleta pra outra cidade? Sobrescreve <code>--primary</code> em um child theme. Sem PHP.</p>
+        </div>
+
+        <div class="wp-card">
+          <span class="lbl">Editorial</span>
+          <h4>Meta-boxes simples</h4>
+          <p>Bairro · Endereço · Horário · Faixa de preço · VIP · A dica · Assinatura. Tudo num único box no editor.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CPT -->
+  <section class="wp-section">
+    <h2>Custom Post Types</h2>
+    <p class="sub">Dois tipos de conteúdo. Compartilham taxonomias.</p>
+
+    <div class="wp-cpt">
+      <div class="wp-card">
+        <h4>Lugar <span class="badge">CPT</span></h4>
+        <p style="margin:10px 0;">Restaurantes, bares, parques, cinemas, eventos pontuais. Cada um vira uma página de detalhe.</p>
+        <code style="display:block;background:var(--ink);color:#fff;padding:10px 14px;border-radius:6px;font-size:12px;margin-top:14px;">/lugar/quintal-do-centro</code>
+      </div>
+
+      <div class="wp-card">
+        <h4>Roteiro <span class="badge">CPT</span></h4>
+        <p style="margin:10px 0;">Sequência curada de paradas — bar de abertura, restaurante principal, sobremesa.</p>
+        <code style="display:block;background:var(--ink);color:#fff;padding:10px 14px;border-radius:6px;font-size:12px;margin-top:14px;">/roteiro/date-sem-cliche</code>
+      </div>
+
+      <div class="wp-card">
+        <h4>Page <span class="badge" style="background:var(--ink-3);">Padrão WP</span></h4>
+        <p style="margin:10px 0;">Páginas estáticas: VIP, Para Negócios, Sobre, Política de Privacidade.</p>
+        <code style="display:block;background:var(--ink);color:#fff;padding:10px 14px;border-radius:6px;font-size:12px;margin-top:14px;">/vip · /parceiros · /sobre</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAXONOMIAS / URLs -->
+  <section class="wp-section">
+    <h2>Arquitetura de URLs</h2>
+    <p class="sub">Combinação de afinidade × tipo cobre as buscas long-tail do brief de SEO.</p>
+
+    <div class="wp-urls">
+      <div class="row head">
+        <span>Taxonomia / template</span>
+        <span>URL gerada</span>
+        <span>Cobre buscas tipo</span>
+      </div>
+      <div class="row">
+        <span class="tpl">front-page.php</span>
+        <span class="url">/</span>
+        <span class="desc">"onde sair em [cidade]", "o que fazer hoje"</span>
+      </div>
+      <div class="row">
+        <span class="tpl">taxonomy-afinidade.php</span>
+        <span class="url">/para-dates</span>
+        <span class="desc">"onde ir no date em [cidade]"</span>
+      </div>
+      <div class="row">
+        <span class="tpl">taxonomy-afinidade.php</span>
+        <span class="url">/pra-impressionar</span>
+        <span class="desc">"lugares diferentes [cidade]"</span>
+      </div>
+      <div class="row">
+        <span class="tpl">taxonomy-afinidade.php</span>
+        <span class="url">/pra-economizar</span>
+        <span class="desc">"o que fazer de graça em [cidade]"</span>
+      </div>
+      <div class="row">
+        <span class="tpl">taxonomy.php (tipo)</span>
+        <span class="url">/tipo/restaurantes</span>
+        <span class="desc">"restaurantes em [cidade]"</span>
+      </div>
+      <div class="row">
+        <span class="tpl">single-lugar.php</span>
+        <span class="url">/lugar/mesa-14</span>
+        <span class="desc">página individual SEO-rica</span>
+      </div>
+      <div class="row">
+        <span class="tpl">single-roteiro.php</span>
+        <span class="url">/roteiro/date-sem-cliche</span>
+        <span class="desc">conteúdo de blog que rankeia</span>
+      </div>
+      <div class="row">
+        <span class="tpl">archive.php</span>
+        <span class="url">/lugares · /roteiros · /?s=…</span>
+        <span class="desc">listagem geral + busca</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CÓDIGO -->
+  <section class="wp-section">
+    <h2>Como functions.php pensa</h2>
+    <p class="sub">Trecho real do tema: registro do CPT Lugar + taxonomia Afinidade com slug raiz vazio (URLs sem prefixo).</p>
+
+    <div class="code-window">
+      <div class="bar">functions.php · trecho</div>
+<pre><span class="com">// CPT Lugar</span>
+<span class="fn">register_post_type</span>( <span class="str">'lugar'</span>, [
+    <span class="str">'public'</span>      => <span class="kw">true</span>,
+    <span class="str">'has_archive'</span> => <span class="str">'lugares'</span>,
+    <span class="str">'rewrite'</span>     => [ <span class="str">'slug'</span> => <span class="str">'lugar'</span> ],
+    <span class="str">'supports'</span>    => [ <span class="str">'title'</span>, <span class="str">'editor'</span>, <span class="str">'thumbnail'</span> ],
+    <span class="str">'menu_icon'</span>   => <span class="str">'dashicons-location'</span>,
+] );
+
+<span class="com">// Taxonomia Afinidade · slug raiz vazio = URLs limpas</span>
+<span class="fn">register_taxonomy</span>( <span class="str">'afinidade'</span>, [ <span class="str">'lugar'</span>, <span class="str">'roteiro'</span> ], [
+    <span class="str">'public'</span>       => <span class="kw">true</span>,
+    <span class="str">'hierarchical'</span> => <span class="kw">false</span>,
+    <span class="str">'rewrite'</span>      => [ <span class="str">'slug'</span> => <span class="str">''</span>, <span class="str">'with_front'</span> => <span class="kw">false</span> ],
+] );
+
+<span class="com">// /para-dates  →  taxonomy-afinidade.php  →  lista de lugares dessa afinidade</span></pre>
+    </div>
+  </section>
+
+  <!-- INSTALAÇÃO -->
+  <section class="wp-section">
+    <h2>Instalar em 6 passos</h2>
+    <p class="sub">Funciona em qualquer WordPress 6.0+. Sem dependência de plugin.</p>
+
+    <div class="install-steps">
+      <div class="install-step">
+        <span class="n">1</span>
+        <div class="body">Zipa a pasta <code>theme/onde-sair/</code> como <strong>onde-sair.zip</strong>.</div>
+      </div>
+      <div class="install-step">
+        <span class="n">2</span>
+        <div class="body">No WP: <strong>Aparência → Temas → Adicionar nova → Enviar tema</strong>. Faz upload do zip e ativa.</div>
+      </div>
+      <div class="install-step">
+        <span class="n">3</span>
+        <div class="body">Vai em <strong>Configurações → Links permanentes</strong>, escolhe "Nome do post" e clica <strong>Salvar</strong>. (Isso regenera as rewrites das taxonomias.)</div>
+      </div>
+      <div class="install-step">
+        <span class="n">4</span>
+        <div class="body">Em <strong>Lugares → Afinidades</strong>, cria os 6 termos com slugs: <code>para-dates</code>, <code>para-impressionar</code>, <code>para-turistar</code>, <code>para-relaxar</code>, <code>para-economizar</code>, <code>para-a-criancada</code>.</div>
+      </div>
+      <div class="install-step">
+        <span class="n">5</span>
+        <div class="body">Em <strong>Lugares → Tipos</strong>, cria: <code>restaurantes</code>, <code>bares</code>, <code>parques</code>, <code>shows-e-baladas</code>, <code>eventos</code>.</div>
+      </div>
+      <div class="install-step">
+        <span class="n">6</span>
+        <div class="body">Cria 5–10 <strong>Lugares</strong> e 2–3 <strong>Roteiros</strong> de teste. Define uma página estática como Home em <strong>Configurações → Leitura</strong>. Pronto.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- META FIELDS -->
+  <section class="wp-section">
+    <h2>Campos que aparecem no editor</h2>
+    <p class="sub">Meta-box "Onde Sair · Detalhes" embaixo do conteúdo. Sem ACF, sem plugin.</p>
+
+    <div class="wp-cards" style="grid-template-columns: 1fr 1fr;">
+      <div class="wp-card">
+        <span class="lbl">Editar Lugar</span>
+        <h4>7 campos</h4>
+        <ul style="margin:12px 0 0;padding:0 0 0 18px;color:var(--ink-2);font-size:14px;line-height:1.8;">
+          <li>Bairro</li>
+          <li>Endereço (vira link Google Maps)</li>
+          <li>Horário de funcionamento</li>
+          <li>Faixa de preço (Grátis / R$ / R$R$ / R$R$R$)</li>
+          <li>VIP disponível (checkbox)</li>
+          <li>A dica que importa (textarea)</li>
+          <li>Assinatura (ex: "Curadoria · Marina F.")</li>
+        </ul>
+      </div>
+
+      <div class="wp-card">
+        <span class="lbl">Editar Roteiro</span>
+        <h4>3 campos</h4>
+        <ul style="margin:12px 0 0;padding:0 0 0 18px;color:var(--ink-2);font-size:14px;line-height:1.8;">
+          <li>Nº de paradas</li>
+          <li>Bairros que cobre</li>
+          <li>VIP (checkbox)</li>
+        </ul>
+        <p class="mute small" style="margin-top:14px;">O conteúdo do roteiro (paradas, ordem, descrições) fica no editor padrão do Gutenberg.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer style="padding:40px 0 64px;color:var(--ink-3);font-size:13px;text-align:center;border-top:1px solid var(--line);margin-top:32px;">
+    Onde Sair · Tema WordPress · v1.0 · <a href="design-system.html" style="color:var(--primary);">Design System</a> · <a href="index.html" style="color:var(--primary);">Protótipo</a>
+  </footer>
+
+</div>
+
+</body>
+</html>

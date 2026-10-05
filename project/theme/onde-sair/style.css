@@ -1,0 +1,16 @@
+/*
+Theme Name: Onde Sair
+Theme URI: https://ondesair.com.br
+Author: Onde Sair
+Description: Tema oficial do Onde Sair. Curadoria por afinidade · arquitetura SEO local (cidade · afinidade · tipo). Inclui CPTs lugar/roteiro e taxonomias afinidade/tipo/cidade.
+Version: 1.0
+Requires at least: 6.0
+Tested up to: 6.5
+Requires PHP: 8.0
+License: GPL v2 or later
+Text Domain: ondesair
+Tags: editorial, curadoria, local, custom-post-types
+*/
+
+/* O arquivo de estilos real está em assets/css/onde-sair.css.
+   Este style.css existe apenas para o cabeçalho do tema WordPress. */
