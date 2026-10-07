@@ -13,6 +13,7 @@ import {
   VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
   VIBE_TO_ROTEIRO, BRAND_VALUES, PLACE_TIPS, ROTEIRO_TAGS,
 } from "../data.js";
+import { applyUpdates } from "./updates.js";
 
 const KEY = "onde-sair-cms-v1";
 const SESSION_KEY = "onde-sair-cms-session";
@@ -169,11 +170,23 @@ let db = load();
 const listeners = new Set();
 
 function load() {
+  let d = clone(SEED);
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...clone(SEED), ...JSON.parse(raw) };
+    if (raw) d = { ...d, ...JSON.parse(raw) };
   } catch { /* storage indisponível */ }
-  return clone(SEED);
+  // modo local: o conteúdo novo entra direto no banco do navegador
+  if (logUpdates(d, applyUpdates(d))) {
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* storage indisponível */ }
+  }
+  return d;
+}
+// Registra na atividade o conteúdo que entrou por atualização (ver updates.js)
+function logUpdates(d, applied) {
+  applied.forEach(u => {
+    d.activity = [{ at: now(), who: "Sistema", action: "adicionou " + u.label, target: u.names.join(", "), type: "lugar" }, ...(d.activity || [])].slice(0, 200);
+  });
+  return applied.length > 0;
 }
 
 let storageError = null;
@@ -215,6 +228,7 @@ export async function boot() {
     const data = await r.json();
     REMOTE = true;
     db = data.db ? { ...clone(SEED), ...data.db } : clone(SEED);
+    applyUpdates(db);   // só na memória: o visitante já vê o conteúdo novo; quem grava é o painel
     syncPublic();
   } catch { /* offline ou sem API: modo local */ }
 }
@@ -231,6 +245,9 @@ export async function adminLoad() {
     const again = await api("admin/db"); db = { ...clone(SEED), ...again.db }; etag = again.etag; base = contentOf(db);
   }
   adminLoaded = true;
+  // conteúdo novo do código (updates.js): grava no servidor na primeira carga de um administrador,
+  // único perfil que pode mexer em cidades e publicar tudo de uma vez
+  if (can(r.user, "settings.edit") && logUpdates(db, applyUpdates(db))) { syncPublic(); notify(); await pushRemote(); return; }
   notify();
 }
 
@@ -363,8 +380,8 @@ export function syncPublic() {
 
   const featured = db.reviews.filter(r => r.status === "aprovada" && r.featured);
   if (featured.length) {
-    replace(PLACE_TIPS, featured.slice(0, 3).map(r => ({
-      name: r.author, when: relTime(r.createdAt), text: r.text, tags: [["Avaliação " + r.rating + "★", "vibe-yellow"]],
+    replace(PLACE_TIPS, featured.map(r => ({
+      place: r.place, name: r.author, when: relTime(r.createdAt), text: r.text, tags: [["Avaliação " + r.rating + "★", "vibe-yellow"]],
     })));
   }
   Object.assign(TAGLINES, { sub: db.settings.tagline, campaign: db.settings.campaign });
