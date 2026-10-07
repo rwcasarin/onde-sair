@@ -1,11 +1,24 @@
 import { useState } from "react";
-import { PLACES, ROTEIROS, VIBE_STYLE, PRICE_RANGE, PLACE_TIPS, placeImg, placeGallery, roteiroImg } from "../data.js";
+import { CITIES, PLACES, ROTEIROS, VIBE_STYLE, PRICE_RANGE, PLACE_TIPS, placeImg, placeGallery, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
   HeroMedia, Crumbs, VibePill, IconPill, PriceDots, Tag, MapArt, MiniPlaceCard, FaveButton, Footer, affById,
 } from "../components/site.jsx";
 import { useNav, useCity, useFaves } from "../nav.js";
+
+// "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
+const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function fullAddress(p) {
+  const c = CITIES.find(x => x.id === p.city);
+  const parts = [p.end];
+  if (p.bairro && !plain(p.end).includes(plain(p.bairro))) parts.push(p.bairro);
+  if (c && !plain(p.end).includes(plain(c.name))) parts.push(c.name + (c.sub ? " - " + c.sub : ""));
+  return parts.filter(Boolean).join(" · ");
+}
+const directions = (p) => p.geo
+  ? `https://www.google.com/maps/dir/?api=1&destination=${p.geo.lat},${p.geo.lng}${p.placeId ? "&destination_place_id=" + p.placeId : ""}`
+  : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress(p))}`;
 
 const EXTRA_PILL = {
   "Vista linda":          ["eye", "vibe-mint"],
@@ -161,14 +174,15 @@ export function Detalhe({ id }) {
             <MapArt className="where-map where-map-lg" pins={[{ x: 50, y: 42, label: p.name }]}>
               <span className="map-art-chip" style={{ left: "14%", top: "78%" }}><b>M</b> Metrô · 700 m</span>
             </MapArt>
-            <p className="where-address"><Icon name="pin" size={16} /> {p.end}</p>
+            <p className="where-address"><Icon name="pin" size={16} /> {fullAddress(p)}
+              <a className="where-route" href={directions(p)} target="_blank" rel="noreferrer">Como chegar <Icon name="arrow" size={14} /></a></p>
           </div>
           <div className="info-box">
             <h2 className="h2t">Informações úteis</h2>
             <dl>
               <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>
               <div><Icon name="dollar" size={20} /><dt>Faixa de preço</dt><dd><PriceDots level={p.priceLevel} /> ({PRICE_RANGE[p.priceLevel]} por pessoa)</dd></div>
-              <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{p.end}</dd></div>
+              <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{fullAddress(p)}{p.cep && <><br />CEP {p.cep}</>}</dd></div>
               <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{p.phone}</dd></div>
               <div><Icon name="link" size={20} /><dt>Site</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.site}</a></dd></div>
               <div><Icon name="instagram" size={20} /><dt>Instagram</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.insta}</a></dd></div>

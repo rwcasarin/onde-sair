@@ -42,7 +42,7 @@ export function SettingsPage() {
       <PageHeader title="Configurações" crumbs={[["Painel", "/"], ["Configurações"]]} subtitle="Identidade, SEO, avisos e dados do site."
         actions={<Btn kind="primary" icon="check" disabled={!dirty} onClick={save}>Salvar configurações</Btn>} />
       {dirty && <p className="a-dirty a-dirty-bar"><i /> Alterações não salvas</p>}
-      <Tabs value={tab} onChange={setTab} tabs={[["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["redes", "Redes sociais"], ["avancado", "Avançado"], ["dados", "Dados"]]} />
+      <Tabs value={tab} onChange={setTab} tabs={[["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["avancado", "Avançado"], ["dados", "Dados"]]} />
 
       {tab === "geral" && (
         <Card>
@@ -84,6 +84,20 @@ export function SettingsPage() {
             <Input label="YouTube" value={draft.youtube} onChange={(youtube) => set({ youtube })} prefix="youtube.com" />
             <Input label="Spotify" value={draft.spotify} onChange={(spotify) => set({ spotify })} />
           </div>
+        </Card>
+      )}
+
+      {tab === "integracoes" && (
+        <Card title="Google Maps" subtitle="Ativa o autocompletar de endereço no cadastro de lugares.">
+          <Input label="Chave da API (navegador)" value={draft.mapsKey || ""} onChange={(mapsKey) => set({ mapsKey: mapsKey.trim() })}
+            placeholder="AIza…" autoComplete="off" spellCheck={false}
+            hint="Fica guardada só no painel; o site público não recebe essa chave." />
+          <ol className="a-steps">
+            <li>No Google Cloud Console, ative <strong>Maps JavaScript API</strong> e <strong>Places API (New)</strong>.</li>
+            <li>Crie uma chave em <em>APIs e serviços › Credenciais</em>.</li>
+            <li>Restrinja a chave a <em>Referenciadores HTTP</em>: <code>https://www.ondesair.com.br/*</code> e <code>https://ondesair.com.br/*</code>, e às duas APIs acima.</li>
+            <li>Cole a chave aqui e salve. O campo de endereço passa a sugerir endereços na hora.</li>
+          </ol>
         </Card>
       )}
 
