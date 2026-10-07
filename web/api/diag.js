@@ -18,16 +18,29 @@ export async function GET(request) {
     log("content.json etag", cur.blob.etag);
     log("chaves", Object.keys(data).map(k => k + ":" + JSON.stringify(data[k]).length));
     log("atividade recente", (data.activity || []).slice(0, 25).map(x => [x.at, x.who, x.action, x.target]));
-    // repete o fluxo antigo (ler → comparar → gravar com ifMatch) com um corpo do mesmo tamanho
     const K = "cms/_diag_content.json";
-    let r = await put(K, text, opts); let et = r.etag; log("cópia put", [et, r.size]);
+    await put(K, text, opts);
+    const g = await get(K, { access: "private", useCache: false }); await new Response(g.stream).text();
+    const h = await head(K);
+    log("etag get vs head", [g.blob.etag, h.etag]);
+    log("ifMatch=head", await put(K, text, { ...opts, ifMatch: h.etag }).then(() => "ok", err));
+    const g2 = await get(K, { access: "private", useCache: false }); await new Response(g2.stream).text();
+    log("ifMatch=get sem W/", await put(K, text, { ...opts, ifMatch: g2.blob.etag.replace(/^W\//, "") }).then(() => "ok", err));
+    // fluxo novo (storage.js) com o tamanho real
+    const { readJSON, writeJSON } = await import("./_lib/storage.js");
+    let v = await writeJSON("_diag_content", data, undefined);
     for (let i = 1; i <= 3; i++) {
-      const t0 = Date.now();
-      const g = await get(K, { access: "private", useCache: false }); await new Response(g.stream).text();
-      const same = g.blob.etag === et;
-      const w = await put(K, text.replace(/"_n":\d+|^\{/, (m) => m === "{" ? '{"_n":' + i + "," : '"_n":' + i), { ...opts, ifMatch: g.blob.etag }).then(x => (et = x.etag, "ok"), err);
-      log("fluxo antigo #" + i + " (" + (Date.now() - t0) + "ms)", { getEtagIgualAoUltimoPut: same, gravacao: w });
+      const t0 = Date.now(); data.version = i;
+      try { v = await writeJSON("_diag_content", data, v); log("novo #" + i, "ok " + (Date.now() - t0) + "ms"); }
+      catch (e) { log("novo #" + i, err(e)); v = (await readJSON("_diag_content"))?.etag; }
     }
+    try { await writeJSON("_diag_content", data, "versao-errada"); log("conflito real", "NÃO detectado"); } catch (e) { log("conflito real", "detectado (" + e.message + ")"); }
+    // contas: simula signup → delete com as funções reais
+    const { updateUsers, loadUsers } = await import("./_lib/users.js");
+    const id = "udiag" + Date.now();
+    try { await updateUsers(u => { u.push({ id, name: "diag", email: id + "@x.com", status: "ativo" }); }); log("users add", "ok"); } catch (e) { log("users add", err(e) + " " + (e.stack || "").split("\n").slice(0, 4).join(" | ")); }
+    try { await updateUsers(u => { const i = u.findIndex(y => y.id === id); if (i >= 0) u.splice(i, 1); }); log("users delete", "ok"); } catch (e) { log("users delete", err(e) + " " + (e.stack || "").split("\n").slice(0, 4).join(" | ")); }
+    const lu = await loadUsers(); log("users.json", { n: lu.data.length, testes: lu.data.filter(x => /teste\.|udiag/.test(x.email || "")).map(x => x.email) });
   } catch (e) { log("fatal", err(e)); }
   return Response.json(out);
 }
