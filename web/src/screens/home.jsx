@@ -21,11 +21,8 @@ export function Home() {
         <HeroMedia img={HERO.img} note={HERO.note} words={HERO.geoWords} hint="Foto principal · ~1400×800, pessoas em clima de rolê" />
 
         <div className="hero2-copy">
-          <h1>Qual é<br />a vibe hoje?</h1>
-          <p className="hero2-lede">
-            Descubra lugares, experiências e pessoas{" "}<br />para viver uma cidade mais viva.{" "}<br />
-            Não é uma agenda, é uma dica.
-          </p>
+          <h1>{(HERO.title || "Qual é\na vibe hoje?").split("\n").map((l, i) => <span key={i}>{i > 0 && <br />}{l}</span>)}</h1>
+          <p className="hero2-lede">{HERO.lede}</p>
 
           <form className="hero2-search" onSubmit={(e) => { e.preventDefault(); nav("lista", { q }); }}>
             <Icon name="search" size={22} />

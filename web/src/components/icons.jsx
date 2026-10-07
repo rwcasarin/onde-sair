@@ -42,6 +42,7 @@ const PATHS = {
   sparkle:  <path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z" />,
   x:        <path d="M18 6 6 18M6 6l12 12" />,
   check:    <path d="M20 6 9 17l-5-5" />,
+  wine:     <><path d="M8 22h8M12 15v7" /><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z" /></>,
   utensils: <><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></>,
 };
 

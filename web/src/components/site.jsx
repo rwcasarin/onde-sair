@@ -12,6 +12,7 @@ export const placeById = (id) => PLACES.find(p => p.id === id);
 export function VibePill({ aff, size = "md", onClick, active }) {
   const a = affById(aff);
   const v = VIBE_STYLE[aff];
+  if (!a || !v) return null; // vibe desativada no painel
   const Tag = onClick ? "button" : "span";
   return (
     <Tag className={`vibe-pill vibe-pill-${size} ${v.cls}` + (active ? " active" : "")} onClick={onClick}>
@@ -285,6 +286,7 @@ export function Footer() {
           <span className="site-footer-legal">
             <a href="#" onClick={(e) => e.preventDefault()}>Termos de uso</a>
             <a href="#" onClick={(e) => e.preventDefault()}>Privacidade</a>
+            <a href="#/admin" className="site-footer-admin">Área administrativa</a>
           </span>
         </div>
       </div>

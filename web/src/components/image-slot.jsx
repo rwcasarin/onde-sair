@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { resolveMedia } from "../admin/store.js";
 
 // Área de imagem demarcada.
 // Mostra a foto assim que o arquivo `src` existir; até lá, exibe a
@@ -18,7 +19,7 @@ export function ImageSlot({ src, alt = "", hint, compact = false, className = ""
       )}
       {src && (
         <img
-          src={src} alt={alt} loading="lazy"
+          src={resolveMedia(src)} alt={alt} loading="lazy"
           onLoad={() => setLoaded(true)}
           onError={() => setLoaded(false)}
         />
