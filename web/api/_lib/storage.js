@@ -12,8 +12,9 @@ export class Conflict extends Error {}
 async function blobLib() { return import("@vercel/blob"); }
 
 // ---------- JSON com controle de versão ----------
-// A "versão" de um arquivo é o hash do próprio conteúdo. Ela não depende do formato
-// da ETag do Blob (que pode variar entre put/get/head) e é igual em qualquer leitura.
+// A "versão" de um arquivo é o hash do próprio conteúdo, igual em qualquer leitura.
+// Não usamos a ETag do get(): em arquivos maiores a resposta vem compactada e a ETag
+// chega "fraca" (W/"…"), que o Blob recusa no ifMatch. Para o ifMatch usamos a do head().
 const version = (text) => crypto.createHash("md5").update(text).digest("hex");
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
