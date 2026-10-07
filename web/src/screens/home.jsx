@@ -1,0 +1,131 @@
+import { useState } from "react";
+import {
+  PLACES, VIBE_ORDER, HERO, TIPS_TODAY, STORIES,
+  VIBE_ROTEIROS, VIBE_TO_ROTEIRO, BRAND_VALUES,
+} from "../data.js";
+import { OSLogo } from "../components/brand.jsx";
+import { Icon } from "../components/icons.jsx";
+import { ImageSlot } from "../components/image-slot.jsx";
+import { HeroMedia, VibePill, SectionHead, MiniPlaceCard, GeoCard, Footer } from "../components/site.jsx";
+import { useNav, useCity } from "../nav.js";
+
+export function Home() {
+  const nav = useNav();
+  const { name, onCityClick } = useCity();
+  const [q, setQ] = useState("");
+
+  return (
+    <main className="home2">
+      {/* ================= HERO ================= */}
+      <section className="hero2">
+        <HeroMedia img={HERO.img} note={HERO.note} words={HERO.geoWords} hint="Foto principal · ~1400×800, pessoas em clima de rolê" />
+
+        <div className="hero2-copy">
+          <h1>Qual é<br />a vibe hoje?</h1>
+          <p className="hero2-lede">
+            Descubra lugares, experiências e pessoas{" "}<br />para viver uma cidade mais viva.{" "}<br />
+            Não é uma agenda, é uma dica.
+          </p>
+
+          <form className="hero2-search" onSubmit={(e) => { e.preventDefault(); nav("lista", { q }); }}>
+            <Icon name="search" size={22} />
+            <input
+              type="text" value={q} onChange={(e) => setQ(e.target.value)}
+              placeholder="Busque por lugares, bairros, experiências…" aria-label="Buscar"
+            />
+            <button type="button" className="hero2-search-city" onClick={onCityClick}>
+              <Icon name="pin" size={18} /> {name} <Icon name="chevron" size={14} />
+            </button>
+            <button type="submit" className="btn-pill">Buscar</button>
+          </form>
+
+          <div className="hero2-vibes" id="vibes">
+            {VIBE_ORDER.map(id => (
+              <VibePill key={id} aff={id} onClick={() => nav("lista", { aff: id })} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="shell">
+        {/* ================= DICAS PARA HOJE ================= */}
+        <section className="h2-section">
+          <SectionHead
+            title={`Dicas para hoje em ${name}`}
+            sub="Lugares reais, experiências incríveis. Selecionados por quem vive a cidade."
+            link="Ver todos" onLink={() => nav("lista")}
+          />
+          <div className="tips-grid">
+            {TIPS_TODAY.map(({ place, aff }) => (
+              <MiniPlaceCard key={place} p={PLACES.find(x => x.id === place)} aff={aff} />
+            ))}
+          </div>
+        </section>
+
+        {/* ================= DICAS DE QUEM JÁ FOI ================= */}
+        <section className="h2-section">
+          <SectionHead
+            title="Dicas de quem já foi"
+            sub="Histórias, roteiros e recomendações reais para inspirar a sua próxima saída."
+            link="Ver todos os conteúdos"
+          />
+          <div className="stories-grid">
+            {STORIES.map(s => (
+              <article key={s.id} className="story-card">
+                <ImageSlot className="story-img" src={s.img} alt="" hint="3:4">
+                  <span className={"story-shape shape-" + s.shape} aria-hidden="true"></span>
+                </ImageSlot>
+                <div className="story-body">
+                  <span className={"story-tag tone-" + s.tone}>{s.tag}</span>
+                  <h3>{s.title}</h3>
+                  <p>{s.desc}</p>
+                  <a href="#" className="h2-link" onClick={(e) => e.preventDefault()}>Ler mais <Icon name="arrow" size={16} /></a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ================= ROTEIROS POR VIBE ================= */}
+        <section className="h2-section" id="roteiros">
+          <SectionHead
+            title="Roteiros por vibe"
+            sub="Curadorias prontas para te levar mais longe."
+            link="Ver todos os roteiros" onLink={() => nav("roteiros")}
+          />
+          <div className="vibes-grid">
+            {VIBE_ROTEIROS.map(v => (
+              <article key={v.id} className={"vibe-card " + v.cls} onClick={() => nav("roteiro", { id: VIBE_TO_ROTEIRO[v.id] })}>
+                <div className="vibe-card-copy">
+                  <Icon name={v.icon} size={30} />
+                  <h3>{v.title}</h3>
+                  <p>{v.desc}</p>
+                  <span className="vibe-card-go"><Icon name="arrow" size={16} /></span>
+                </div>
+                <ImageSlot className="vibe-card-img" src={v.img} alt="" hint="3:4" />
+              </article>
+            ))}
+            <GeoCard />
+          </div>
+        </section>
+
+        {/* ================= FAIXA DA MARCA ================= */}
+        <section className="brand-strip" id="parceiros">
+          <div className="brand-strip-logo"><OSLogo /></div>
+          <p className="brand-strip-motto">Lugares reais.<br />Pessoas reais.<br />Dicas de verdade.</p>
+          <ul className="brand-strip-values">
+            {BRAND_VALUES.map(v => (
+              <li key={v.text}><Icon name={v.icon} size={26} fill={v.icon !== "users"} /><span>{v.text}</span></li>
+            ))}
+          </ul>
+          <div className="brand-strip-cta">
+            <button className="btn-pill">Seja um parceiro</button>
+            <p>Vamos juntos por<br />uma cidade mais viva.</p>
+          </div>
+        </section>
+      </div>
+
+      <Footer />
+    </main>
+  );
+}

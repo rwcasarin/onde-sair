@@ -1,0 +1,250 @@
+import { useState } from "react";
+import { PLACES, ROTEIROS, VIBE_STYLE, PRICE_RANGE, PLACE_TIPS, placeImg, placeGallery, roteiroImg } from "../data.js";
+import { Icon } from "../components/icons.jsx";
+import { ImageSlot } from "../components/image-slot.jsx";
+import {
+  HeroMedia, Crumbs, VibePill, IconPill, PriceDots, Tag, MapArt, MiniPlaceCard, FaveButton, Footer, affById,
+} from "../components/site.jsx";
+import { useNav, useCity, useFaves } from "../nav.js";
+
+const EXTRA_PILL = {
+  "Vista linda":          ["eye", "vibe-mint"],
+  "Boa música":           ["music", "vibe-lavender"],
+  "Para ir com amigos":   ["users", "vibe-sky"],
+  "Experiência única":    ["sparkle", "vibe-yellow"],
+  "Boa luz":              ["sun", "vibe-yellow"],
+  "Sem pressa":           ["clock", "vibe-mint"],
+  "Para ir com crianças": ["smile", "vibe-sky"],
+  "Programa a dois":      ["heart", "vibe-pink"],
+};
+const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["dicas", "Dicas"], ["confira", "Confira também"]];
+
+export function Detalhe({ id }) {
+  const nav = useNav();
+  const { name: city } = useCity();
+  const { faves, toggle } = useFaves();
+  const p = PLACES.find(x => x.id === id) || PLACES[0];
+  const [tab, setTab] = useState("visao");
+  const [shift, setShift] = useState(0);
+  const [shared, setShared] = useState(false);
+  const saved = faves.has(p.id);
+  const firstAff = affById(p.affs[0]);
+
+  const gallery = placeGallery(p.id);
+  const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
+
+  const similar = PLACES
+    .filter(x => x.id !== p.id)
+    .map(x => ({ x, score: x.affs.filter(a => p.affs.includes(a)).length + (x.type === p.type ? 0.5 : 0) }))
+    .sort((m, n) => n.score - m.score)
+    .slice(0, 2).map(s => s.x);
+
+  const rots = ROTEIROS
+    .map(r => ({ r, score: (r.steps.some(st => st.place === p.id) ? 10 : 0) + r.vibes.filter(a => p.affs.includes(a)).length }))
+    .sort((m, n) => n.score - m.score)
+    .slice(0, 2).map(s => s.r);
+
+  function goTab(id) {
+    setTab(id);
+    document.getElementById("sec-" + id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function share() {
+    try {
+      if (navigator.share) await navigator.share({ title: p.name, text: p.tagline });
+      else await navigator.clipboard?.writeText(`${p.name} — ${p.tagline}`);
+      setShared(true); setTimeout(() => setShared(false), 1800);
+    } catch { /* cancelado */ }
+  }
+
+  return (
+    <main className="home2">
+      {/* ================= HERO ================= */}
+      <section className="hero2 hero2-page hero2-place">
+        <HeroMedia img={placeImg(p.id)} note={p.note} shape="diagonal" hint="Foto do lugar · ~1400×800" />
+        <div className="hero2-copy">
+          <Crumbs items={[["Início", "home"], ["Lugares", "lista"], [p.bairro, "lista", { q: p.bairro }], [p.name]]} />
+          <span className={"eyebrow-tag " + VIBE_STYLE[p.affs[0]].cls}>{firstAff?.label}</span>
+          <h1 className="page-title">{p.name}</h1>
+          <p className="hero2-lede">{p.tagline}</p>
+
+          <ul className="place-meta">
+            <li><Icon name="pin" size={18} fill /> {p.bairro}</li>
+            <li><PriceDots level={p.priceLevel} /></li>
+            <li><Icon name="utensils" size={18} /> {p.cuisine}</li>
+          </ul>
+
+          <div className="hero2-vibes">
+            {p.affs.map(a => <VibePill key={a} aff={a} />)}
+            {p.extras.map(e => <IconPill key={e} icon={EXTRA_PILL[e]?.[0] || "star"} cls={EXTRA_PILL[e]?.[1]}>{e}</IconPill>)}
+          </div>
+
+          <div className="place-actions">
+            <button className="btn-pill btn-lg" onClick={() => goTab("chegar")}><Icon name="send" size={18} /> Como chegar</button>
+            <button className={"btn-outline btn-lg" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved}>
+              <Icon name="heart" size={18} fill={saved} /> {saved ? "Salvo" : "Salvar"}
+            </button>
+            <button className="btn-outline btn-lg" onClick={share}><Icon name="share" size={18} /> {shared ? "Copiado!" : "Compartilhar"}</button>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= ABAS ================= */}
+      <nav className="page-tabs" aria-label="Seções">
+        <div className="shell">
+          {TABS.map(([id, label]) => (
+            <button key={id} className={tab === id ? "on" : ""} onClick={() => goTab(id)}>{label}</button>
+          ))}
+        </div>
+      </nav>
+
+      <div className="shell place-body">
+        {/* 1 · Sobre o lugar (60%) + depoimento da equipe (30%) */}
+        <section className="place-row split-60-30" id="sec-visao">
+          <div className="about-text">
+            <h2 className="h2t">Sobre o lugar</h2>
+            <p>{p.desc}</p>
+            <p>
+              {p.name} entrou pra nossa curadoria depois de três visitas em momentos diferentes. Em todas, manteve o que importa:
+              atendimento atento sem ser exagerado, ingredientes honestos e conta sem sustos. É o tipo de lugar que faz você querer
+              ficar mais um pouco — ideal para {p.affs.map(a => affById(a).label.toLowerCase().replace(/^(para|pra) /, "")).join(", ")}.
+            </p>
+          </div>
+          <blockquote className="big-quote">
+            <span className="big-quote-mark">“</span>
+            <p>{p.dica}</p>
+            <footer>Equipe Onde Sair</footer>
+          </blockquote>
+        </section>
+
+        {/* 2 · Por que ir? (horizontal) */}
+        <section className="place-row" id="sec-porque">
+          <div className="why-box why-row">
+            <h2 className="h2t">Por que ir?</h2>
+            <ul>
+              {p.reasons.map(([icon, text]) => (
+                <li key={text}><span className="why-icon"><Icon name={icon} size={18} fill={icon === "star" || icon === "heart"} /></span>{text}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* 3 · Fotos do lugar */}
+        <section className="place-row" id="sec-fotos">
+          <div>
+            <div className="h2-head">
+              <h2>Fotos do lugar</h2>
+              <a href="#" className="h2-link" onClick={(e) => e.preventDefault()}>Ver todas as fotos <Icon name="arrow" size={16} /></a>
+            </div>
+            <div className="gallery gallery-wide">
+              {shown.map((src, i) => (
+                <ImageSlot key={src} className="gallery-img" src={src} alt={`${p.name} — foto ${i + 1}`} hint="3:4">
+                  {i === 0 && (
+                    <div className="gallery-nav">
+                      <button aria-label="Foto anterior" onClick={() => setShift((shift + gallery.length - 1) % gallery.length)}><Icon name="left" size={16} /></button>
+                      <button aria-label="Próxima foto" onClick={() => setShift((shift + 1) % gallery.length)}><Icon name="right" size={16} /></button>
+                    </div>
+                  )}
+                </ImageSlot>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 4 · Onde fica (60%) + Informações úteis (30%) */}
+        <section className="place-row split-60-30" id="sec-chegar">
+          <div className="where-box">
+            <div className="h2-head">
+              <h2>Onde fica</h2>
+              <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("mapa", { id: p.id }); }}>Ver no mapa <Icon name="arrow" size={16} /></a>
+            </div>
+            <MapArt className="where-map where-map-lg" pins={[{ x: 50, y: 42, label: p.name }]}>
+              <span className="map-art-chip" style={{ left: "14%", top: "78%" }}><b>M</b> Metrô · 700 m</span>
+            </MapArt>
+            <p className="where-address"><Icon name="pin" size={16} /> {p.end}</p>
+          </div>
+          <div className="info-box">
+            <h2 className="h2t">Informações úteis</h2>
+            <dl>
+              <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>
+              <div><Icon name="dollar" size={20} /><dt>Faixa de preço</dt><dd><PriceDots level={p.priceLevel} /> ({PRICE_RANGE[p.priceLevel]} por pessoa)</dd></div>
+              <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{p.end}</dd></div>
+              <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{p.phone}</dd></div>
+              <div><Icon name="link" size={20} /><dt>Site</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.site}</a></dd></div>
+              <div><Icon name="instagram" size={20} /><dt>Instagram</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.insta}</a></dd></div>
+            </dl>
+          </div>
+        </section>
+
+        {/* 5 · Dicas de quem já foi */}
+        <section className="place-row" id="sec-dicas">
+          <div>
+            <div className="h2-head">
+              <h2>Dicas de quem já foi</h2>
+              <a href="#" className="h2-link" onClick={(e) => e.preventDefault()}>Ver todas as dicas <Icon name="arrow" size={16} /></a>
+            </div>
+            <div className="tip-reviews">
+              {PLACE_TIPS.map(t => (
+                <article key={t.name} className="tip-review">
+                  <header>
+                    <ImageSlot className="avatar-slot sm" src={`images/pessoas/${t.name.split(" ")[0].toLowerCase()}.jpg`} compact />
+                    <div><strong>{t.name}</strong><span>{t.when}</span></div>
+                    <Icon name="heart" size={18} />
+                  </header>
+                  <p>{t.text}</p>
+                  <div className="tip-review-tags">{t.tags.map(([l, c]) => <Tag key={l} cls={c}>{l}</Tag>)}</div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 6 · Confira também — 2 lugares + 2 roteiros */}
+        <section className="place-row" id="sec-confira">
+          <div>
+            <div className="h2-head">
+              <h2>Confira também</h2>
+              <p>Lugares e roteiros com a mesma vibe em {city}.</p>
+              <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("lista", { aff: p.affs[0] }); }}>Ver mais <Icon name="arrow" size={16} /></a>
+            </div>
+            <div className="related-grid">
+              {similar.map(x => (
+                <div key={x.id} className="related-item">
+                  <span className="related-kind">Lugar</span>
+                  <MiniPlaceCard p={x} aff={x.affs.find(a => p.affs.includes(a)) || x.affs[0]} />
+                </div>
+              ))}
+              {rots.map(r => (
+                <div key={r.id} className="related-item">
+                  <span className="related-kind kind-rot">Roteiro</span>
+                  <RoteiroCard r={r} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <Footer />
+    </main>
+  );
+}
+
+// Card de roteiro no mesmo formato do card compacto de lugar
+function RoteiroCard({ r }) {
+  const nav = useNav();
+  return (
+    <article className="tip-card" onClick={() => nav("roteiro", { id: r.id })}>
+      <ImageSlot className="tip-img" src={roteiroImg(r.id)} alt="" hint="5:4" />
+      <div className="tip-body">
+        <VibePill aff={r.aff} size="sm" />
+        <div className="tip-title">
+          <h3>{r.title}</h3>
+          <FaveButton id={r.id} />
+        </div>
+        <span className="tip-where"><Icon name="clock" size={13} /> {r.stats.tempo} · {r.paradas} paradas</span>
+        <p>{r.desc.split(".")[0]}.</p>
+      </div>
+    </article>
+  );
+}
