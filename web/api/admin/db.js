@@ -4,13 +4,22 @@ import { requireUser, loadTeam, publicMember } from "../_lib/auth.js";
 import { readJSON, writeJSON, Conflict } from "../_lib/storage.js";
 import { json, fail, body, handle, isCmsCall } from "../_lib/http.js";
 import { can } from "../../shared/roles.js";
+import { loadUsers, updateUsers } from "../_lib/users.js";
+
+// Contas reais do site, no formato da tela "Usuários" do painel
+const asMember = (u) => ({
+  id: u.id, name: u.name, email: u.email || (u.instagram || "(sem e-mail)"), city: u.city, plan: u.plan || "Grátis", status: u.status || "ativo",
+  saves: (u.faves || []).length, reviews: 0, joined: u.joined, lastSeen: u.lastSeen, providers: Object.keys(u.providers || {}), hasPassword: !!u.hash,
+  vibes: u.vibes || [], marketing: !!u.marketing,
+});
 
 export const GET = handle(async (request) => {
   const user = await requireUser(request);
-  const [content, media, team] = await Promise.all([readJSON("content"), readJSON("media"), loadTeam()]);
+  const [content, media, team, users] = await Promise.all([readJSON("content"), readJSON("media"), loadTeam(), loadUsers()]);
+  const members = can(user, "members.manage") ? users.data.map(asMember) : [];
   return json({
     user, etag: content?.etag || null,
-    db: content ? { ...content.data, media: media?.data || {}, team: team.data.map(publicMember) } : null,
+    db: content ? { ...content.data, members, media: media?.data || {}, team: team.data.map(publicMember) } : null,
   });
 });
 
@@ -45,10 +54,11 @@ export const PUT = handle(async (request) => {
   const user = await requireUser(request);
   const { db, etag } = await body(request);
   if (!db || !Array.isArray(db.places)) return fail(400, "Banco inválido");
-  const { team, media, ...content } = db; // equipe e mídia têm rotas próprias
+  const { team, media, members, ...content } = db; // equipe, mídia e contas têm rotas próprias
   content.activity = (content.activity || []).slice(0, 200);
   const cur = await readJSON("content");
   if (cur && cur.etag !== etag) return fail(409, "conflict", { etag: cur.etag });
+  content.members = cur?.data?.members || [];
   const why = violation(user, cur?.data, content);
   if (why) return fail(403, why);
   try {
@@ -58,4 +68,24 @@ export const PUT = handle(async (request) => {
     if (e instanceof Conflict) { const c = await readJSON("content"); return fail(409, "conflict", { etag: c?.etag }); }
     throw e;
   }
+});
+
+// PATCH /api/admin/db { memberIds, patch: { status?, plan? } } — ações sobre contas do site
+export const PATCH = handle(async (request) => {
+  if (!isCmsCall(request)) return fail(403, "Requisição inválida");
+  const user = await requireUser(request);
+  if (!can(user, "members.manage")) return fail(403, "Seu perfil não gerencia usuários.");
+  const { memberIds = [], patch = {} } = await body(request);
+  const ok = {};
+  if (["ativo", "bloqueado"].includes(patch.status)) ok.status = patch.status;
+  if (["Grátis", "VIP"].includes(patch.plan)) ok.plan = patch.plan;
+  const users = await updateUsers((list) => {
+    list.forEach(u => {
+      if (!memberIds.includes(u.id)) return;
+      if (ok.status === "bloqueado" && u.status !== "bloqueado") u.sessionVersion = (u.sessionVersion || 0) + 1; // derruba a sessão
+      Object.assign(u, ok);
+    });
+    return list;
+  });
+  return json({ members: users.map(asMember) });
 });

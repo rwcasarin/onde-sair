@@ -234,7 +234,7 @@ export async function adminLoad() {
   notify();
 }
 
-const contentOf = (d) => { const { team, media, ...content } = d; return clone(content); };
+const contentOf = (d) => { const { team, media, members, ...content } = d; return clone(content); };
 const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 // Mescla em 3 vias: aplica sobre a versão do servidor só o que mudou aqui desde a última sincronização
@@ -447,7 +447,14 @@ export function moderate(ids, patch, user) {
 }
 export function removeReviews(ids, user) { db.reviews = db.reviews.filter(r => !ids.includes(r.id)); log(user, "excluiu", `${ids.length} avaliação(ões)`, "avaliação"); commit(); }
 
-export function updateMembers(ids, patch, user) {
+export async function updateMembers(ids, patch, user) {
+  if (REMOTE) {
+    const r = await api("admin/db", { method: "PATCH", body: { memberIds: ids, patch } });
+    db.members = r.members;
+    log(user, patch.status === "bloqueado" ? "bloqueou" : "atualizou", `${ids.length} usuário(s)`, "usuário");
+    commit();
+    return;
+  }
   db.members = db.members.map(m => ids.includes(m.id) ? { ...m, ...patch } : m);
   log(user, patch.status === "bloqueado" ? "bloqueou" : "atualizou", `${ids.length} usuário(s)`, "usuário");
   commit();
