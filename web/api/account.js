@@ -1,5 +1,5 @@
 // Contas do site — uma função, várias ações (limite de funções do plano Hobby)
-// GET  ?action=me            → usuário da sessão + provedores sociais disponíveis
+// GET  ?action=me            → usuário da sessão
 // POST ?action=signup        { name, email, password, city, marketing }
 // POST ?action=login         { email, password }
 // POST ?action=logout
@@ -9,7 +9,6 @@
 import { hashPassword, verifyPassword } from "./_lib/auth.js";
 import { loadUsers, updateUsers, publicUser, userCookie, clearUserCookie, currentUser, newUserId } from "./_lib/users.js";
 import { json, fail, body, handle, isCmsCall } from "./_lib/http.js";
-import { providers } from "./oauth.js";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map();
@@ -19,7 +18,7 @@ const clean = (s, max = 80) => String(s || "").trim().slice(0, max);
 export const GET = handle(async (request) => {
   if (action(request) !== "me") return fail(404, "Ação desconhecida");
   const u = await currentUser(request);
-  return json({ user: u ? publicUser(u) : null, providers: providers() });
+  return json({ user: u ? publicUser(u) : null });
 });
 
 export const POST = handle(async (request) => {
@@ -38,7 +37,7 @@ export const POST = handle(async (request) => {
         throw Object.assign(new Error("exists"), { status: 409 });
       const u = {
         id: newUserId(), name: clean(name), email: email.toLowerCase().trim(), hash: hashPassword(password),
-        providers: {}, avatar: null, city: clean(city, 12) || "sp", vibes: [], faves: [], plan: "Grátis", status: "ativo",
+        avatar: null, city: clean(city, 12) || "sp", vibes: [], faves: [], status: "ativo",
         marketing: !!marketing, onboarded: false, joined: new Date().toISOString(), lastSeen: new Date().toISOString(), sessionVersion: 0,
       };
       users.push(u);
@@ -59,8 +58,6 @@ export const POST = handle(async (request) => {
       at.n += 1;
       if (at.n >= 5) { at.n = 0; at.until = Date.now() + 30000; }
       attempts.set(key, at);
-      // conta só social: avisa qual botão usar
-      if (u && !u.hash && Object.keys(u.providers || {}).length) return fail(401, "social", { provider: Object.keys(u.providers)[0] });
       return fail(401, "invalid");
     }
     if (u.status === "bloqueado") return fail(403, "blocked");
@@ -76,7 +73,7 @@ export const POST = handle(async (request) => {
     if (!me) return fail(401, "Entre na sua conta.");
     const { current = "", next = "" } = await body(request);
     if (next.length < 8) return fail(400, "A nova senha precisa de pelo menos 8 caracteres.");
-    if (me.hash && !verifyPassword(current, me.hash)) return fail(400, "A senha atual não confere.");
+    if (!verifyPassword(current, me.hash || "")) return fail(400, "A senha atual não confere.");
     const u = await updateUsers(users => { const x = users.find(y => y.id === me.id); x.hash = hashPassword(next); x.sessionVersion = (x.sessionVersion || 0) + 1; return x; });
     return json({ ok: true }, 200, { "set-cookie": userCookie(u) });
   }
@@ -96,10 +93,6 @@ export const PATCH = handle(async (request) => {
     if (Array.isArray(p.faves)) x.faves = p.faves.slice(0, 500).map(v => clean(v, 20));
     if (p.marketing !== undefined) x.marketing = !!p.marketing;
     if (p.onboarded !== undefined) x.onboarded = !!p.onboarded;
-    if (p.email !== undefined && !x.email && EMAIL.test(p.email)) {
-      if (users.some(y => y.email === p.email.toLowerCase())) throw Object.assign(new Error("Esse e-mail já está em outra conta."), { status: 409 });
-      x.email = p.email.toLowerCase();
-    }
     x.lastSeen = new Date().toISOString();
     return x;
   });

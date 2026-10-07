@@ -3,6 +3,7 @@ import { AFFINITIES, CITIES, PLACES, VIBE_STYLE, PRICE_RANGE, placeImg, roteiroI
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
+import { href, go, toPath } from "../router.js";
 import { useNav, useCity, useFaves } from "../nav.js";
 
 export const affById = (id) => AFFINITIES.find(a => a.id === id);
@@ -75,7 +76,7 @@ export function Crumbs({ items }) {
         <span key={i}>
           {i > 0 && <Icon name="right" size={12} />}
           {screen
-            ? <a href="#" onClick={(e) => { e.preventDefault(); nav(screen, params); }}>{label}</a>
+            ? <a href={href(toPath(screen, params))} onClick={(e) => { e.preventDefault(); nav(screen, params); }}>{label}</a>
             : <span aria-current="page">{label}</span>}
         </span>
       ))}
@@ -83,13 +84,13 @@ export function Crumbs({ items }) {
   );
 }
 
-export function SectionHead({ title, sub, link, onLink }) {
+export function SectionHead({ title, sub, link, onLink, to }) {
   return (
     <div className="h2-head">
       <h2>{title}</h2>
       {sub && <p>{sub}</p>}
       {link && (
-        <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); onLink?.(); }}>
+        <a href={to ? href(to) : "#"} className="h2-link" onClick={(e) => { e.preventDefault(); to ? (go(to), window.scrollTo(0, 0)) : onLink?.(); }}>
           {link} <Icon name="arrow" size={16} />
         </a>
       )}
@@ -259,7 +260,7 @@ export function MapArt({ pins = [], route = false, park = true, className = "", 
 export function Footer() {
   const { name: city, onCityClick } = useCity();
   const nav = useNav();
-  const links = [["Sobre"], ["Blog"], ["Para parceiros", "home", { anchor: "parceiros" }], ["Fale com a gente"], ["Trabalhe conosco"]];
+  const links = [["Sobre"], ["Histórias", "historias"], ["Para parceiros", "home", { anchor: "parceiros" }], ["Fale com a gente"], ["Trabalhe conosco"]];
   const social = [["instagram", "Instagram"], ["tiktok", "TikTok"], ["youtube", "YouTube"], ["spotify", "Spotify"]];
   return (
     <footer className="site-footer">
@@ -270,7 +271,7 @@ export function Footer() {
             <span className="site-footer-motto">O lugar certo<br />pra cada vibe.</span>
           </div>
           <nav className="site-footer-links">
-            {links.map(([l, s, params]) => <a key={l} href="#" onClick={(e) => { e.preventDefault(); s && nav(s, params); }}>{l}</a>)}
+            {links.map(([l, s, params]) => <a key={l} href={s ? href(toPath(s, params)) : "#"} onClick={(e) => { e.preventDefault(); s && nav(s, params); }}>{l}</a>)}
           </nav>
           <div className="site-footer-social">
             {social.map(([icon, label]) => (
@@ -286,7 +287,7 @@ export function Footer() {
           <span className="site-footer-legal">
             <a href="#" onClick={(e) => e.preventDefault()}>Termos de uso</a>
             <a href="#" onClick={(e) => e.preventDefault()}>Privacidade</a>
-            <a href="#/admin" className="site-footer-admin">Área administrativa</a>
+            <a href={href("/admin")} className="site-footer-admin">Área administrativa</a>
           </span>
         </div>
       </div>

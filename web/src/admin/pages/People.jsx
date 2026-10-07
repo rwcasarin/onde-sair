@@ -11,11 +11,10 @@ export function MembersPage() {
   const { db, user, toast, confirm } = useAdmin();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
-  const [plan, setPlan] = useState("");
   const [city, setCity] = useState("");
   const [open, setOpen] = useState(null);
   const cityName = (id) => db.cities.find(c => c.id === id)?.name || id;
-  const rows = db.members.filter(m => (!status || m.status === status) && (!plan || m.plan === plan) && (!city || m.city === city)
+  const rows = db.members.filter(m => (!status || m.status === status) && (!city || m.city === city)
     && (!q || `${m.name} ${m.email}`.toLowerCase().includes(q.toLowerCase())));
 
   async function block(ids, v) {
@@ -24,8 +23,8 @@ export function MembersPage() {
     catch (e) { toast(e.message, "error"); }
   }
   function exportCsv() {
-    const head = ["nome", "email", "cidade", "plano", "status", "salvos", "avaliacoes", "entrou"];
-    const lines = rows.map(m => [m.name, m.email, cityName(m.city), m.plan, m.status, m.saves, m.reviews, m.joined.slice(0, 10)].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
+    const head = ["nome", "email", "cidade", "status", "salvos", "avaliacoes", "entrou"];
+    const lines = rows.map(m => [m.name, m.email, cityName(m.city), m.status, m.saves, m.reviews, m.joined.slice(0, 10)].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
     const blob = new Blob(["﻿" + [head.join(","), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "usuarios-onde-sair.csv"; a.click();
     URL.revokeObjectURL(a.href);
@@ -39,14 +38,13 @@ export function MembersPage() {
       <div className="a-kpis a-kpis-4">
         <div className="a-kpi static"><span className="a-kpi-label">Cadastrados</span><strong className="a-kpi-value">{db.members.length}</strong></div>
         <div className="a-kpi static"><span className="a-kpi-label">Ativos</span><strong className="a-kpi-value">{db.members.filter(x => x.status === "ativo").length}</strong></div>
-        <div className="a-kpi static"><span className="a-kpi-label">Assinantes VIP</span><strong className="a-kpi-value">{db.members.filter(x => x.plan === "VIP").length}</strong></div>
+        <div className="a-kpi static"><span className="a-kpi-label">Novos em 30 dias</span><strong className="a-kpi-value">{db.members.filter(x => Date.now() - new Date(x.joined) < 30 * 864e5).length}</strong></div>
         <div className="a-kpi static"><span className="a-kpi-label">Bloqueados</span><strong className="a-kpi-value">{db.members.filter(x => x.status === "bloqueado").length}</strong></div>
       </div>
       <Card pad={false}>
         <div className="a-card-pad a-card-pad-tight">
           <Toolbar search={q} onSearch={setQ} placeholder="Buscar por nome ou e-mail…">
             <FilterSelect label="Status" value={status} onChange={setStatus} options={[["ativo", "Ativo"], ["pendente", "Pendente"], ["bloqueado", "Bloqueado"]]} />
-            <FilterSelect label="Plano" value={plan} onChange={setPlan} options={["Grátis", "VIP"]} />
             <FilterSelect label="Cidade" value={city} onChange={setCity} options={db.cities.map(c => [c.id, c.name])} />
           </Toolbar>
         </div>
@@ -58,7 +56,6 @@ export function MembersPage() {
           columns={[
             { key: "name", label: "Pessoa", render: (x) => <span className="a-cell-main"><span className="a-avatar sm">{x.name.split(" ").map(s => s[0]).join("")}</span><span><strong>{x.name}</strong><em>{x.email}</em></span></span> },
             { key: "city", label: "Cidade", width: 140, render: (x) => cityName(x.city) },
-            { key: "plan", label: "Plano", width: 90, render: (x) => x.plan === "VIP" ? <Badge tone="teal">VIP</Badge> : "Grátis" },
             { key: "saves", label: "Salvos", width: 80, align: "right" },
             { key: "reviews", label: "Avaliações", width: 100, align: "right" },
             { key: "joined", label: "Entrou", width: 110, render: (x) => <span className="a-muted-cell">{fmtDate(x.joined, false)}</span> },
@@ -72,19 +69,16 @@ export function MembersPage() {
             {m.status === "bloqueado"
               ? <Btn icon="check" onClick={() => block([m.id], false)}>Desbloquear</Btn>
               : <Btn kind="danger" icon="ban" onClick={() => block([m.id], true)}>Bloquear</Btn>}
-            <Btn onClick={async () => { try { await updateMembers([m.id], { plan: m.plan === "VIP" ? "Grátis" : "VIP" }, user); toast("Plano atualizado.", "success"); } catch (e) { toast(e.message, "error"); } }}>{m.plan === "VIP" ? "Remover VIP" : "Conceder VIP"}</Btn>
             <Btn kind="primary" onClick={() => setOpen(null)}>Fechar</Btn>
           </>}>
           <dl className="a-meta a-meta-cols">
             <div><dt>E-mail</dt><dd>{m.email}</dd></div>
             <div><dt>Cidade</dt><dd>{cityName(m.city)}</dd></div>
-            <div><dt>Plano</dt><dd>{m.plan}</dd></div>
             <div><dt>Status</dt><dd><Badge tone={MTONE[m.status]}>{m.status}</Badge></dd></div>
             <div><dt>Entrou em</dt><dd>{fmtDate(m.joined, false)}</dd></div>
             <div><dt>Último acesso</dt><dd>{relTime(m.lastSeen)}</dd></div>
             <div><dt>Lugares salvos</dt><dd>{m.saves}</dd></div>
             <div><dt>Avaliações</dt><dd>{m.reviews}</dd></div>
-            {m.providers && <div><dt>Entra com</dt><dd>{[...(m.hasPassword ? ["E-mail e senha"] : []), ...m.providers.map(p => ({ google: "Google", instagram: "Instagram", tiktok: "TikTok" }[p] || p))].join(", ") || "—"}</dd></div>}
             {m.vibes?.length > 0 && <div><dt>Vibes</dt><dd>{m.vibes.map(v => db.vibes.find(x => x.id === v)?.label || v).join(", ")}</dd></div>}
           </dl>
           <p className="a-hint">Por privacidade (LGPD), o painel mostra só os dados necessários. Pedidos de exclusão de conta são atendidos em Configurações › Dados.</p>

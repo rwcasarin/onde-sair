@@ -7,6 +7,7 @@ import { OSLogo } from "../components/brand.jsx";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { HeroMedia, VibePill, SectionHead, MiniPlaceCard, GeoCard, Footer } from "../components/site.jsx";
+import { href, storyPath } from "../router.js";
 import { useNav, useCity } from "../nav.js";
 
 export function Home() {
@@ -64,11 +65,12 @@ export function Home() {
           <SectionHead
             title="Dicas de quem já foi"
             sub="Histórias, roteiros e recomendações reais para inspirar a sua próxima saída."
-            link="Ver todos os conteúdos"
+            link="Ver todas as histórias"
+            to="/historias"
           />
           <div className="stories-grid">
             {STORIES.map(s => (
-              <article key={s.id} className="story-card">
+              <article key={s.id} className="story-card" onClick={() => nav("historia", { id: s.id })} style={{ cursor: "pointer" }}>
                 <ImageSlot className="story-img" src={s.img} alt="" hint="3:4">
                   <span className={"story-shape shape-" + s.shape} aria-hidden="true"></span>
                 </ImageSlot>
@@ -76,7 +78,7 @@ export function Home() {
                   <span className={"story-tag tone-" + s.tone}>{s.tag}</span>
                   <h3>{s.title}</h3>
                   <p>{s.desc}</p>
-                  <a href="#" className="h2-link" onClick={(e) => e.preventDefault()}>Ler mais <Icon name="arrow" size={16} /></a>
+                  <a href={href(storyPath(s))} className="h2-link" onClick={(e) => { e.preventDefault(); e.stopPropagation(); nav("historia", { id: s.id }); }}>Ler mais <Icon name="arrow" size={16} /></a>
                 </div>
               </article>
             ))}

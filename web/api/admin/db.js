@@ -8,8 +8,8 @@ import { loadUsers, updateUsers } from "../_lib/users.js";
 
 // Contas reais do site, no formato da tela "Usuários" do painel
 const asMember = (u) => ({
-  id: u.id, name: u.name, email: u.email || (u.instagram || "(sem e-mail)"), city: u.city, plan: u.plan || "Grátis", status: u.status || "ativo",
-  saves: (u.faves || []).length, reviews: 0, joined: u.joined, lastSeen: u.lastSeen, providers: Object.keys(u.providers || {}), hasPassword: !!u.hash,
+  id: u.id, name: u.name, email: u.email || "(sem e-mail)", city: u.city, status: u.status || "ativo",
+  saves: (u.faves || []).length, reviews: 0, joined: u.joined, lastSeen: u.lastSeen,
   vibes: u.vibes || [], marketing: !!u.marketing,
 });
 
@@ -70,7 +70,7 @@ export const PUT = handle(async (request) => {
   }
 });
 
-// PATCH /api/admin/db { memberIds, patch: { status?, plan? } } — ações sobre contas do site
+// PATCH /api/admin/db { memberIds, patch: { status } } — ações sobre contas do site
 export const PATCH = handle(async (request) => {
   if (!isCmsCall(request)) return fail(403, "Requisição inválida");
   const user = await requireUser(request);
@@ -78,7 +78,6 @@ export const PATCH = handle(async (request) => {
   const { memberIds = [], patch = {} } = await body(request);
   const ok = {};
   if (["ativo", "bloqueado"].includes(patch.status)) ok.status = patch.status;
-  if (["Grátis", "VIP"].includes(patch.plan)) ok.plan = patch.plan;
   const users = await updateUsers((list) => {
     list.forEach(u => {
       if (!memberIds.includes(u.id)) return;

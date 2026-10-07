@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { go as goPath } from "../../router.js";
 import { OSLogo, OSIcon } from "../../components/brand.jsx";
 import { AIcon, Btn } from "../kit.jsx";
 import { login, ROLES, REMOTE } from "../store.js";
@@ -78,7 +79,7 @@ export function Login({ onLogin }) {
       </section>
 
       <section className="a-login-panel">
-        <a className="a-login-back" href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ""; }}><AIcon name="left" size={14} /> Voltar ao site</a>
+        <a className="a-login-back" href="#" onClick={(e) => { e.preventDefault(); goPath("/"); }}><AIcon name="left" size={14} /> Voltar ao site</a>
         <div className="a-login-box">
           <span className="a-login-mark"><OSIcon /></span>
 

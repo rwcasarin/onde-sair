@@ -1,6 +1,6 @@
 # Onde Sair · Painel administrativo (CMS)
 
-Painel para a equipe gerenciar todo o conteúdo do site. Acesso: **`#/admin`** (ou o link "Área administrativa" no rodapé do site).
+Painel para a equipe gerenciar todo o conteúdo do site. Acesso: **`/admin`** (no arquivo offline `onde-sair.html`: `#/admin`) (ou o link "Área administrativa" no rodapé do site).
 
 ## Dois modos de funcionamento
 
@@ -66,22 +66,22 @@ Sem `BLOB_READ_WRITE_TOKEN`, a API grava em `web/.data/` (ignorada pelo git).
 
 | Rota | Tela | O que faz |
 |---|---|---|
-| `#/admin/login` | Login | E-mail e senha, mostrar senha, manter conectado, recuperar senha, bloqueio de 30 s após 5 tentativas |
-| `#/admin` | Painel | Indicadores, visitas (exemplo), lugares por vibe, fila de revisão, avaliações pendentes, conteúdo incompleto, atividade |
-| `#/admin/atividade` | Atividade | Registro de todas as ações da equipe, com busca e filtro |
-| `#/admin/lugares` | Lugares | Lista com abas de status, busca, filtros (tipo, vibe, bairro), ordenação, paginação, ações em lote |
-| `#/admin/lugares/:id` · `/novo` | Editor de lugar | Abas Conteúdo · Detalhes práticos · Vibes e tags · Imagens · Localização · SEO; prévia do card ao vivo; checklist de qualidade |
-| `#/admin/roteiros` · `/:id` | Roteiros | Lista + editor com construtor de paradas (ordenar, vincular lugar, opcional), dicas, mapa do trajeto |
-| `#/admin/historias` · `/:id` | Histórias | Lista + editor de texto (Markdown com barra de formatação e pré-visualização), categoria, cor, capa |
-| `#/admin/home` | Home | Topo (título, texto, foto), 6 "Dicas para hoje", histórias em destaque, cards "Roteiros por vibe", valores da marca |
-| `#/admin/vibes` | Vibes | Nome, cor, ícone, textos e foto de cada vibe; ordem; ativar/desativar |
-| `#/admin/midia` | Mídia | Todos os espaços de imagem do site, situação (no servidor / enviada / faltando), envio com compressão |
-| `#/admin/avaliacoes` | Avaliações | Moderação: aprovar, rejeitar, destacar, denúncias, ações em lote |
-| `#/admin/usuarios` | Usuários | Pessoas cadastradas: filtros, detalhes, bloquear, conceder VIP, exportar CSV |
-| `#/admin/notificacoes` | Notificações | Criar, enviar ou agendar avisos com público e prévia no celular; métricas |
-| `#/admin/cidades` | Cidades e bairros | Ativar cidades, cadastrar bairros |
-| `#/admin/equipe` | Equipe e permissões | Convidar, trocar perfil, remover; matriz de permissões |
-| `#/admin/configuracoes` | Configurações | Geral, SEO padrão, aviso no topo, redes, modo manutenção, backup/restauração |
+| `/admin/login` | Login | E-mail e senha, mostrar senha, manter conectado, recuperar senha, bloqueio de 30 s após 5 tentativas |
+| `/admin` | Painel | Indicadores, visitas (exemplo), lugares por vibe, fila de revisão, avaliações pendentes, conteúdo incompleto, atividade |
+| `/admin/atividade` | Atividade | Registro de todas as ações da equipe, com busca e filtro |
+| `/admin/lugares` | Lugares | Lista com abas de status, busca, filtros (tipo, vibe, bairro), ordenação, paginação, ações em lote |
+| `/admin/lugares/:id` · `/novo` | Editor de lugar | Abas Conteúdo · Detalhes práticos · Vibes e tags · Imagens · Localização · SEO; prévia do card ao vivo; checklist de qualidade |
+| `/admin/roteiros` · `/:id` | Roteiros | Lista + editor com construtor de paradas (ordenar, vincular lugar, opcional), dicas, mapa do trajeto |
+| `/admin/historias` · `/:id` | Histórias | Lista + editor de texto (Markdown com barra de formatação e pré-visualização), categoria, cor, capa |
+| `/admin/home` | Home | Topo (título, texto, foto), 6 "Dicas para hoje", histórias em destaque, cards "Roteiros por vibe", valores da marca |
+| `/admin/vibes` | Vibes | Nome, cor, ícone, textos e foto de cada vibe; ordem; ativar/desativar |
+| `/admin/midia` | Mídia | Todos os espaços de imagem do site, situação (no servidor / enviada / faltando), envio com compressão |
+| `/admin/avaliacoes` | Avaliações | Moderação: aprovar, rejeitar, destacar, denúncias, ações em lote |
+| `/admin/usuarios` | Usuários | Pessoas cadastradas: filtros, detalhes, bloquear, exportar CSV |
+| `/admin/notificacoes` | Notificações | Criar, enviar ou agendar avisos com público e prévia no celular; métricas |
+| `/admin/cidades` | Cidades e bairros | Ativar cidades, cadastrar bairros |
+| `/admin/equipe` | Equipe e permissões | Convidar, trocar perfil, remover; matriz de permissões |
+| `/admin/configuracoes` | Configurações | Geral, SEO padrão, aviso no topo, redes, modo manutenção, backup/restauração |
 
 ## Fluxo editorial
 
@@ -107,6 +107,26 @@ Sem `BLOB_READ_WRITE_TOKEN`, a API grava em `web/.data/` (ignorada pelo git).
 | Equipe e permissões | ✓ | | |
 | Configurações do site | ✓ | | |
 
+## Endereços do site
+
+Toda página tem URL própria. Conteúdos usam o **slug** definido no painel (único por coleção; se repetir, ganha `-2`, `-3`…):
+
+| URL | Página |
+|---|---|
+| `/` | Home |
+| `/lugares` · `/lugares?busca=…` | Lugares (busca) |
+| `/lugares/{slug}` | Página do lugar |
+| `/vibes/{slug}` | Lugares de uma vibe |
+| `/roteiros` · `/roteiros/{slug}` | Roteiros |
+| `/historias` · `/historias/{slug}` | Histórias |
+| `/guia` · `/guia/{slug}` | Guia da cidade (mapa) |
+| `/favoritos` | Favoritos |
+| `/entrar` · `/cadastro` · `/boas-vindas` | Conta do visitante |
+| `/perfil` · `/notificacoes` | Só com login (sem sessão, vão para `/entrar`) |
+| `/cidade` | Escolha de cidade |
+
+`vercel.json` devolve o `index.html` para qualquer caminho fora de `/api`, `/assets` e `/images`. Endereços inexistentes mostram a página 404. Links antigos `#/admin/...` são redirecionados para `/admin/...`.
+
 ## Como o painel conversa com o site
 
 Ao salvar, `syncPublic()` copia o conteúdo publicado para os mesmos arrays que o site já lê (`PLACES`, `ROTEIROS`, `STORIES`, `AFFINITIES`, `HERO`…). Assim o site reflete na hora: nomes, lugares novos, home, vibes, cidades, notificações, avaliações em destaque, aviso no topo e modo manutenção.
@@ -119,12 +139,14 @@ Imagens enviadas no painel são comprimidas (máx. 1600 px, JPEG) e sobrepõem o
 web/api/                # funções do Vercel (backend)
 ├── _lib/storage.js     # Vercel Blob (produção) ou .data/ (local)
 ├── _lib/auth.js        # senhas, sessão, equipe
+├── _lib/users.js       # contas de visitantes (cookie os_user)
 ├── content.js · media.js
+├── account.js          # cadastro, login, dados, senha e exclusão de conta do visitante
 ├── auth/  login · logout · me · password
 └── admin/ db · media · team
 web/shared/roles.js     # perfis/permissões usados pelo front e pela API
 web/src/admin/
-├── AdminApp.jsx        # rotas #/admin/*, login obrigatório, menu lateral por permissão, busca rápida (Ctrl K)
+├── AdminApp.jsx        # rotas /admin/*, login obrigatório, menu lateral por permissão, busca rápida (Ctrl K)
 ├── store.js            # dados, persistência, sincronização com o site, papéis/permissões, autenticação, atividade
 ├── kit.jsx             # componentes: botões, campos, tabela, abas, modal, toasts, upload de imagem…
 ├── admin.css           # estilos do painel (prefixo .a-)

@@ -10,7 +10,7 @@
 // =====================================================================
 import {
   CITIES, AFFINITIES, ROTEIROS, PLACES, NOTIFICATIONS, TAGLINES,
-  VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, VIBE_ROTEIROS,
+  VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
   VIBE_TO_ROTEIRO, BRAND_VALUES, PLACE_TIPS, ROTEIRO_TAGS,
 } from "../data.js";
 
@@ -53,7 +53,7 @@ const LAST = ["Souza", "Lima", "Alves", "Costa", "Rocha", "Martins", "Ferraz", "
 function seed() {
   const editors = ["Marina F.", "Lucas P.", "Ana C.", "Carlos M.", "Rafael S."];
   const places = clone(PLACES).map((p, i) => ({
-    ...p, city: "sp", status: "publicado", vip: !!p.vip,
+    ...p, city: "sp", status: "publicado",
     slug: slugify(p.name),
     seo: { title: `${p.name} · ${p.sub} em ${p.bairro} | Onde Sair`, desc: p.desc },
     createdAt: daysAgo(90 - i * 3), updatedAt: daysAgo(i % 9, 9 + (i % 8)), updatedBy: editors[i % editors.length],
@@ -63,7 +63,7 @@ function seed() {
     ...clone(places[0]), id: "p16", name: "Empório Lume", slug: "emporio-lume", type: "Restaurantes", bairro: "Vila Nova",
     sub: "Empório e café", cuisine: "Café e empório", tagline: "Café coado, pão de queijo e prateleiras de achados mineiros.",
     desc: "Empório com café nos fundos e produtos de pequenos produtores.", dica: "Peça o pão de queijo recheado com doce de leite.",
-    affs: ["relax", "eco"], tags: ["Café", "Empório"], status: "revisao", vip: false, rating: 0, reviews: 0,
+    affs: ["relax", "eco"], tags: ["Café", "Empório"], status: "revisao", rating: 0, reviews: 0,
     note: "", map: { x: 30, y: 44, label: "EL" }, createdAt: daysAgo(2), updatedAt: daysAgo(1, 16), updatedBy: "Carlos M.",
     seo: { title: "", desc: "" },
   });
@@ -122,7 +122,7 @@ function seed() {
   const members = Array.from({ length: 28 }, (_, i) => ({
     id: "u" + (i + 1), name: `${FIRST[i % FIRST.length]} ${LAST[(i * 3) % LAST.length]}`,
     email: `${slugify(FIRST[i % FIRST.length])}.${slugify(LAST[(i * 3) % LAST.length])}${i}@email.com`,
-    city: ["sp", "rio", "bh", "cwb", "poa", "rec"][i % 6], plan: i % 7 === 0 ? "VIP" : "Grátis",
+    city: ["sp", "rio", "bh", "cwb", "poa", "rec"][i % 6],
     status: i === 5 ? "bloqueado" : i % 9 === 0 ? "pendente" : "ativo",
     saves: (i * 7) % 40, reviews: i % 6, joined: daysAgo(10 + i * 9), lastSeen: daysAgo(i % 12),
   }));
@@ -307,9 +307,21 @@ export function importDB(data) { const keep = { team: db.team, media: db.media }
 // ---------------------------------------------------------------------
 const replace = (arr, items) => arr.splice(0, arr.length, ...items);
 
+// Conteúdo salvo antes da remoção do VIP: limpa campos e campanhas que não existem mais
+function stripLegacy(d) {
+  [d.places, d.roteiros].forEach(list => (list || []).forEach(x => { delete x.vip; }));
+  (d.members || []).forEach(m => { delete m.plan; });
+  if (d.campaigns) {
+    d.campaigns = d.campaigns.filter(c => c.kind !== "VIP");
+    d.campaigns.forEach(c => { if (/VIP/.test(c.audience || "")) c.audience = "Todos"; });
+  }
+}
+
 export function syncPublic() {
+  stripLegacy(db);
   replace(PLACES, db.places.filter(isLive));
   replace(ROTEIROS, db.roteiros.filter(isLive).map(r => ({ ...r, paradas: r.steps.length })));
+  replace(ALL_STORIES, db.stories.filter(isLive).map(s => ({ ...s, img: s.img || `images/historias/${s.id}.jpg` })));
   replace(STORIES, db.home.storyIds.map(id => db.stories.find(s => s.id === id)).filter(s => s && isLive(s)).map(s => ({ ...s, img: s.img || `images/historias/${s.id}.jpg` })));
 
   const vibes = db.vibes.filter(v => v.active);
@@ -348,7 +360,8 @@ export const SITE = { announcement: null, maintenance: false };
 // valor no mapa: data URL (modo local) ou versão do arquivo no Blob (modo nuvem)
 export const resolveMedia = (path) => {
   const v = path && db.media?.[path];
-  if (!v) return path;
+  // caminhos relativos (images/…) viram absolutos: as páginas agora têm URL própria (/lugares/x)
+  if (!v) return path && location.protocol !== "file:" && /^images\//.test(path) ? "/" + path : path;
   return v.startsWith("data:") ? v : `/api/media?p=${encodeURIComponent(path)}&v=${v}`;
 };
 export async function setMedia(path, dataUrl, user) {
@@ -389,13 +402,22 @@ export function nextId(coll) {
   return PREFIX[coll] + n;
 }
 
+// Slug único na coleção (é o endereço da página: /lugares/{slug})
+export function uniqueSlug(coll, slug, id) {
+  const base = slugify(slug) || PREFIX[coll] + Date.now().toString(36);
+  let s = base, n = 2;
+  while (db[coll].some(x => x.id !== id && x.slug === s)) s = `${base}-${n++}`;
+  return s;
+}
+
 export function saveItem(coll, item, user, { status } = {}) {
   const exists = db[coll].some(x => x.id === item.id);
   const prev = db[coll].find(x => x.id === item.id);
+  const id = item.id || nextId(coll);
   const next = {
     ...item,
-    id: item.id || nextId(coll),
-    slug: item.slug || slugify(titleOf(item)),
+    id,
+    slug: uniqueSlug(coll, item.slug || titleOf(item), id),
     status: status || item.status || "rascunho",
     updatedAt: now(), updatedBy: user?.name,
     createdAt: item.createdAt || now(),

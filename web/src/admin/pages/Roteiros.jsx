@@ -37,7 +37,7 @@ export function RoteirosList() {
 }
 
 const BLANK = {
-  title: "", slug: "", aff: "", vibes: [], desc: "", about: "", quote: "", note: "", bairros: "", vip: false, tint: "tint-relax",
+  title: "", slug: "", aff: "", vibes: [], desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
   stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "", vibe: "" },
   steps: [{ time: "", title: "", sub: "", place: "", optional: false, tags: [], desc: "" }],
   tips: { dica: "", horario: "", epoca: "", comoChegar: "", lembrete: "" }, tags: [], status: "rascunho",
@@ -110,7 +110,6 @@ function RoteiroForm({ initial, isNew }) {
               <Segmented label="Investimento" value={draft.stats.invest} onChange={(v) => set({ stats: { ...draft.stats, invest: v, investLabel: ["Grátis", "Econômico", "Moderado", "Especial"][v] } })}
                 options={[[0, "Grátis"], [1, "$ Econômico"], [2, "$$ Moderado"], [3, "$$$ Especial"]]} />
             </Field>
-            <Toggle label="Tem experiência VIP" checked={draft.vip} onChange={(vip) => set({ vip })} />
           </Card>
         )}
 

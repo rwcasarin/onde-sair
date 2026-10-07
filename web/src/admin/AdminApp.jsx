@@ -1,4 +1,4 @@
-// Onde Sair · CMS — aplicação do painel administrativo (rota #/admin)
+// Onde Sair · CMS — aplicação do painel administrativo (rota /admin)
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { OSLogo, OSIcon } from "../components/brand.jsx";
 import { AdminCtx, AIcon, Btn, Input, Modal, useDialogs, useToasts } from "./kit.jsx";
@@ -16,9 +16,10 @@ import { CampaignsPage } from "./pages/Campaigns.jsx";
 import { MembersPage, TeamPage } from "./pages/People.jsx";
 import { CitiesPage } from "./pages/Cities.jsx";
 import { SettingsPage } from "./pages/Settings.jsx";
+import { currentPath, go as goPath, href, onPathChange } from "../router.js";
 import "./admin.css";
 
-const parse = () => (window.location.hash.replace(/^#\/?/, "").split("?")[0].split("/").filter(Boolean)).slice(1); // remove "admin"
+const parse = () => currentPath().split("?")[0].split("/").filter(Boolean).slice(1); // remove "admin"
 
 // Estrutura de navegação (grupo → itens). perm = permissão necessária
 const NAV = [
@@ -61,8 +62,7 @@ export default function AdminApp() {
 
   useEffect(() => {
     const on = () => { setRoute(parse()); setMenuOpen(false); window.scrollTo(0, 0); };
-    window.addEventListener("hashchange", on);
-    return () => window.removeEventListener("hashchange", on);
+    return onPathChange(on);
   }, []);
   useEffect(() => {
     const warn = (e) => { if (dirtyRef.current) { e.preventDefault(); e.returnValue = ""; } };
@@ -78,7 +78,7 @@ export default function AdminApp() {
       if (!ok) return;
       dirtyRef.current = false;
     }
-    window.location.hash = "/admin" + (path ? "/" + path.replace(/^\//, "") : "");
+    goPath("/admin" + (path ? "/" + path.replace(/^\//, "") : ""));
   }, [confirm]);
   const setDirty = useCallback((v) => { dirtyRef.current = v; }, []);
 
@@ -89,7 +89,7 @@ export default function AdminApp() {
   if (!user || route[0] === "login") {
     return (
       <AdminCtx.Provider value={ctx}>
-        <Login onLogin={(u) => { setUser(u); window.location.hash = "/admin"; toast(`Bem-vinda(o), ${u.name.split(" ")[0]}!`, "success"); }} />
+        <Login onLogin={(u) => { setUser(u); goPath("/admin"); toast(`Bem-vinda(o), ${u.name.split(" ")[0]}!`, "success"); }} />
         {toasts}
       </AdminCtx.Provider>
     );
@@ -123,7 +123,7 @@ export default function AdminApp() {
     setUserMenu(false);
     const ok = await confirm({ title: "Sair do painel?", text: "Você precisará entrar novamente para editar o conteúdo.", ok: "Sair" });
     if (!ok) return;
-    await logout(); setUser(null); window.location.hash = "/admin/login";
+    await logout(); setUser(null); goPath("/admin/login");
   }
 
   return (
@@ -132,7 +132,7 @@ export default function AdminApp() {
         <a className="a-skip" href="#a-main" onClick={(e) => { e.preventDefault(); document.getElementById("a-main")?.focus(); }}>Pular para o conteúdo</a>
 
         <aside className="a-side" aria-label="Menu do painel">
-          <a className="a-side-brand" href="#/admin" onClick={(e) => { e.preventDefault(); go(""); }}>
+          <a className="a-side-brand" href={href("/admin")} onClick={(e) => { e.preventDefault(); go(""); }}>
             <span className="a-side-logo"><OSLogo /></span>
             <span className="a-side-tag">Painel</span>
           </a>
@@ -146,7 +146,7 @@ export default function AdminApp() {
                   {vis.map(i => {
                     const n = i.badge?.(db);
                     return (
-                      <a key={i.path} href={"#/admin/" + i.path} aria-current={section === i.path ? "page" : undefined}
+                      <a key={i.path} href={href("/admin/" + i.path)} aria-current={section === i.path ? "page" : undefined}
                         className={"a-nav-item" + (section === i.path ? " on" : "")}
                         onClick={(e) => { e.preventDefault(); go(i.path); }}>
                         <AIcon name={i.icon} size={18} /> <span>{i.label}</span>
@@ -158,7 +158,7 @@ export default function AdminApp() {
               );
             })}
           </nav>
-          <a className="a-side-site" href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ""; }}>
+          <a className="a-side-site" href="#" onClick={(e) => { e.preventDefault(); goPath("/"); }}>
             <AIcon name="ext" size={16} /> Ver o site
           </a>
         </aside>
@@ -171,7 +171,7 @@ export default function AdminApp() {
             <QuickSearch db={db} go={go} />
             <div className="a-top-right">
               <SyncPill />
-              <a className="a-btn a-btn-ghost a-btn-sm a-hide-sm" href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ""; }}><AIcon name="ext" size={15} /> Ver site</a>
+              <a className="a-btn a-btn-ghost a-btn-sm a-hide-sm" href="#" onClick={(e) => { e.preventDefault(); goPath("/"); }}><AIcon name="ext" size={15} /> Ver site</a>
               <div className="a-user">
                 <button type="button" className="a-user-btn" aria-haspopup="menu" aria-expanded={userMenu} onClick={() => setUserMenu(!userMenu)}>
                   <span className="a-avatar">{user.name.split(" ").map(s => s[0]).slice(0, 2).join("")}</span>
@@ -183,7 +183,7 @@ export default function AdminApp() {
                     <div className="a-user-menu-head"><strong>{user.name}</strong><span>{user.email}</span></div>
                     {can(user, "team.manage") && <button role="menuitem" type="button" onClick={() => { setUserMenu(false); go("equipe"); }}><AIcon name="shield" size={16} /> Equipe e permissões</button>}
                     <button role="menuitem" type="button" onClick={() => { setUserMenu(false); setPwOpen(true); }}><AIcon name="lock" size={16} /> Alterar senha</button>
-                    <button role="menuitem" type="button" onClick={() => { setUserMenu(false); window.location.hash = ""; }}><AIcon name="ext" size={16} /> Ver o site</button>
+                    <button role="menuitem" type="button" onClick={() => { setUserMenu(false); goPath("/"); }}><AIcon name="ext" size={16} /> Ver o site</button>
                     <button role="menuitem" type="button" onClick={doLogout}><AIcon name="logout" size={16} /> Sair</button>
                   </div>
                 )}
@@ -273,8 +273,8 @@ function QuickSearch({ db, go }) {
 }
 
 function NotFound() {
-  return <div className="a-empty a-empty-page"><strong>Página não encontrada</strong><p>Esse endereço não existe no painel.</p><a href="#/admin">Voltar ao painel</a></div>;
+  return <div className="a-empty a-empty-page"><strong>Página não encontrada</strong><p>Esse endereço não existe no painel.</p><a href={href("/admin")}>Voltar ao painel</a></div>;
 }
 function Forbidden() {
-  return <div className="a-empty a-empty-page"><span className="a-empty-icon"><AIcon name="lock" size={24} /></span><strong>Acesso restrito</strong><p>Seu perfil não tem permissão para esta área. Fale com um administrador.</p><a href="#/admin">Voltar ao painel</a></div>;
+  return <div className="a-empty a-empty-page"><span className="a-empty-icon"><AIcon name="lock" size={24} /></span><strong>Acesso restrito</strong><p>Seu perfil não tem permissão para esta área. Fale com um administrador.</p><a href={href("/admin")}>Voltar ao painel</a></div>;
 }

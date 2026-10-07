@@ -1,44 +1,47 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { NOTIFICATIONS, cityName } from "./data.js";
+import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, cityName } from "./data.js";
 import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext } from "./nav.js";
+import { usePath, go, toPath, fromPath } from "./router.js";
 import { TopNav } from "./components/ui.jsx";
 import { Onboarding } from "./screens/onboarding.jsx";
 import { Home } from "./screens/home.jsx";
 import { Lista } from "./screens/lista.jsx";
 import { Detalhe } from "./screens/detalhe.jsx";
 import { Roteiro, Roteiros } from "./screens/roteiro.jsx";
+import { Historia, Historias } from "./screens/historia.jsx";
 import { Mapa } from "./screens/mapa.jsx";
 import { Favoritos } from "./screens/favoritos.jsx";
 import { Perfil } from "./screens/perfil.jsx";
 import { Notificacoes } from "./screens/notificacoes.jsx";
 import { Entrar } from "./screens/entrar.jsx";
+import { NotFound } from "./screens/notfound.jsx";
 import { account, loadAccount, subscribeAccount, updateAccount } from "./account.js";
 
-// Links diretos vindos do login social: #/entrar?erro=..., #/boas-vindas, #/conta
-function routeFromHash() {
-  const m = (location.hash || "").match(/^#\/(entrar|cadastro|boas-vindas|conta)(?:\?(.*))?$/);
-  if (!m) return null;
-  const q = Object.fromEntries(new URLSearchParams(m[2] || ""));
-  try { history.replaceState(null, "", location.pathname + location.search); } catch { /* */ }
-  if (m[1] === "conta") return { screen: "perfil", params: {} };
-  if (m[1] === "boas-vindas") return { screen: "entrar", params: { mode: "boas-vindas" } };
-  return { screen: "entrar", params: { mode: m[1], erro: q.erro, provedor: q.provedor } };
+// telas que exigem conta (sem sessão, levam para /entrar)
+const PRIVATE = new Set(["perfil", "notificacoes"]);
+
+function titleFor(screen, params) {
+  const t = (s) => s + " · Onde Sair";
+  switch (screen) {
+    case "home": return "Onde Sair · O lugar certo pra cada vibe";
+    case "lista": {
+      const v = AFFINITIES.find(a => a.id === params.aff);
+      return t(params.q ? `Busca: ${params.q}` : v ? v.label : "Lugares");
+    }
+    case "detalhe": { const p = PLACES.find(x => x.id === params.id); return t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
+    case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return t(r ? r.title : "Roteiro"); }
+    case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return t(s ? s.title : "História"); }
+    case "entrar": return t({ cadastro: "Criar conta", "boas-vindas": "Boas-vindas" }[params.mode] || "Entrar");
+    case "404": return t("Página não encontrada");
+    default: return t({ roteiros: "Roteiros", historias: "Histórias", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
+  }
 }
 
 export default function App() {
-  // rota = tela + parâmetros (id, aff, q, anchor)
-  // "Ver no site" a partir do painel abre direto na tela certa
-  const [route, setRoute] = useState(() => {
-    try {
-      const goto = JSON.parse(sessionStorage.getItem("os-goto") || "null");
-      sessionStorage.removeItem("os-goto");
-      if (goto) return { screen: goto.screen, params: goto.params || {}, n: 0 };
-    } catch { /* */ }
-    const fromHash = routeFromHash();
-    if (fromHash) return { ...fromHash, n: 0 };
-    return { screen: "home", params: {}, n: 0 };
-  });
+  const path = usePath();
+  const { screen, params } = fromPath(path);
+
   const [city, setCity] = useState("sp");
   const [unread, setUnread] = useState(NOTIFICATIONS.filter(n => n.unread).length);
   const [faves, setFaves] = useState(new Set(["p2", "p10", "p3", "r4"]));
@@ -65,11 +68,23 @@ export default function App() {
     return off;
   }, []);
 
-  // nav("lista", { aff: "dates" }) · nav("home", { anchor: "vibes" })
-  const nav = useCallback((screen, params = {}) => {
-    setRoute(r => ({ screen, params, n: r.n + 1 }));
-    if (!params.anchor) { window.scrollTo(0, 0); return; }
-    setTimeout(() => document.getElementById(params.anchor)?.scrollIntoView({ behavior: "smooth" }), 30);
+  // nav("lista", { aff: "dates" }) → /vibes/para-dates · nav("home", { anchor: "vibes" })
+  const nav = useCallback((s, p = {}) => {
+    go(toPath(s, p));
+    if (!p.anchor) { window.scrollTo(0, 0); return; }
+    setTimeout(() => document.getElementById(p.anchor)?.scrollIntoView({ behavior: "smooth" }), 30);
+  }, []);
+
+  // links internos com href real: clique normal navega sem recarregar
+  useEffect(() => {
+    const onClick = (e) => {
+      const a = e.target.closest?.("a[data-route]");
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      go(a.dataset.route); window.scrollTo(0, 0);
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
   }, []);
 
   const toggleFave = useCallback((id) => {
@@ -79,12 +94,10 @@ export default function App() {
     if (account.user) updateAccount({ faves: [...next] }).catch(() => {});
   }, []);
 
-  // perfil exige conta: sem sessão, leva para o login
-  useEffect(() => {
-    if (ready && !user && route.screen === "perfil") setRoute(r => ({ screen: "entrar", params: { mode: "entrar" }, n: r.n + 1 }));
-  }, [ready, user, route.screen]);
-
-  const { screen, params } = route;
+  // páginas da conta exigem login; quem já entrou não vê /entrar
+  const blocked = ready && !user && PRIVATE.has(screen);
+  useEffect(() => { if (blocked) go("/entrar", { replace: true }); }, [blocked]);
+  useEffect(() => { document.title = titleFor(screen, params); }, [path]); // eslint-disable-line
 
   if (SITE.maintenance) {
     return (
@@ -96,11 +109,11 @@ export default function App() {
   }
 
   if (screen === "onboarding") {
-    return <Onboarding onDone={(state) => { setCity(state.city); nav("home"); }} />;
+    return <NavContext.Provider value={nav}><Onboarding onDone={(state) => { setCity(state.city); nav("home"); }} /></NavContext.Provider>;
   }
 
   // telas com parâmetros remontam ao mudar de rota (estado limpo)
-  const key = screen + JSON.stringify({ ...params, anchor: undefined });
+  const key = path;
 
   return (
     <NavContext.Provider value={nav}>
@@ -116,12 +129,14 @@ export default function App() {
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
         {screen === "roteiros"     && <Roteiros />}
         {screen === "roteiro"      && <Roteiro key={key} id={params.id} />}
+        {screen === "historias"    && <Historias />}
+        {screen === "historia"     && <Historia key={key} id={params.id} />}
         {screen === "mapa"         && <Mapa key={key} id={params.id} />}
         {screen === "favoritos"    && <Favoritos />}
         {screen === "perfil"       && user && <Perfil user={user} />}
-        {screen === "entrar"       && <Entrar key={key} mode={params.mode} erro={params.erro} provedor={params.provedor}
-                                        onDone={(u, isNew) => { if (u?.city) setCity(u.city); nav(isNew ? "home" : "perfil"); }} />}
-        {screen === "notificacoes" && <Notificacoes onMarkAllRead={() => setUnread(0)} />}
+        {screen === "notificacoes" && user && <Notificacoes onMarkAllRead={() => setUnread(0)} />}
+        {screen === "entrar"       && <Entrar key={key} mode={params.mode} onDone={(u, isNew) => { if (u?.city) setCity(u.city); nav(isNew ? "home" : "perfil"); }} />}
+        {screen === "404"          && <NotFound />}
       </div>
     </FavContext.Provider>
     </CityContext.Provider>

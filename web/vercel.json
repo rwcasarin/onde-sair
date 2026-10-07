@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/oauth/:provider/callback", "destination": "/api/oauth?provider=:provider&step=callback" },
-    { "source": "/api/oauth/:provider", "destination": "/api/oauth?provider=:provider" }
+    { "source": "/((?!api/|assets/|images/).*)", "destination": "/index.html" }
   ]
 }

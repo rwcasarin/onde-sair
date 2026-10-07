@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Badge, Btn, Card, DataTable, Input, Modal, PageHeader, Segmented, Select, Textarea, Field, useAdmin, AIcon } from "../kit.jsx";
 import { saveCampaign, removeCampaign, fmtDate, relTime } from "../store.js";
 
-const KINDS = ["ROTEIRO NOVO", "VIP", "FAVORITO", "AGENDA", "AMIGO"];
+const KINDS = ["ROTEIRO NOVO", "FAVORITO", "AGENDA", "AMIGO"];
 const TONE = { enviada: "green", agendada: "blue", rascunho: "gray" };
 
 export function CampaignsPage() {
@@ -51,7 +51,7 @@ function Composer({ initial, onClose }) {
   const [c, setC] = useState(initial);
   const [err, setErr] = useState({});
   const set = (p) => setC(x => ({ ...x, ...p }));
-  const audiences = ["Todos", "Assinantes VIP", ...db.vibes.map(v => "Vibe: " + v.label), ...db.cities.filter(x => x.active).map(x => "Cidade: " + x.name)];
+  const audiences = ["Todos", ...db.vibes.map(v => "Vibe: " + v.label), ...db.cities.filter(x => x.active).map(x => "Cidade: " + x.name)];
   const toLocal = (iso) => { const d = new Date(iso || Date.now() + 864e5); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
 
   function go(status) {
