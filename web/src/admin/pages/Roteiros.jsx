@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { roteiroImg, placeImg } from "../../data.js";
-import { MapArt } from "../../components/site.jsx";
+import { PlaceMap } from "../../components/placemap.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
   Card, Input, Textarea, Select, ChipInput, PillPicker, Repeater, ImageField, Segmented, Tabs, Field, Toggle, PageHeader, useAdmin, useDraft,
@@ -139,7 +139,8 @@ function RoteiroForm({ initial, isNew }) {
               )}
             />
             <span className="a-label">Prévia do trajeto</span>
-            <MapArt className="a-map-art a-map-art-sm" pins={pins} route />
+            <PlaceMap className="a-map-art a-map-art-sm" route card={false}
+              items={draft.steps.map((s, i) => ({ id: "s" + i, place: s.place ? db.places.find(p => p.id === s.place) : null, title: s.title, num: i + 1, art: pins[i] }))} />
           </Card>
         )}
 

@@ -7,6 +7,7 @@ import {
 } from "../components/site.jsx";
 import { useNav, useCity, useFaves } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
+import { PlaceMap } from "../components/placemap.jsx";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -20,6 +21,8 @@ function fullAddress(p) {
 const directions = (p) => p.geo
   ? `https://www.google.com/maps/dir/?api=1&destination=${p.geo.lat},${p.geo.lng}${p.placeId ? "&destination_place_id=" + p.placeId : ""}`
   : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress(p))}`;
+// O lugar no Google Maps (busca pelo nome + endereço; com placeId abre a ficha exata)
+const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.name}, ${fullAddress(p).replaceAll(" · ", ", ")}`)}${p.placeId ? "&query_place_id=" + p.placeId : ""}`;
 
 const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["dicas", "Dicas"], ["confira", "Confira também"]];
 
@@ -34,6 +37,7 @@ export function Detalhe({ id }) {
   const [tab, setTab] = useState("visao");
   const [shift, setShift] = useState(0);
   const [shared, setShared] = useState(false);
+  const [mapSel, setMapSel] = useState(null);       // pin selecionado no mapa "Onde fica"
   const saved = faves.has(p.id);
   const firstAff = affById(p.affs[0]);
 
@@ -164,14 +168,15 @@ export function Detalhe({ id }) {
           </div>
         </section>
 
-        {/* 4 · Onde fica (60%) + Informações úteis (30%) */}
-        <section className="place-row split-60-30" id="sec-chegar">
+        {/* 4 · Onde fica (70%) + Informações úteis (30%) */}
+        <section className="place-row split-70-30" id="sec-chegar">
           <div className="where-box">
             <div className="h2-head">
               <h2>Onde fica</h2>
-              <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("mapa", { id: p.id }); }}>Ver no mapa <Icon name="arrow" size={16} /></a>
+              <a href={googleMapsUrl(p)} className="h2-link" target="_blank" rel="noreferrer">Ver no Google Maps <Icon name="arrow" size={16} /></a>
             </div>
-            <MapArt className="where-map where-map-lg" pins={[{ x: 50, y: 42, label: p.name }]} />
+            <PlaceMap className="where-map where-map-lg" mainId={p.id} activeId={mapSel} onSelect={setMapSel}
+              items={[{ id: p.id, place: p }, ...PLACES.filter(x => x.id !== p.id && x.city === p.city).map(x => ({ id: x.id, place: x }))]} />
             <p className="where-address"><Icon name="pin" size={16} /> {fullAddress(p)}
               <a className="where-route" href={directions(p)} target="_blank" rel="noreferrer">Como chegar <Icon name="arrow" size={14} /></a></p>
           </div>

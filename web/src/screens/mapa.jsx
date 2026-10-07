@@ -1,19 +1,21 @@
 import { useState } from "react";
-import { PLACES, VIBE_ORDER, placeImg } from "../data.js";
+import { PLACES, CITIES, VIBE_ORDER, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, VibePill, MapArt, Rating, PriceDots, FaveButton, Footer } from "../components/site.jsx";
+import { PageHead, VibePill, PriceDots, Footer } from "../components/site.jsx";
+import { PlaceMap } from "../components/placemap.jsx";
 import { useNav, useCity } from "../nav.js";
 
 // "Guia da cidade" — mapa com a curadoria
 export function Mapa({ id }) {
   const nav = useNav();
-  const { name: city } = useCity();
+  const { id: cityId, name: city } = useCity();
   const [aff, setAff] = useState(null);
-  const [active, setActive] = useState(id || PLACES[0].id);
+  const [active, setActive] = useState(id || null);   // pin selecionado (abre o card)
 
-  const list = aff ? PLACES.filter(p => p.affs.includes(aff)) : PLACES;
-  const cur = list.find(p => p.id === active) || list[0];
+  const inCity = PLACES.filter(p => !cityId || p.city === cityId);
+  const list = aff ? inCity.filter(p => p.affs.includes(aff)) : inCity;
+  const cur = list.find(p => p.id === active);
 
   return (
     <main className="home2">
@@ -44,23 +46,8 @@ export function Mapa({ id }) {
             ))}
           </ul>
 
-          <MapArt
-            className="guide-map"
-            pins={list.map(p => ({ x: p.map.x, y: p.map.y, title: p.name, active: cur?.id === p.id, color: cur?.id === p.id ? "var(--c-magenta)" : undefined, onClick: () => setActive(p.id) }))}
-          >
-            {cur && (
-              <div className="map-pop">
-                <ImageSlot className="map-pop-img" src={placeImg(cur.id)} compact />
-                <div>
-                  <h3>{cur.name}</h3>
-                  <span className="listing-sub">{cur.sub} • {cur.bairro}</span>
-                  <Rating p={cur} />
-                </div>
-                <FaveButton id={cur.id} />
-                <button className="btn-pill" onClick={() => nav("detalhe", { id: cur.id })}>Ver lugar <Icon name="arrow" size={14} /></button>
-              </div>
-            )}
-          </MapArt>
+          <PlaceMap className="guide-map" city={CITIES.find(c => c.id === cityId)} activeId={cur?.id} onSelect={setActive}
+            items={list.map(p => ({ id: p.id, place: p }))} />
         </section>
       </div>
       <Footer />

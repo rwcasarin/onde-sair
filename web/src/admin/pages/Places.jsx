@@ -8,6 +8,8 @@ import {
 } from "../kit.jsx";
 import { slugify, addCity, addBairro } from "../store.js";
 import { AddressAutocomplete, CreatableField, Pending, findCity, findBairro } from "./location.jsx";
+import { PlaceMap } from "../../components/placemap.jsx";
+import { loadGoogle, addressOf } from "../../maps.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 
 export const REASON_ICONS = ["eye", "star", "heart", "users", "music", "leaf", "sun", "coins", "clock", "sparkle", "image", "camera", "wine", "smile", "pin"];
@@ -237,6 +239,19 @@ function LocationTab({ draft, set, errors }) {
   const [newUf, setNewUf] = useState(null);           // cadastro manual de cidade: falta a UF
   const city = db.cities.find(c => c.id === draft.city);
   const apiKey = db.settings.mapsKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+  const [locating, setLocating] = useState(false);
+  // coordenadas a partir do endereço (Geocoding)
+  async function locate() {
+    setLocating(true);
+    try {
+      const g = await loadGoogle(apiKey);
+      const { results } = await new g.Geocoder().geocode({ address: addressOf({ ...draft, id: draft.id || "__draft" }), region: "br" });
+      const l = results?.[0]?.geometry?.location;
+      if (l) { set({ geo: { lat: +l.lat().toFixed(6), lng: +l.lng().toFixed(6) } }); toast("Pino posicionado pelo endereço. Confira no mapa e ajuste se precisar.", "success"); }
+      else toast("Endereço não encontrado no Google. Clique no mapa para posicionar.", "error");
+    } catch (e) { toast("Não foi possível localizar: confira se a Geocoding API está liberada para a chave.", "error"); }
+    setLocating(false);
+  }
 
   // endereço escolhido no Google: preenche tudo o que já existe e sinaliza o que falta cadastrar
   function onPick(a) {
@@ -320,19 +335,32 @@ function LocationTab({ draft, set, errors }) {
         </div>
       </Card>
 
-      <Card title="Pino no mapa do site" subtitle="Clique no mapa ilustrado para posicionar o pino.">
-        <div className="a-map-pick" onClick={(e) => {
-          const r = e.currentTarget.getBoundingClientRect();
-          set({ map: { ...draft.map, x: Math.round(((e.clientX - r.left) / r.width) * 100), y: Math.round(((e.clientY - r.top) / r.height) * 100) } });
-        }}>
-          <MapArt className="a-map-art" pins={[...db.places.filter(p => p.id !== draft.id).map(p => ({ x: p.map.x, y: p.map.y, color: "#C9C3DB", title: p.name })), { x: draft.map.x, y: draft.map.y, label: draft.name || "Novo lugar", color: "var(--c-magenta)" }]} />
-        </div>
-        <div className="a-form-grid a-form-grid-3">
-          <Input label="Posição X (%)" type="number" min={0} max={100} value={draft.map.x} onChange={(v) => set({ map: { ...draft.map, x: +v } })} />
-          <Input label="Posição Y (%)" type="number" min={0} max={100} value={draft.map.y} onChange={(v) => set({ map: { ...draft.map, y: +v } })} />
-          <Input label="Sigla no pino" value={draft.map.label} onChange={(v) => set({ map: { ...draft.map, label: v.toUpperCase().slice(0, 4) } })} />
-        </div>
-      </Card>
+      {apiKey ? (
+        <Card title="Pino no mapa" subtitle="É assim que o lugar aparece nos mapas do site. Clique no mapa para ajustar a posição exata do pino.">
+          <div className="a-map-tools">
+            <Btn size="sm" icon="pin" disabled={locating || !draft.end} onClick={locate}>{locating ? "Localizando…" : "Localizar pelo endereço"}</Btn>
+            {draft.geo && <span className="a-hint">{draft.geo.lat}, {draft.geo.lng}</span>}
+            {!draft.geo && <span className="a-hint">Sem coordenadas ainda: o site tenta achar pelo endereço.</span>}
+          </div>
+          <PlaceMap className="a-map-art" card={false} mainId="__draft" onPick={(geo) => set({ geo })}
+            items={[{ id: "__draft", place: { ...draft, id: draft.id || "__draft", name: draft.name || "Novo lugar" } },
+              ...db.places.filter(p => p.id !== draft.id && p.city === draft.city).map(p => ({ id: p.id, place: p }))]} />
+        </Card>
+      ) : (
+        <Card title="Pino no mapa ilustrado" subtitle="Sem chave do Google Maps, o site usa o mapa ilustrado. Clique para posicionar o pino.">
+          <div className="a-map-pick" onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            set({ map: { ...draft.map, x: Math.round(((e.clientX - r.left) / r.width) * 100), y: Math.round(((e.clientY - r.top) / r.height) * 100) } });
+          }}>
+            <MapArt className="a-map-art" pins={[...db.places.filter(p => p.id !== draft.id).map(p => ({ x: p.map.x, y: p.map.y, color: "#C9C3DB", title: p.name })), { x: draft.map.x, y: draft.map.y, label: draft.name || "Novo lugar", color: "var(--c-magenta)" }]} />
+          </div>
+          <div className="a-form-grid a-form-grid-3">
+            <Input label="Posição X (%)" type="number" min={0} max={100} value={draft.map.x} onChange={(v) => set({ map: { ...draft.map, x: +v } })} />
+            <Input label="Posição Y (%)" type="number" min={0} max={100} value={draft.map.y} onChange={(v) => set({ map: { ...draft.map, y: +v } })} />
+            <Input label="Sigla no pino" value={draft.map.label} onChange={(v) => set({ map: { ...draft.map, label: v.toUpperCase().slice(0, 4) } })} />
+          </div>
+        </Card>
+      )}
     </>
   );
 }
