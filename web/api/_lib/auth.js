@@ -31,15 +31,15 @@ export function sessionCookie(user, remember) {
 }
 export const clearCookie = () => `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 
-function readSession(request, why = {}) {
+function readSession(request) {
   const raw = (request.headers.get("cookie") || "").split(/;\s*/).find(c => c.startsWith(COOKIE + "="));
-  if (!raw) { why.reason = "no-cookie"; return null; }
+  if (!raw) return null;
   const [payload, sig] = raw.slice(COOKIE.length + 1).split(".");
-  if (!payload || !sig) { why.reason = "malformed"; return null; }
+  if (!payload || !sig) return null;
   const expected = sign(payload);
-  if (expected.length !== sig.length || !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))) { why.reason = "bad-signature:" + (process.env.SESSION_SECRET ? "env" : "fallback"); return null; }
+  if (expected.length !== sig.length || !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))) return null;
   const data = JSON.parse(Buffer.from(payload, "base64url").toString());
-  if (data.exp < Date.now() / 1000) { why.reason = "expired"; return null; }
+  if (data.exp < Date.now() / 1000) return null;
   return data;
 }
 
@@ -55,12 +55,11 @@ export async function loadTeam() {
 }
 export const publicMember = ({ hash, sessionVersion, ...m }) => m;
 
-export async function currentUser(request, why = {}) {
-  const s = readSession(request, why);
+export async function currentUser(request) {
+  const s = readSession(request);
   if (!s) return null;
   const { data: team } = await loadTeam();
   const u = team.find(t => t.id === s.id && t.status === "ativo" && (t.sessionVersion || 0) === s.v);
-  if (!u) why.reason = "no-user:" + team.map(t => `${t.id}/${t.status}/${t.sessionVersion || 0}`).join(",");
   return u ? publicMember(u) : null;
 }
 
