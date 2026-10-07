@@ -1,5 +1,6 @@
 import { AFFINITIES, TYPES, priceLabel } from "../data.js";
 import { useNav } from "../nav.js";
+import { href, toPath } from "../router.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 
@@ -7,7 +8,7 @@ import { Icon } from "./icons.jsx";
 export function Brand({ city = "" }) {
   const nav = useNav();
   return (
-    <a className="brand" href="#" onClick={(e) => { e.preventDefault(); nav("home"); }} aria-label="Onde Sair">
+    <a className="brand" href={href("/")} onClick={(e) => { e.preventDefault(); nav("home"); }} aria-label="Onde Sair">
       <span className="brand-logo"><OSLogo /></span>
       {city ? <span className="brand-city">{city}</span> : null}
     </a>
@@ -19,7 +20,7 @@ export function NavLink({ id, params, active, children }) {
   return (
     <a
       className={"navlink" + (active ? " active" : "")}
-      href="#"
+      href={href(toPath(id, params))}
       onClick={(e) => { e.preventDefault(); nav(id, params); }}
     >{children}</a>
   );
@@ -68,7 +69,7 @@ export function TopNav({ current, params = {}, city, unread, user, onCityClick }
           <CityPill city={city} onClick={onCityClick} />
           <IconBtn title="Buscar" onClick={() => nav("lista")}><Icon name="search" size={20} /></IconBtn>
           <IconBtn title="Favoritos" onClick={() => nav("favoritos")}><Icon name="heart" size={20} /></IconBtn>
-          <IconBtn title="Notificações" badge={unread > 0 ? unread : null} onClick={() => nav("notificacoes")}><Icon name="bell" size={20} /></IconBtn>
+          {user && <IconBtn title="Notificações" badge={unread > 0 ? unread : null} onClick={() => nav("notificacoes")}><Icon name="bell" size={20} /></IconBtn>}
           {user
             ? <button className="nav-avatar" title="Meu perfil" aria-label={"Meu perfil · " + user.name} onClick={() => nav("perfil")}>
                 {user.avatar ? <img src={user.avatar} alt="" /> : <span>{(user.name || "?").trim().charAt(0).toUpperCase()}</span>}
@@ -149,7 +150,6 @@ export function RoteiroCard({ r, onClick }) {
           <span>{r.paradas} paradas</span>
           <span>·</span>
           <span>{r.bairros}</span>
-          {r.vip && (<><span>·</span><span className="tag-vip">VIP disponível</span></>)}
         </div>
       </div>
     </article>

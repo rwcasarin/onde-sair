@@ -33,7 +33,7 @@ export function PlacesList() {
         { key: "name", label: "Lugar", render: (p) => (
           <span className="a-cell-main">
             <ImageSlot className="a-thumb" src={placeImg(p.id)} compact />
-            <span><strong>{p.name}</strong><em>{p.sub}{p.vip && <b className="a-mini-tag">VIP</b>}</em></span>
+            <span><strong>{p.name}</strong><em>{p.sub}</em></span>
           </span>
         ) },
         { key: "type", label: "Tipo", width: 140 },
@@ -52,7 +52,7 @@ export function PlacesList() {
 const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
   affs: [], tags: [], extras: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
-  priceLevel: 2, open: "", end: "", phone: "", site: "", insta: "", reserva: false, vip: false, note: "",
+  priceLevel: 2, open: "", end: "", phone: "", site: "", insta: "", reserva: false, note: "",
   rating: 0, reviews: 0, map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
 
@@ -97,7 +97,7 @@ function PlaceForm({ initial, isNew }) {
       header={<PageHeader
         title={isNew ? "Novo lugar" : draft.name || "Sem nome"}
         crumbs={[["Painel", "/"], ["Lugares", "lugares"], [isNew ? "Novo" : draft.name]]}
-        subtitle={isNew ? "Preencha o essencial e salve como rascunho. Dá pra completar depois." : `/${slugify(draft.bairro)}/${draft.slug || slugify(draft.name)}`}
+        subtitle={isNew ? "Preencha o essencial e salve como rascunho. Dá pra completar depois." : `/lugares/${draft.slug || slugify(draft.name)}`}
       />}
       main={<>
         <Tabs value={tab} onChange={setTab} tabs={[
@@ -113,7 +113,7 @@ function PlaceForm({ initial, isNew }) {
           <Card>
             <div className="a-form-grid">
               <Input label="Nome" required value={draft.name} onChange={(v) => set({ name: v })} error={errors.name} maxCount={60} />
-              <Input label="Endereço na URL (slug)" value={draft.slug} placeholder={slugify(draft.name)} onChange={(v) => set({ slug: slugify(v) })} prefix="/" hint="Deixe em branco para gerar a partir do nome." />
+              <Input label="Endereço na URL (slug)" value={draft.slug} placeholder={slugify(draft.name)} onChange={(v) => set({ slug: slugify(v) })} prefix="/lugares/" hint="Deixe em branco para gerar a partir do nome." />
               <Input label="Subtítulo" value={draft.sub} onChange={(v) => set({ sub: v })} hint="Aparece sob o nome nos cards. Ex.: Rooftop, Boteco de raiz." maxCount={40} />
               <Input label="Tipo de cozinha / programa" value={draft.cuisine} onChange={(v) => set({ cuisine: v })} hint="Ex.: Contemporânea, Café e brunch." />
             </div>
@@ -166,7 +166,6 @@ function PlaceForm({ initial, isNew }) {
             </div>
             <div className="a-toggles">
               <Toggle label="Aceita reserva" checked={draft.reserva} onChange={(reserva) => set({ reserva })} />
-              <Toggle label="Experiência VIP disponível" hint="Mostra o selo VIP e o card de reserva." checked={draft.vip} onChange={(vip) => set({ vip })} />
             </div>
           </Card>
         )}
@@ -220,7 +219,7 @@ function PlaceForm({ initial, isNew }) {
             <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={draft.desc} rows={3}
               onChange={(v) => set({ seo: { ...draft.seo, desc: v } })} maxCount={160} />
             <div className="a-serp" aria-label="Prévia no Google">
-              <span className="a-serp-url">ondesair.com.br › {slugify(draft.bairro) || "bairro"} › {draft.slug || slugify(draft.name) || "lugar"}</span>
+              <span className="a-serp-url">ondesair.com.br › lugares › {draft.slug || slugify(draft.name) || "lugar"}</span>
               <strong>{draft.seo.title || `${draft.name || "Nome do lugar"} · ${draft.sub || "Subtítulo"} | Onde Sair`}</strong>
               <p>{(draft.seo.desc || draft.desc || "A descrição aparece aqui.").slice(0, 160)}</p>
             </div>

@@ -4,7 +4,7 @@ import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { PageHead, VibePill, MiniPlaceCard, RoteiroMini, SectionHead, Footer } from "../components/site.jsx";
 import { useNav, useFaves } from "../nav.js";
-import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword, PROVIDER_LABEL } from "../account.js";
+import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword } from "../account.js";
 
 const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); } catch { return ""; } };
 
@@ -17,7 +17,7 @@ export function Perfil({ user }) {
 
   const savedPlaces = PLACES.filter(p => faves.has(p.id));
   const savedRoteiros = ROTEIROS.filter(r => faves.has(r.id));
-  const stats = [[faves.size, "Salvos"], [affs.size, "Vibes"], [(user.providers || []).length + (user.hasPassword ? 1 : 0), "Formas de entrar"]];
+  const stats = [[faves.size, "Salvos"], [affs.size, "Vibes"]];
 
   async function toggleAff(a) {
     const n = new Set(affs); n.has(a) ? n.delete(a) : n.add(a); setAffs(n);
@@ -48,7 +48,7 @@ export function Perfil({ user }) {
         </section>
 
         <div className="underline-tabs" role="tablist">
-          {[["salvos", "Meus salvos"], ["conta", "Dados da conta"], ["plano", "Plano & VIP"]].map(([id, l]) => (
+          {[["salvos", "Meus salvos"], ["conta", "Dados da conta"]].map(([id, l]) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? "on" : ""} onClick={() => setTab(id)}>{l}</button>
           ))}
         </div>
@@ -64,23 +64,6 @@ export function Perfil({ user }) {
 
           {tab === "conta" && <AccountData user={user} onGone={() => nav("home")} />}
 
-          {tab === "plano" && (
-            <div className="account-grid">
-              <div className="info-box">
-                <h2 className="h2t">Plano atual</h2>
-                <p><strong>Onde Sair · {user.plan || "Grátis"}</strong><br />Dicas personalizadas, mapa, favoritos e rolês em grupo.</p>
-                <button className="btn-outline">Conhecer o VIP <Icon name="arrow" size={14} /></button>
-              </div>
-              <div className="save-card">
-                <Icon name="sparkle" size={30} fill />
-                <div>
-                  <h3>{user.plan === "VIP" ? "Você é VIP" : "Vire VIP"}</h3>
-                  <p>Mesa garantida, brinde na chegada e convites para eventos da curadoria.</p>
-                  <button className="btn-white">Saiba mais</button>
-                </div>
-              </div>
-            </div>
-          )}
         </section>
 
         <section className="h2-section">
@@ -98,7 +81,7 @@ export function Perfil({ user }) {
 }
 
 function AccountData({ user, onGone }) {
-  const [f, setF] = useState({ name: user.name || "", city: user.city || "sp", marketing: !!user.marketing, email: "" });
+  const [f, setF] = useState({ name: user.name || "", city: user.city || "sp", marketing: !!user.marketing });
   const [msg, setMsg] = useState("");
   const [pw, setPw] = useState({ current: "", next: "" });
   const [pwMsg, setPwMsg] = useState("");
@@ -108,15 +91,14 @@ function AccountData({ user, onGone }) {
   async function save(e) {
     e.preventDefault();
     if (f.name.trim().length < 2) return setMsg("Informe seu nome.");
-    if (f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return setMsg("Esse e-mail não parece válido.");
     try {
-      await updateAccount({ name: f.name.trim(), city: f.city, marketing: f.marketing, ...(f.email && !user.email ? { email: f.email } : {}) });
+      await updateAccount({ name: f.name.trim(), city: f.city, marketing: f.marketing });
       setMsg("Dados salvos.");
     } catch (err) { setMsg(err.message); }
   }
   async function savePw(e) {
     e.preventDefault();
-    try { await changeAccountPassword(pw.current, pw.next); setPw({ current: "", next: "" }); setPwMsg(user.hasPassword ? "Senha alterada." : "Senha criada. Agora você também pode entrar com e-mail e senha."); }
+    try { await changeAccountPassword(pw.current, pw.next); setPw({ current: "", next: "" }); setPwMsg("Senha alterada."); }
     catch (err) { setPwMsg(err.message); }
   }
 
@@ -127,7 +109,7 @@ function AccountData({ user, onGone }) {
         <div className="auth-field"><label htmlFor="ac-name">Nome</label><input id="ac-name" value={f.name} onChange={(e) => set({ name: e.target.value })} /></div>
         <div className="auth-field">
           <label htmlFor="ac-email">E-mail</label>
-          {user.email ? <input id="ac-email" value={user.email} disabled /> : <input id="ac-email" type="email" placeholder="Adicione um e-mail" value={f.email} onChange={(e) => set({ email: e.target.value })} />}
+          <input id="ac-email" value={user.email || ""} disabled />
         </div>
         <div className="auth-field">
           <label htmlFor="ac-city">Cidade</label>
@@ -139,22 +121,13 @@ function AccountData({ user, onGone }) {
       </form>
 
       <div className="info-box">
-        <h2 className="h2t">Como você entra</h2>
-        <ul className="auth-providers">
-          {["google", "instagram", "tiktok"].map(p => (
-            <li key={p} className={(user.providers || []).includes(p) ? "on" : ""}>{PROVIDER_LABEL[p]}<span>{(user.providers || []).includes(p) ? "Conectado" : "Não conectado"}</span></li>
-          ))}
-          <li className={user.hasPassword ? "on" : ""}>E-mail e senha<span>{user.hasPassword ? "Ativo" : "Sem senha"}</span></li>
-        </ul>
-        {(user.email || user.hasPassword) && (
-          <form className="auth-form" onSubmit={savePw}>
-            <h3>{user.hasPassword ? "Trocar senha" : "Criar uma senha"}</h3>
-            {user.hasPassword && <div className="auth-field"><label htmlFor="ac-cur">Senha atual</label><input id="ac-cur" type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>}
-            <div className="auth-field"><label htmlFor="ac-new">Nova senha</label><input id="ac-new" type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
-            {pwMsg && <p className="auth-hint" role="status">{pwMsg}</p>}
-            <button className="btn-outline" type="submit">{user.hasPassword ? "Trocar senha" : "Criar senha"}</button>
-          </form>
-        )}
+        <h2 className="h2t">Trocar senha</h2>
+        <form className="auth-form" onSubmit={savePw}>
+          <div className="auth-field"><label htmlFor="ac-cur">Senha atual</label><input id="ac-cur" type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>
+          <div className="auth-field"><label htmlFor="ac-new">Nova senha</label><input id="ac-new" type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
+          {pwMsg && <p className="auth-hint" role="status">{pwMsg}</p>}
+          <button className="btn-outline" type="submit">Trocar senha</button>
+        </form>
       </div>
 
       <div className="info-box danger-box">

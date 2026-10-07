@@ -1,21 +1,19 @@
-// Conta do visitante (cadastro, login, login social, favoritos e vibes)
-// Nuvem: /api/account + /api/oauth. Offline: localStorage (social simulado).
+// Conta do visitante (cadastro, login, favoritos e vibes)
+// Nuvem: /api/account. Offline: localStorage.
 import { REMOTE, api } from "./admin/store.js";
 
 const LOCAL_USERS = "onde-sair-users";
 const LOCAL_SESSION = "onde-sair-user";
 const listeners = new Set();
 
-export const account = { user: null, providers: { google: false, instagram: false, tiktok: false }, ready: false };
+export const account = { user: null, ready: false };
 const emit = () => listeners.forEach(fn => fn({ ...account }));
 export const subscribeAccount = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
-
-export const PROVIDER_LABEL = { google: "Google", instagram: "Instagram", tiktok: "TikTok" };
 
 // ---------- modo offline ----------
 const readLocal = () => { try { return JSON.parse(localStorage.getItem(LOCAL_USERS) || "[]"); } catch { return []; } };
 const writeLocal = (users) => { try { localStorage.setItem(LOCAL_USERS, JSON.stringify(users)); } catch { /* */ } };
-const pub = ({ password, ...u }) => ({ ...u, hasPassword: !!password });
+const pub = ({ password, ...u }) => u;
 async function hash(text) {
   try {
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("os:" + text));
@@ -26,14 +24,13 @@ const localId = () => "u" + Math.random().toString(36).slice(2, 10);
 
 export async function loadAccount() {
   if (REMOTE) {
-    try { const r = await api("account?action=me"); account.user = r.user; account.providers = r.providers; } catch { /* */ }
+    try { const r = await api("account?action=me"); account.user = r.user; } catch { /* */ }
   } else {
     try {
       const id = localStorage.getItem(LOCAL_SESSION);
       const u = id && readLocal().find(x => x.id === id);
       account.user = u ? pub(u) : null;
     } catch { account.user = null; }
-    account.providers = { google: true, instagram: true, tiktok: true }; // simulados
   }
   account.ready = true;
   emit();
@@ -55,7 +52,7 @@ export async function signup({ name, email, password, city, marketing }) {
   else if (users.some(u => u.email === email.toLowerCase().trim())) fields.email = "Já existe uma conta com esse e-mail. Que tal entrar?";
   if (!password || password.length < 8) fields.password = "Use pelo menos 8 caracteres.";
   if (Object.keys(fields).length) return { fields };
-  const u = { id: localId(), name: name.trim(), email: email.toLowerCase().trim(), password: await hash(password), providers: [], city, vibes: [], faves: [], plan: "Grátis", status: "ativo", marketing: !!marketing, onboarded: false, joined: new Date().toISOString() };
+  const u = { id: localId(), name: name.trim(), email: email.toLowerCase().trim(), password: await hash(password), city, vibes: [], faves: [], status: "ativo", marketing: !!marketing, onboarded: false, joined: new Date().toISOString() };
   writeLocal([...users, u]);
   localStorage.setItem(LOCAL_SESSION, u.id);
   return { user: setUser(pub(u)) };
@@ -68,7 +65,6 @@ export async function login(email, password) {
       const code = e.data?.error || e.message;
       if (code === "locked") return { message: `Muitas tentativas. Tente de novo em ${e.data.wait} segundos.` };
       if (code === "blocked") return { message: "Essa conta está suspensa. Fale com a gente pelo contato do site." };
-      if (code === "social") return { message: `Essa conta entra com ${PROVIDER_LABEL[e.data.provider] || e.data.provider}. Use o botão acima.` };
       if (code === "invalid") return { message: "E-mail ou senha incorretos." };
       return { message: "Não foi possível entrar agora. Verifique a conexão." };
     }
@@ -77,25 +73,6 @@ export async function login(email, password) {
   if (!u || u.password !== await hash(password || "")) return { message: "E-mail ou senha incorretos." };
   localStorage.setItem(LOCAL_SESSION, u.id);
   return { user: setUser(pub(u)) };
-}
-
-// Login social: na nuvem redireciona para o provedor; offline, simula
-export async function socialLogin(provider, next = "") {
-  if (REMOTE) {
-    if (!account.providers[provider]) return { message: `O login com ${PROVIDER_LABEL[provider]} ainda não foi ativado. Use o e-mail por enquanto.` };
-    window.location.href = `/api/oauth/${provider}${next ? "?next=" + encodeURIComponent(next) : ""}`;
-    return { redirecting: true };
-  }
-  const users = readLocal();
-  let u = users.find(x => (x.providers || []).includes(provider));
-  const isNew = !u;
-  if (!u) {
-    u = { id: localId(), name: { google: "Visitante Google", instagram: "Visitante Instagram", tiktok: "Visitante TikTok" }[provider], email: provider === "google" ? `visitante.${Date.now().toString(36)}@gmail.com` : null,
-      password: null, providers: [provider], city: "sp", vibes: [], faves: [], plan: "Grátis", status: "ativo", marketing: false, onboarded: false, joined: new Date().toISOString() };
-    writeLocal([...users, u]);
-  }
-  localStorage.setItem(LOCAL_SESSION, u.id);
-  return { user: setUser(pub(u)), isNew, simulated: true };
 }
 
 export async function updateAccount(patch) {
@@ -125,7 +102,7 @@ export async function changeAccountPassword(current, next) {
   if (REMOTE) { await api("account?action=password", { method: "POST", body: { current, next } }); return; }
   const users = readLocal();
   const u = users.find(x => x.id === account.user.id);
-  if (u.password && u.password !== await hash(current)) throw new Error("A senha atual não confere.");
+  if (u.password !== await hash(current)) throw new Error("A senha atual não confere.");
   if (next.length < 8) throw new Error("A nova senha precisa de pelo menos 8 caracteres.");
   u.password = await hash(next);
   writeLocal(users);

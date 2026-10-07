@@ -51,7 +51,7 @@ export function VibesPage() {
             <Card key={v.id} className={"a-vibe-card" + (v.active ? "" : " inactive")} pad={false}>
               <div className="a-vibe-row">
                 <span className={"vibe-pill vibe-pill-md " + v.cls}><span className="vibe-pill-icon"><AIcon name={v.icon} size={20} /></span>{v.label}</span>
-                <span className="a-vibe-info"><strong>{v.sub || "—"}</strong><em>{n} lugar(es) · /{v.slug || slugify(v.label)}{!v.active && " · desativada"}</em></span>
+                <span className="a-vibe-info"><strong>{v.sub || "—"}</strong><em>{n} lugar(es) · /vibes/{v.slug || slugify(v.label)}{!v.active && " · desativada"}</em></span>
                 <div className="a-row-actions">
                   <Btn size="sm" kind="ghost" icon="up" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)} />
                   <Btn size="sm" kind="ghost" icon="down" aria-label="Descer" disabled={i === vibes.length - 1} onClick={() => move(i, 1)} />
@@ -63,7 +63,7 @@ export function VibesPage() {
                   <div className="a-form-grid">
                     <Input label="Nome" required value={v.label} onChange={(label) => upd(i, { label })} maxCount={24} />
                     <Input label="Subtítulo" value={v.sub} onChange={(sub) => upd(i, { sub })} hint="Ex.: Pra começar bem" />
-                    <Input label="Slug" value={v.slug} placeholder={slugify(v.label)} onChange={(s) => upd(i, { slug: slugify(s) })} prefix="/" />
+                    <Input label="Slug" value={v.slug} placeholder={slugify(v.label)} onChange={(s) => upd(i, { slug: slugify(s) })} prefix="/vibes/" />
                     <Field label="Ícone"><IconPicker value={v.icon} icons={VIBE_ICONS} onChange={(icon) => upd(i, { icon })} /></Field>
                   </div>
                   <Field label="Cor">

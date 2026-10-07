@@ -5,12 +5,11 @@ import { PageHead, Footer } from "../components/site.jsx";
 
 const KIND = {
   "ROTEIRO NOVO": { icon: "map",      cls: "vibe-lavender", group: "Roteiros" },
-  "VIP":          { icon: "sparkle",  cls: "vibe-mint",     group: "VIP" },
   "FAVORITO":     { icon: "heart",    cls: "vibe-pink",     group: "Favoritos" },
   "AGENDA":       { icon: "calendar", cls: "vibe-yellow",   group: "Agenda" },
   "AMIGO":        { icon: "users",    cls: "vibe-sky",      group: "Amigos" },
 };
-const FILTERS = ["Tudo", "Roteiros", "VIP", "Favoritos", "Agenda", "Amigos"];
+const FILTERS = ["Tudo", "Roteiros", "Favoritos", "Agenda", "Amigos"];
 
 export function Notificacoes({ onMarkAllRead }) {
   const [items, setItems] = useState(NOTIFICATIONS);

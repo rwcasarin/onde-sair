@@ -6,7 +6,7 @@ const SECRET = process.env.SESSION_SECRET || "dev-secret-change-me";
 const COOKIE = "os_user";
 const DAYS_30 = 30 * 24 * 3600;
 
-export const publicUser = ({ hash, sessionVersion, providers, ...u }) => ({ ...u, providers: Object.keys(providers || {}), hasPassword: !!hash });
+export const publicUser = ({ hash, sessionVersion, providers, plan, ...u }) => u;
 
 export async function loadUsers() {
   const cur = await readJSON("users");

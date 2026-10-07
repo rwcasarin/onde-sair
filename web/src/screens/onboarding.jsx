@@ -97,7 +97,7 @@ export function Onboarding({ onDone }) {
         </p>
         <div className="quote">
           "Saí pra comer com a sogra, segui o roteiro, e o jantar virou conversa boa. Inédito."
-          <span className="quote-by">Bruna T., assinante</span>
+          <span className="quote-by">Bruna T., São Paulo</span>
         </div>
       </aside>
 

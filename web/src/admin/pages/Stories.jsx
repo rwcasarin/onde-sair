@@ -49,7 +49,7 @@ export function StoryEditor({ id }) {
 }
 
 function StoryForm({ initial, isNew }) {
-  const { db } = useAdmin();
+  const { db, go } = useAdmin();
   const { draft, set, dirty, commit } = useDraft(initial);
   const { errors, validate, save } = useEditorSave({
     coll: "stories", draft, dirty, rules: RULES,
@@ -123,7 +123,7 @@ function StoryForm({ initial, isNew }) {
         </Card>
         <Checklist items={[["Título", !!draft.title], ["Resumo", draft.desc.length >= 30], ["Texto com 80+ caracteres", draft.body.length >= 80], ["Ao menos um lugar citado", draft.places.length > 0]]} />
         {isNew && <p className="a-hint">Para mostrar na home, publique e marque em Conteúdo › Home.</p>}
-        {!isNew && <Btn kind="ghost" size="sm" icon="layout" onClick={() => window.location.hash = "/admin/home"}>Destaques da home</Btn>}
+        {!isNew && <Btn kind="ghost" size="sm" icon="layout" onClick={() => go("home")}>Destaques da home</Btn>}
       </>}
     />
   );

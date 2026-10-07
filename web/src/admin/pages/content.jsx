@@ -3,18 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AIcon, Btn, Card, DataTable, PageHeader, StatusBadge, Tabs, Toolbar, FilterSelect, Select, useAdmin, Modal,
 } from "../kit.jsx";
+import { go as goPath, toPath } from "../../router.js";
 import { STATUS, can, relTime, fmtDate, setStatus, removeItems, duplicateItem, saveItem, isLive } from "../store.js";
 
 export const COLL = {
   places:   { one: "lugar", many: "lugares", path: "lugares", title: (x) => x.name, siteScreen: "detalhe" },
   roteiros: { one: "roteiro", many: "roteiros", path: "roteiros", title: (x) => x.title, siteScreen: "roteiro" },
-  stories:  { one: "história", many: "histórias", path: "historias", title: (x) => x.title, siteScreen: "home" },
+  stories:  { one: "história", many: "histórias", path: "historias", title: (x) => x.title, siteScreen: "historia" },
 };
 
-// Abre o site público já numa tela específica
+// Abre o site público já na página do conteúdo (URL pelo slug)
 export function openOnSite(screen, params = {}) {
-  try { sessionStorage.setItem("os-goto", JSON.stringify({ screen, params })); } catch { /* */ }
-  window.location.hash = "";
+  goPath(toPath(screen, params));
+  window.scrollTo(0, 0);
 }
 
 // ---------------------------------------------------------------------
