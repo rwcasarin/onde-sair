@@ -7,6 +7,7 @@ import { useNav, useFaves } from "../nav.js";
 import { href, toPath } from "../router.js";
 import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword, deleteMyRoteiro } from "../account.js";
 import { MyRoteiroCard } from "./roteiro.jsx";
+import { SITE } from "../admin/store.js";
 
 const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); } catch { return ""; } };
 
@@ -165,7 +166,7 @@ function MyRoteiros({ list }) {
 }
 
 function AccountData({ user, onGone }) {
-  const [f, setF] = useState({ name: user.name || "", city: user.city || "sp", marketing: !!user.marketing });
+  const [f, setF] = useState({ name: user.name || "", city: user.city || SITE.defaultCity, marketing: !!user.marketing });
   const [msg, setMsg] = useState("");
   const [pw, setPw] = useState({ current: "", next: "" });
   const [pwMsg, setPwMsg] = useState("");

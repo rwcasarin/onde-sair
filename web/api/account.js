@@ -38,7 +38,7 @@ export const POST = handle(async (request) => {
         throw Object.assign(new Error("exists"), { status: 409 });
       const u = {
         id: newUserId(), name: clean(name), email: email.toLowerCase().trim(), hash: hashPassword(password),
-        avatar: null, city: clean(city, 12) || "sp", vibes: [], faves: [], status: "ativo",
+        avatar: null, city: clean(city, 12) || "sorocaba", vibes: [], faves: [], status: "ativo",
         marketing: !!marketing, onboarded: false, joined: new Date().toISOString(), lastSeen: new Date().toISOString(), sessionVersion: 0,
       };
       users.push(u);
