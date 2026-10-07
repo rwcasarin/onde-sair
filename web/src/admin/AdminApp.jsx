@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { OSLogo, OSIcon } from "../components/brand.jsx";
 import { AdminCtx, AIcon, Btn, Input, Modal, useDialogs, useToasts } from "./kit.jsx";
-import { getDB, subscribe, currentUser, logout, can, ROLES, REMOTE, sync, reloadFromServer, forceSave, retrySave, changePassword, relTime } from "./store.js";
+import { getDB, subscribe, currentUser, logout, can, ROLES, REMOTE, sync, reloadFromServer, forceSave, retrySave, whenSynced, changePassword, relTime } from "./store.js";
 import { Login } from "./pages/Login.jsx";
 import { Dashboard, ActivityPage } from "./pages/Dashboard.jsx";
 import { PlacesList, PlaceEditor } from "./pages/Places.jsx";
@@ -82,7 +82,14 @@ export default function AdminApp() {
   }, [confirm]);
   const setDirty = useCallback((v) => { dirtyRef.current = v; }, []);
 
-  const ctx = useMemo(() => ({ user, db, go, toast, confirm, setDirty }), [user, db, go, toast, confirm, setDirty]);
+  // aviso de sucesso só depois que o servidor confirmar a gravação
+  const saved = useCallback(async (msg) => {
+    const ok = await whenSynced();
+    if (ok) toast(msg, "success");
+    else toast("Não foi salvo no servidor. Veja o aviso no topo da página.", "error");
+    return ok;
+  }, [toast]);
+  const ctx = useMemo(() => ({ user, db, go, toast, saved, confirm, setDirty }), [user, db, go, toast, saved, confirm, setDirty]);
 
   if (user === undefined) return <div className="a-loading">Carregando painel…</div>;
 

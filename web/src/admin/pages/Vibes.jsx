@@ -8,7 +8,7 @@ const COLORS = [["vibe-pink", "Rosa"], ["vibe-yellow", "Amarelo"], ["vibe-mint",
 const VIBE_ICONS = ["heart", "cheers", "leaf", "camera", "coins", "smile", "music", "sun", "star", "martini", "landmark", "tree", "sparkle", "users", "wine"];
 
 export function VibesPage() {
-  const { db, user, toast, confirm, setDirty } = useAdmin();
+  const { db, user, toast, saved, confirm, setDirty } = useAdmin();
   const { draft, set, dirty, commit } = useDraft({ vibes: db.vibes });
   const [open, setOpen] = useState(null);
   useEffect(() => { setDirty(dirty); return () => setDirty(false); }, [dirty, setDirty]);
@@ -21,7 +21,7 @@ export function VibesPage() {
     if (bad) return toast("Toda vibe precisa de um nome.", "error");
     saveVibes(vibes.map(v => ({ ...v, slug: v.slug || slugify(v.label) })), user);
     commit({ vibes });
-    toast("Vibes salvas e aplicadas ao site.", "success");
+    saved("Vibes salvas e aplicadas ao site.");
   }
   async function remove(i) {
     const v = vibes[i];

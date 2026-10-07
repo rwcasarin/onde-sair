@@ -47,7 +47,7 @@ export function CampaignsPage() {
 }
 
 function Composer({ initial, onClose }) {
-  const { db, user, toast } = useAdmin();
+  const { db, user, toast, saved } = useAdmin();
   const [c, setC] = useState(initial);
   const [err, setErr] = useState({});
   const set = (p) => setC(x => ({ ...x, ...p }));
@@ -64,7 +64,7 @@ function Composer({ initial, onClose }) {
     if (status === "rascunho" && !c.title.trim()) return;
     const { when, ...rest } = c;
     saveCampaign({ ...rest, status }, user);
-    toast({ enviada: "Notificação enviada.", agendada: "Notificação agendada.", rascunho: "Rascunho salvo." }[status], "success");
+    saved({ enviada: "Notificação enviada.", agendada: "Notificação agendada.", rascunho: "Rascunho salvo." }[status]);
     onClose();
   }
 

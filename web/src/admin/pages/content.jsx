@@ -22,7 +22,7 @@ export function openOnSite(screen, params = {}) {
 // Lista com abas de status, busca, filtros e ações em lote
 // ---------------------------------------------------------------------
 export function ContentList({ coll, title, subtitle, columns, filters = [], searchText, newLabel }) {
-  const { db, user, go, toast, confirm } = useAdmin();
+  const { db, user, go, toast, saved, confirm } = useAdmin();
   const meta = COLL[coll];
   const [tab, setTab] = useState("todos");
   const [q, setQ] = useState("");
@@ -38,13 +38,13 @@ export function ContentList({ coll, title, subtitle, columns, filters = [], sear
   const canPub = can(user, "content.publish"), canDel = can(user, "content.delete");
   async function bulkDelete(ids) {
     const ok = await confirm({ title: `Excluir ${ids.length} ${meta.one}(s)?`, text: "Essa ação não pode ser desfeita. Prefira arquivar se quiser guardar o conteúdo.", ok: "Excluir", danger: true });
-    if (ok) { removeItems(coll, ids, user); toast(`${ids.length} ${meta.one}(s) excluído(s).`, "success"); }
+    if (ok) { removeItems(coll, ids, user); saved(`${ids.length} ${meta.one}(s) excluído(s).`); }
   }
   const bulk = [
-    canPub && { label: "Publicar", icon: "check", kind: "primary", run: (ids) => { setStatus(coll, ids, "publicado", user); toast("Publicado.", "success"); } },
-    !canPub && { label: "Enviar para revisão", icon: "send2", run: (ids) => { setStatus(coll, ids, "revisao", user); toast("Enviado para revisão.", "success"); } },
-    canPub && { label: "Despublicar", icon: "eyeoff", run: (ids) => { setStatus(coll, ids, "rascunho", user); toast("Movido para rascunho."); } },
-    canPub && { label: "Arquivar", icon: "bookmark", run: (ids) => { setStatus(coll, ids, "arquivado", user); toast("Arquivado."); } },
+    canPub && { label: "Publicar", icon: "check", kind: "primary", run: (ids) => { setStatus(coll, ids, "publicado", user); saved("Publicado."); } },
+    !canPub && { label: "Enviar para revisão", icon: "send2", run: (ids) => { setStatus(coll, ids, "revisao", user); saved("Enviado para revisão."); } },
+    canPub && { label: "Despublicar", icon: "eyeoff", run: (ids) => { setStatus(coll, ids, "rascunho", user); saved("Movido para rascunho."); } },
+    canPub && { label: "Arquivar", icon: "bookmark", run: (ids) => { setStatus(coll, ids, "arquivado", user); saved("Arquivado."); } },
     canDel && { label: "Excluir", icon: "trash", kind: "danger", run: bulkDelete },
   ].filter(Boolean);
 
@@ -52,7 +52,7 @@ export function ContentList({ coll, title, subtitle, columns, filters = [], sear
     key: "_a", label: "", sortable: false, align: "right", width: 120, render: (x) => (
       <div className="a-row-actions">
         <Btn size="sm" kind="ghost" icon="edit" aria-label="Editar" title="Editar" onClick={() => go(`${meta.path}/${x.id}`)} />
-        <Btn size="sm" kind="ghost" icon="copy" aria-label="Duplicar" title="Duplicar" onClick={() => { const c = duplicateItem(coll, x.id, user); toast("Cópia criada como rascunho.", "success"); go(`${meta.path}/${c.id}`); }} />
+        <Btn size="sm" kind="ghost" icon="copy" aria-label="Duplicar" title="Duplicar" onClick={() => { const c = duplicateItem(coll, x.id, user); saved("Cópia criada como rascunho."); go(`${meta.path}/${c.id}`); }} />
         {isLive(x) && <Btn size="sm" kind="ghost" icon="ext" aria-label="Ver no site" title="Ver no site" onClick={() => openOnSite(meta.siteScreen, { id: x.id })} />}
       </div>
     ),
@@ -95,7 +95,7 @@ export function ContentList({ coll, title, subtitle, columns, filters = [], sear
 // Painel lateral de publicação (fluxo editorial + permissões)
 // ---------------------------------------------------------------------
 export function PublishPanel({ coll, draft, set, dirty, isNew, onSave, validate }) {
-  const { user, confirm, go, toast } = useAdmin();
+  const { user, confirm, go, toast, saved } = useAdmin();
   const meta = COLL[coll];
   const [scheduling, setScheduling] = useState(false);
   const [when, setWhen] = useState(() => toLocalInput(draft.publishAt || new Date(Date.now() + 864e5).toISOString()));
@@ -103,7 +103,7 @@ export function PublishPanel({ coll, draft, set, dirty, isNew, onSave, validate 
 
   async function del() {
     const ok = await confirm({ title: `Excluir “${meta.title(draft)}”?`, text: "Essa ação não pode ser desfeita.", ok: "Excluir", danger: true });
-    if (ok) { removeItems(coll, [draft.id], user); toast("Excluído.", "success"); go(meta.path); }
+    if (ok) { removeItems(coll, [draft.id], user); saved("Excluído."); go(meta.path); }
   }
   function publish(status, extra = {}) {
     if (status !== "rascunho" && status !== "arquivado") {
@@ -171,7 +171,7 @@ const toLocalInput = (iso) => { const d = new Date(iso); d.setMinutes(d.getMinut
 // Lógica comum dos editores: rascunho, validação, salvar, guarda de saída
 // ---------------------------------------------------------------------
 export function useEditorSave({ coll, draft, commit, dirty, rules }) {
-  const { user, go, toast, setDirty } = useAdmin();
+  const { user, go, toast, saved, setDirty } = useAdmin();
   const [errors, setErrors] = useState({});
   const [tried, setTried] = useState(false);
   useEffect(() => { setDirty(dirty); return () => setDirty(false); }, [dirty, setDirty]);
@@ -189,12 +189,12 @@ export function useEditorSave({ coll, draft, commit, dirty, rules }) {
   function save(status, extra = {}) {
     if (validate(false)) return toast("Preencha os campos obrigatórios.", "error");
     const isNew = !draft.id;
-    const saved = saveItem(coll, { ...draft, ...extra }, user, { status });
-    commit(saved);
+    const item = saveItem(coll, { ...draft, ...extra }, user, { status });
+    commit(item);
     setDirty(false);
     const msg = { publicado: "Publicado no site.", revisao: "Enviado para revisão.", agendado: "Publicação agendada.", arquivado: "Arquivado.", rascunho: "Rascunho salvo." }[status];
-    toast(msg, "success");
-    if (isNew) setTimeout(() => go(`${COLL[coll].path}/${saved.id}`), 0);
+    saved(msg);
+    if (isNew) setTimeout(() => go(`${COLL[coll].path}/${item.id}`), 0);
   }
   return { errors, validate, save };
 }

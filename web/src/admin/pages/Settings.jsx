@@ -3,7 +3,7 @@ import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Fie
 import { saveSettings, getDB, resetDemo, importDB, REMOTE } from "../store.js";
 
 export function SettingsPage() {
-  const { db, user, toast, confirm, setDirty } = useAdmin();
+  const { db, user, toast, saved, confirm, setDirty } = useAdmin();
   const { draft, set, dirty, commit } = useDraft(db.settings);
   const [tab, setTab] = useState("geral");
   const file = useRef(null);
@@ -13,7 +13,7 @@ export function SettingsPage() {
   function save() {
     if (!draft.siteName.trim()) return toast("O nome do site não pode ficar vazio.", "error");
     saveSettings(draft, user); commit(draft);
-    toast("Configurações salvas.", "success");
+    saved("Configurações salvas.");
   }
   function exportJson() {
     const blob = new Blob([JSON.stringify(getDB(), null, 2)], { type: "application/json" });
@@ -28,12 +28,12 @@ export function SettingsPage() {
       if (!data.places || !data.roteiros) throw new Error();
       if (!(await confirm({ title: "Restaurar backup?", text: "Todo o conteúdo atual do painel será substituído pelo do arquivo.", ok: "Restaurar", danger: true }))) return;
       importDB(data);
-      toast("Backup restaurado.", "success");
+      saved("Backup restaurado.");
     } catch { toast("Arquivo inválido: não é um backup do Onde Sair.", "error"); }
   }
   async function reset() {
     if (await confirm({ title: "Restaurar conteúdo original?", text: "Apaga todas as edições de conteúdo e volta ao conteúdo de lançamento. Faça um backup antes.", ok: "Restaurar", danger: true })) {
-      resetDemo(); commit(getDB().settings); toast("Conteúdo original restaurado.", "success");
+      resetDemo(); commit(getDB().settings); saved("Conteúdo original restaurado.");
     }
   }
 
