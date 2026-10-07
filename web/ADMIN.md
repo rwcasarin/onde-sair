@@ -70,7 +70,7 @@ Sem `BLOB_READ_WRITE_TOKEN`, a API grava em `web/.data/` (ignorada pelo git).
 | `/admin` | Painel | Indicadores, visitas (exemplo), lugares por vibe, fila de revisão, avaliações pendentes, conteúdo incompleto, atividade |
 | `/admin/atividade` | Atividade | Registro de todas as ações da equipe, com busca e filtro |
 | `/admin/lugares` | Lugares | Lista com abas de status, busca, filtros (tipo, vibe, bairro), ordenação, paginação, ações em lote |
-| `/admin/lugares/:id` · `/novo` | Editor de lugar | Abas Conteúdo · Detalhes práticos · Vibes e tags · Imagens · Localização · SEO; prévia do card ao vivo; checklist de qualidade |
+| `/admin/lugares/:id` · `/novo` | Editor de lugar | Abas Conteúdo · Detalhes práticos · Vibes e tags · Imagens · Localização (endereço com autocompletar do Google Maps, cidade e bairro preenchidos e cadastráveis na hora, CEP, coordenadas, pino) · SEO; prévia do card ao vivo; checklist de qualidade |
 | `/admin/roteiros` · `/:id` | Roteiros | Lista + editor com construtor de paradas (ordenar, vincular lugar, opcional), dicas, mapa do trajeto |
 | `/admin/historias` · `/:id` | Histórias | Lista + editor de texto (Markdown com barra de formatação e pré-visualização), categoria, cor, capa |
 | `/admin/home` | Home | Topo (título, texto, foto), 6 "Dicas para hoje", histórias em destaque, cards "Roteiros por vibe", valores da marca |
@@ -81,7 +81,7 @@ Sem `BLOB_READ_WRITE_TOKEN`, a API grava em `web/.data/` (ignorada pelo git).
 | `/admin/notificacoes` | Notificações | Criar, enviar ou agendar avisos com público e prévia no celular; métricas |
 | `/admin/cidades` | Cidades e bairros | Ativar cidades, cadastrar bairros |
 | `/admin/equipe` | Equipe e permissões | Convidar, trocar perfil, remover; matriz de permissões |
-| `/admin/configuracoes` | Configurações | Geral, SEO padrão, aviso no topo, redes, modo manutenção, backup/restauração |
+| `/admin/configuracoes` | Configurações | Geral, SEO padrão, aviso no topo, redes, integrações (chave do Google Maps), modo manutenção, backup/restauração |
 
 ## Fluxo editorial
 
@@ -126,6 +126,16 @@ Toda página tem URL própria. Conteúdos usam o **slug** definido no painel (ú
 | `/cidade` | Escolha de cidade |
 
 `vercel.json` devolve o `index.html` para qualquer caminho fora de `/api`, `/assets` e `/images`. Endereços inexistentes mostram a página 404. Links antigos `#/admin/...` são redirecionados para `/admin/...`.
+
+## Endereço com Google Maps
+
+O campo de endereço do lugar usa o autocompletar da **Places API (New)**. Para ativar:
+
+1. No Google Cloud Console, ative **Maps JavaScript API** e **Places API (New)** e crie uma chave.
+2. Restrinja a chave a *Referenciadores HTTP* (`https://www.ondesair.com.br/*`, `https://ondesair.com.br/*`) e a essas duas APIs.
+3. Cole a chave em **Configurações › Integrações** (ou defina `VITE_GOOGLE_MAPS_API_KEY` no build). A chave fica só no painel; `/api/content` não a expõe.
+
+Ao escolher um endereço, o painel preenche rua e número, CEP, coordenadas, **cidade** e **bairro**. Se a cidade ou o bairro ainda não existem, um aviso oferece cadastrá-los com um clique. Os campos Cidade e Bairro também aceitam cadastro direto (a cidade pede a UF). Não há duplicidade: a comparação ignora acentos, maiúsculas e espaços. Cidades novas entram **inativas** no site. O Bairro só lista os bairros da cidade escolhida. Sem chave, o endereço é digitado à mão.
 
 ## Como o painel conversa com o site
 

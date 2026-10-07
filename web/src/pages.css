@@ -568,7 +568,9 @@
 
 /* Onde fica — mapa maior */
 .where-map-lg { height: 320px; }
-.where-address { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-size: 13px; color: var(--heading); }
+.where-address { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 0; font-size: 13px; color: var(--heading); }
+.where-route { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--primary); text-decoration: none; }
+.where-route:hover { text-decoration: underline; }
 .split-60-30 .info-box { align-self: stretch; }
 
 /* Confira também — 4 cards (2 lugares + 2 roteiros) */

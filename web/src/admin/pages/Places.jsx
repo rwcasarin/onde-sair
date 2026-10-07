@@ -6,7 +6,8 @@ import {
   AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, PillPicker, Repeater, ImageField, Segmented, Tabs, Field, Check,
   PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify } from "../store.js";
+import { slugify, addCity, addBairro } from "../store.js";
+import { AddressAutocomplete, CreatableField, Pending, findCity, findBairro } from "./location.jsx";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 
 export const REASON_ICONS = ["eye", "star", "heart", "users", "music", "leaf", "sun", "coins", "clock", "sparkle", "image", "camera", "wine", "smile", "pin"];
@@ -52,13 +53,14 @@ export function PlacesList() {
 const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
   affs: [], tags: [], extras: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
-  priceLevel: 2, open: "", end: "", phone: "", site: "", insta: "", reserva: false, note: "",
+  priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", site: "", insta: "", reserva: false, note: "",
   rating: 0, reviews: 0, map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
 
 const RULES = [
   ["name", (d) => d.name.trim().length >= 2, "Dê um nome ao lugar."],
   ["type", (d) => !!d.type, "Escolha o tipo.", true],
+  ["city", (d) => !!d.city, "Escolha a cidade.", true],
   ["bairro", (d) => !!d.bairro, "Escolha o bairro.", true],
   ["desc", (d) => d.desc.trim().length >= 40, "Escreva pelo menos 40 caracteres.", true],
   ["affs", (d) => d.affs.length > 0, "Marque ao menos uma vibe.", true],
@@ -78,7 +80,6 @@ function PlaceForm({ initial, isNew }) {
   const { draft, set, dirty, commit } = useDraft(initial);
   const { errors, validate, save } = useEditorSave({ coll: "places", draft, commit, dirty, rules: RULES });
   const [tab, setTab] = useState("conteudo");
-  const city = db.cities.find(c => c.id === draft.city) || db.cities[0];
   const previewId = draft.id || "novo";
 
   const tabErr = (keys) => keys.some(k => errors[k]) ? "!" : null;
@@ -102,10 +103,10 @@ function PlaceForm({ initial, isNew }) {
       main={<>
         <Tabs value={tab} onChange={setTab} tabs={[
           ["conteudo", "Conteúdo", tabErr(["name", "desc"])],
-          ["detalhes", "Detalhes práticos", tabErr(["type", "bairro", "end"])],
+          ["detalhes", "Detalhes práticos", tabErr(["type"])],
           ["vibes", "Vibes e tags", tabErr(["affs"])],
           ["imagens", "Imagens"],
-          ["mapa", "Localização"],
+          ["mapa", "Localização", tabErr(["end", "city", "bairro"])],
           ["seo", "SEO"],
         ]} />
 
@@ -147,10 +148,6 @@ function PlaceForm({ initial, isNew }) {
           <Card>
             <div className="a-form-grid">
               <Select label="Tipo" required value={draft.type} onChange={(v) => set({ type: v })} options={TYPES.map(t => t.label)} error={errors.type} />
-              <Select label="Cidade" value={draft.city} onChange={(v) => set({ city: v, bairro: "" })} options={db.cities.map(c => [c.id, c.name + (c.active ? "" : " (inativa)")])} />
-              <Select label="Bairro" required value={draft.bairro} onChange={(v) => set({ bairro: v })} options={city?.bairros || []} placeholder="Escolha o bairro" error={errors.bairro}
-                hint={!city?.bairros?.length ? "Cadastre bairros em Configurações › Cidades e bairros." : null} />
-              <Input label="Endereço" required value={draft.end} onChange={(v) => set({ end: v })} error={errors.end} placeholder="Rua, número · Bairro" />
               <Input label="Funcionamento" value={draft.open} onChange={(v) => set({ open: v })} placeholder="Ter–Dom · 12h – 23h" />
               <Input label="Telefone" value={draft.phone} onChange={(v) => set({ phone: v })} type="tel" placeholder="(00) 0000-0000" />
               <Input label="Site" value={draft.site} onChange={(v) => set({ site: v.replace(/^https?:\/\//, "") })} prefix="https://" />
@@ -196,21 +193,7 @@ function PlaceForm({ initial, isNew }) {
           </Card>
         )}
 
-        {tab === "mapa" && (
-          <Card subtitle="Clique no mapa para posicionar o pino. (Protótipo com mapa ilustrado; em produção, use latitude e longitude.)">
-            <div className="a-map-pick" onClick={(e) => {
-              const r = e.currentTarget.getBoundingClientRect();
-              set({ map: { ...draft.map, x: Math.round(((e.clientX - r.left) / r.width) * 100), y: Math.round(((e.clientY - r.top) / r.height) * 100) } });
-            }}>
-              <MapArt className="a-map-art" pins={[...db.places.filter(p => p.id !== draft.id).map(p => ({ x: p.map.x, y: p.map.y, color: "#C9C3DB", title: p.name })), { x: draft.map.x, y: draft.map.y, label: draft.name || "Novo lugar", color: "var(--c-magenta)" }]} />
-            </div>
-            <div className="a-form-grid a-form-grid-3">
-              <Input label="Posição X (%)" type="number" min={0} max={100} value={draft.map.x} onChange={(v) => set({ map: { ...draft.map, x: +v } })} />
-              <Input label="Posição Y (%)" type="number" min={0} max={100} value={draft.map.y} onChange={(v) => set({ map: { ...draft.map, y: +v } })} />
-              <Input label="Sigla no pino" value={draft.map.label} onChange={(v) => set({ map: { ...draft.map, label: v.toUpperCase().slice(0, 4) } })} />
-            </div>
-          </Card>
-        )}
+        {tab === "mapa" && <LocationTab draft={draft} set={set} errors={errors} />}
 
         {tab === "seo" && (
           <Card subtitle="Como o lugar aparece no Google e nas redes.">
@@ -245,6 +228,115 @@ function PlaceForm({ initial, isNew }) {
         )}
       </>}
     />
+  );
+}
+
+// ---------------------------------------------------------------------
+// Aba Localização: endereço (Google), cidade e bairro relacionados, pino no mapa
+// ---------------------------------------------------------------------
+function LocationTab({ draft, set, errors }) {
+  const { db, user, toast } = useAdmin();
+  const [pending, setPending] = useState(null);       // cidade/bairro vindos do Google que ainda não existem
+  const [newUf, setNewUf] = useState(null);           // cadastro manual de cidade: falta a UF
+  const city = db.cities.find(c => c.id === draft.city);
+  const apiKey = db.settings.mapsKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+
+  // endereço escolhido no Google: preenche tudo o que já existe e sinaliza o que falta cadastrar
+  function onPick(a) {
+    const patch = { end: a.end, cep: a.cep, geo: a.geo, placeId: a.placeId };
+    const c = a.city && findCity(db.cities, a.city, a.uf);
+    const b = c && a.bairro && findBairro(c, a.bairro);
+    if (c) { patch.city = c.id; patch.bairro = b || ""; } else if (a.city) { patch.city = ""; patch.bairro = ""; }
+    set(patch);
+    setPending({ city: !c && a.city ? { name: a.city, sub: a.uf } : null, bairro: a.bairro && !b ? a.bairro : null });
+  }
+
+  function createCity(name, sub) {
+    const r = addCity({ name, sub }, user);
+    if (r.error) { toast(r.error, "error"); return null; }
+    if (r.existed) toast(`${r.city.name} já estava cadastrada.`, "info");
+    else toast(`Cidade ${r.city.name} (${r.city.sub}) cadastrada. Ela entra inativa no site até você ativá-la.`, "success");
+    set({ city: r.city.id, bairro: "" });
+    return r.city;
+  }
+  function createBairro(name, cityId = draft.city) {
+    const r = addBairro(cityId, name, user);
+    if (r.error) return toast(r.error, "error");
+    if (r.existed) toast(`${r.bairro} já estava cadastrado.`, "info");
+    else toast(`Bairro ${r.bairro} cadastrado.`, "success");
+    set({ city: cityId, bairro: r.bairro });
+  }
+  // aceita a sugestão do Google: cadastra a cidade (se faltar) e o bairro em sequência
+  function acceptPending() {
+    let cityId = draft.city;
+    if (pending.city) { const c = createCity(pending.city.name, pending.city.sub); if (!c) return; cityId = c.id; }
+    if (pending.bairro) createBairro(pending.bairro, cityId);
+    setPending(null);
+  }
+  const pendingText = pending && (pending.city || pending.bairro)
+    ? [pending.city && `a cidade ${pending.city.name}${pending.city.sub ? " (" + pending.city.sub + ")" : ""}`, pending.bairro && `o bairro ${pending.bairro}`].filter(Boolean).join(" e ")
+    : null;
+
+  const cityOptions = db.cities.map(c => ({ value: c.id, label: c.name, note: (c.sub || "") + (c.active ? "" : " · inativa") }));
+  const bairroOptions = (city?.bairros || []).map(b => ({ value: b, label: b }));
+  const mapsUrl = draft.geo ? `https://www.google.com/maps/search/?api=1&query=${draft.geo.lat},${draft.geo.lng}${draft.placeId ? "&query_place_id=" + draft.placeId : ""}` : null;
+
+  return (
+    <>
+      <Card title="Endereço" subtitle="Escolha o endereço nas sugestões do Google: cidade e bairro são preenchidos sozinhos.">
+        <AddressAutocomplete label="Endereço" required apiKey={apiKey} value={draft.end} error={errors.end}
+          onChange={(end) => { set({ end, geo: null, placeId: "" }); setPending(null); }} onPick={onPick} />
+        {pendingText && (
+          <Pending text={`O endereço fica em ${pendingText}, que ainda não ${pending.city && pending.bairro ? "estão cadastrados" : "está cadastrado"}.`}
+            action="Cadastrar" onClick={acceptPending} />
+        )}
+        <div className="a-form-grid">
+          <CreatableField label="Cidade" required error={errors.city} value={city?.name || ""}
+            options={cityOptions} placeholder="Busque ou cadastre a cidade"
+            onSelect={(id) => { set({ city: id, bairro: id === draft.city ? draft.bairro : "" }); setPending(p => p && { ...p, city: null }); }}
+            onCreate={(name) => setNewUf({ name, sub: "" })}
+            createLabel={(t) => `Cadastrar a cidade “${t}”`}
+            extra={newUf && (
+              <div className="a-inline-create">
+                <span>Estado (UF) de <strong>{newUf.name}</strong>:</span>
+                <input className="a-input" value={newUf.sub} maxLength={2} autoFocus aria-label="Sigla do estado" placeholder="SP"
+                  onChange={(e) => setNewUf({ ...newUf, sub: e.target.value.toUpperCase().replace(/[^A-Z]/g, "") })}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (createCity(newUf.name, newUf.sub)) setNewUf(null); } }} />
+                <Btn size="sm" kind="primary" onClick={() => { if (createCity(newUf.name, newUf.sub)) setNewUf(null); }}>Cadastrar</Btn>
+                <Btn size="sm" kind="ghost" onClick={() => setNewUf(null)}>Cancelar</Btn>
+              </div>
+            )} />
+          <CreatableField label="Bairro" required error={errors.bairro} value={draft.bairro} disabled={!city}
+            options={bairroOptions} placeholder={city ? `Bairros de ${city.name}` : "Escolha a cidade primeiro"}
+            hint={city ? `${city.bairros.length} bairro(s) em ${city.name}. Digite para buscar ou cadastrar.` : null}
+            onSelect={(b) => { set({ bairro: b }); setPending(p => p && { ...p, bairro: null }); }}
+            onCreate={(name) => createBairro(name)}
+            createLabel={(t) => `Cadastrar o bairro “${t}” em ${city?.name}`} />
+          <Input label="CEP" value={draft.cep || ""} onChange={(cep) => set({ cep: cep.replace(/[^\d-]/g, "").slice(0, 9) })} placeholder="00000-000" />
+          <Field label="Coordenadas">
+            <div className="a-geo">
+              {draft.geo
+                ? <><span>{draft.geo.lat}, {draft.geo.lng}</span><a href={mapsUrl} target="_blank" rel="noreferrer"><AIcon name="ext" size={14} /> Ver no Google Maps</a></>
+                : <span className="a-muted">Preenchidas ao escolher o endereço nas sugestões.</span>}
+            </div>
+          </Field>
+        </div>
+      </Card>
+
+      <Card title="Pino no mapa do site" subtitle="Clique no mapa ilustrado para posicionar o pino.">
+        <div className="a-map-pick" onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          set({ map: { ...draft.map, x: Math.round(((e.clientX - r.left) / r.width) * 100), y: Math.round(((e.clientY - r.top) / r.height) * 100) } });
+        }}>
+          <MapArt className="a-map-art" pins={[...db.places.filter(p => p.id !== draft.id).map(p => ({ x: p.map.x, y: p.map.y, color: "#C9C3DB", title: p.name })), { x: draft.map.x, y: draft.map.y, label: draft.name || "Novo lugar", color: "var(--c-magenta)" }]} />
+        </div>
+        <div className="a-form-grid a-form-grid-3">
+          <Input label="Posição X (%)" type="number" min={0} max={100} value={draft.map.x} onChange={(v) => set({ map: { ...draft.map, x: +v } })} />
+          <Input label="Posição Y (%)" type="number" min={0} max={100} value={draft.map.y} onChange={(v) => set({ map: { ...draft.map, y: +v } })} />
+          <Input label="Sigla no pino" value={draft.map.label} onChange={(v) => set({ map: { ...draft.map, label: v.toUpperCase().slice(0, 4) } })} />
+        </div>
+      </Card>
+    </>
   );
 }
 

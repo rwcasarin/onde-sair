@@ -479,6 +479,33 @@ export function duplicateItem(coll, id, user) {
 export function saveVibes(vibes, user) { db.vibes = vibes; log(user, "atualizou", "vibes", "vibes"); commit(); }
 export function saveHome(home, user) { db.home = home; log(user, "atualizou", "home", "home"); commit(); }
 export function saveSettings(settings, user) { db.settings = settings; log(user, "atualizou", "configurações", "config"); commit(); }
+// Cadastro rápido a partir do editor de lugar (sem duplicidade: ignora acentos e maiúsculas)
+const normName = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+export function addCity({ name, sub }, user) {
+  name = (name || "").replace(/\s+/g, " ").trim(); sub = (sub || "").trim().toUpperCase();
+  if (name.length < 2) return { error: "Informe o nome da cidade." };
+  if (!/^[A-Z]{2}$/.test(sub)) return { error: "Informe a sigla do estado (2 letras)." };
+  const dup = db.cities.find(c => normName(c.name) === normName(name) && (c.sub || "").toUpperCase() === sub);
+  if (dup) return { city: dup, existed: true };
+  let id = slugify(name).slice(0, 12), n = 2;
+  if (db.cities.some(c => c.id === id)) id = (slugify(name).slice(0, 9) + "-" + sub.toLowerCase());
+  while (db.cities.some(c => c.id === id)) id = slugify(name).slice(0, 9) + "-" + n++;
+  const city = { id, name, sub, active: false, bairros: [] };
+  db.cities = [...db.cities, city];
+  log(user, "cadastrou a cidade", `${name} (${sub})`, "config"); commit();
+  return { city };
+}
+export function addBairro(cityId, name, user) {
+  name = (name || "").replace(/\s+/g, " ").trim();
+  const city = db.cities.find(c => c.id === cityId);
+  if (!city) return { error: "Escolha a cidade antes do bairro." };
+  if (name.length < 2) return { error: "Informe o nome do bairro." };
+  const dup = city.bairros.find(b => normName(b) === normName(name));
+  if (dup) return { bairro: dup, existed: true };
+  db.cities = db.cities.map(c => c.id === cityId ? { ...c, bairros: [...c.bairros, name].sort((a, b) => a.localeCompare(b, "pt-BR")) } : c);
+  log(user, "cadastrou o bairro", `${name} · ${city.name}`, "config"); commit();
+  return { bairro: name };
+}
 export function saveCities(cities, user) { db.cities = cities; log(user, "atualizou", "cidades e bairros", "config"); commit(); }
 
 export function moderate(ids, patch, user) {
