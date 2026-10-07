@@ -612,3 +612,6 @@ span.a-label { margin: 6px 0 8px; }
 .a-steps code { font-size: 12px; background: var(--a-bg); padding: 1px 5px; border-radius: 4px; }
 .a-map-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
 .a-map-art.gmap { border-radius: 10px; }
+.a-insta-status { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+.a-insta-status.ok { background: #E3F6EC; color: #1C6B45; }
+.a-insta-status.warn { background: #FFF4DE; color: #7A5200; }

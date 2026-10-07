@@ -9,7 +9,7 @@ import { useNav, useCity, useFaves } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 import { InstaFeed } from "../components/instafeed.jsx";
-import { instaPost, instaProfile } from "../insta.js";
+import { instaProfile, useInstaPosts } from "../insta.js";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -36,8 +36,8 @@ export function Detalhe({ id }) {
   // avaliações em destaque deste lugar (as de exemplo, sem lugar, valem para todos)
   const tips = PLACE_TIPS.filter(t => !t.place || t.place === p.id).slice(0, 3);
   // seções que o admin pode esconder (Instagram só aparece com posts)
-  const instaPosts = (p.instaPosts || []).map(instaPost).filter(Boolean);
-  const showInsta = p.showInstagram !== false && instaPosts.length > 0;
+  const instaPosts = useInstaPosts(p);   // últimos posts do perfil público (some se privado/indisponível)
+  const showInsta = instaPosts.length > 0;
   const showFotos = p.showGallery !== false;
   const tabs = TABS.filter(([t]) => (t !== "dicas" || tips.length) && (t !== "insta" || showInsta) && (t !== "fotos" || showFotos));
   const [tab, setTab] = useState("visao");
