@@ -166,8 +166,8 @@ export function Detalhe({ id }) {
           </div>
         </section>
 
-        {/* 4 · Onde fica (60%) + Informações úteis (30%) */}
-        <section className="place-row split-60-30" id="sec-chegar">
+        {/* 4 · Onde fica (70%) + Informações úteis (30%) */}
+        <section className="place-row split-70-30" id="sec-chegar">
           <div className="where-box">
             <div className="h2-head">
               <h2>Onde fica</h2>
