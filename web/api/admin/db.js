@@ -1,5 +1,5 @@
 // GET /api/admin/db — banco completo para o painel
-// PUT /api/admin/db { db, etag } — grava, validando permissões do perfil
+// PUT /api/admin/db { db, etag, force? } — grava, validando permissões do perfil (force: só admin)
 import { requireUser, loadTeam, publicMember } from "../_lib/auth.js";
 import { readJSON, writeJSON, Conflict } from "../_lib/storage.js";
 import { json, fail, body, handle, isCmsCall } from "../_lib/http.js";
@@ -52,17 +52,19 @@ function violation(user, prev, next) {
 export const PUT = handle(async (request) => {
   if (!isCmsCall(request)) return fail(403, "Requisição inválida");
   const user = await requireUser(request);
-  const { db, etag } = await body(request);
+  const { db, etag, force } = await body(request);
   if (!db || !Array.isArray(db.places)) return fail(400, "Banco inválido");
+  if (force && !can(user, "settings.edit")) return fail(403, "Só administradores podem sobrescrever o conteúdo.");
   const { team, media, members, ...content } = db; // equipe, mídia e contas têm rotas próprias
   content.activity = (content.activity || []).slice(0, 200);
-  const cur = await readJSON("content");
-  if (cur && cur.etag !== etag) return fail(409, "conflict", { etag: cur.etag });
+  const cur = await readJSON("content", etag || undefined);
+  if (cur && !force && cur.etag !== etag) return fail(409, "conflict", { etag: cur.etag });
   content.members = cur?.data?.members || [];
   const why = violation(user, cur?.data, content);
   if (why) return fail(403, why);
   try {
-    const nextEtag = await writeJSON("content", content, cur ? cur.etag : null);
+    // force (só admin): grava a versão enviada mesmo que o servidor tenha mudado
+    const nextEtag = await writeJSON("content", content, force ? undefined : cur ? cur.etag : null);
     return json({ ok: true, etag: nextEtag });
   } catch (e) {
     if (e instanceof Conflict) { const c = await readJSON("content"); return fail(409, "conflict", { etag: c?.etag }); }

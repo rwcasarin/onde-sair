@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { OSLogo, OSIcon } from "../components/brand.jsx";
 import { AdminCtx, AIcon, Btn, Input, Modal, useDialogs, useToasts } from "./kit.jsx";
-import { getDB, subscribe, currentUser, logout, can, ROLES, REMOTE, sync, reloadFromServer, changePassword, relTime } from "./store.js";
+import { getDB, subscribe, currentUser, logout, can, ROLES, REMOTE, sync, reloadFromServer, forceSave, retrySave, changePassword, relTime } from "./store.js";
 import { Login } from "./pages/Login.jsx";
 import { Dashboard, ActivityPage } from "./pages/Dashboard.jsx";
 import { PlacesList, PlaceEditor } from "./pages/Places.jsx";
@@ -193,7 +193,16 @@ export default function AdminApp() {
           {(sync.status === "conflict" || sync.status === "error") && (
             <div className={"a-sync-banner tone-" + (sync.status === "conflict" ? "amber" : "red")} role="alert">
               <AIcon name="alert" size={16} />
-              <span>{sync.status === "conflict" ? sync.error : `Não foi possível salvar na nuvem: ${sync.error}`}</span>
+              <span>{sync.status === "conflict"
+                ? <>{sync.error} {can(user, "settings.edit") ? "Você pode sobrescrever com a sua versão ou recarregar a do servidor." : "Recarregue para ver a versão atual (suas alterações não salvas serão descartadas)."}</>
+                : `Não foi possível salvar na nuvem: ${sync.error}`}</span>
+              {sync.status === "conflict" && can(user, "settings.edit") && (
+                <Btn size="sm" kind="primary" icon="check" onClick={async () => {
+                  const ok = await confirm({ title: "Sobrescrever com a sua versão?", text: "As suas alterações serão gravadas por cima das que foram feitas na outra sessão nos mesmos itens. Itens que só a outra sessão alterou são mantidos.", ok: "Sobrescrever" });
+                  if (ok) toast(await forceSave() ? "Sua versão foi salva." : "Não foi possível sobrescrever: " + (sync.error || "tente de novo."), sync.status === "saved" ? "success" : "error");
+                }}>Sobrescrever com a minha versão</Btn>
+              )}
+              {sync.status === "error" && <Btn size="sm" icon="refresh" onClick={() => retrySave()}>Tentar de novo</Btn>}
               <Btn size="sm" icon="refresh" onClick={async () => { await reloadFromServer(); toast("Conteúdo recarregado do servidor.", "success"); }}>Recarregar do servidor</Btn>
             </div>
           )}
