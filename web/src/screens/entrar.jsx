@@ -6,7 +6,7 @@ import { ImageSlot } from "../components/image-slot.jsx";
 import { OSIcon } from "../components/brand.jsx";
 import { VibePill } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
-import { account, signup, login, updateAccount } from "../account.js";
+import { account, signup, login, updateAccount, peekIntent } from "../account.js";
 import { go, href } from "../router.js";
 
 function Field({ id, label, error, hint, children, aside }) {
@@ -47,6 +47,14 @@ export function Entrar({ mode: initialMode = "entrar", onDone }) {
     );
   }
 
+  const intent = peekIntent();
+  const intentNote = intent && {
+    fave: ["heart", "Entre ou crie sua conta grátis para salvar seus favoritos. Depois a gente te leva de volta."],
+    roteiro: ["list", "Entre ou crie sua conta para montar seus roteiros com esse lugar."],
+    copiar: ["list", "Entre ou crie sua conta para copiar esse roteiro e adaptar do seu jeito."],
+    voltar: ["bookmark", "Essa página é da sua conta. Entre para continuar."],
+  }[intent.type];
+
   if (mode === "boas-vindas") return <AuthShell><Welcome onDone={(u) => onDone(u, true)} /></AuthShell>;
 
   return (
@@ -59,6 +67,7 @@ export function Entrar({ mode: initialMode = "entrar", onDone }) {
 
         <h1>{mode === "entrar" ? "Que bom te ver de novo" : "Crie sua conta grátis"}</h1>
         <p className="auth-sub">{mode === "entrar" ? "Entre para ver seus salvos, rolês e dicas pelas suas vibes." : "Salve lugares, monte rolês com amigos e receba dicas que combinam com você."}</p>
+        {intentNote && <p className="auth-info auth-intent"><Icon name={intentNote[0]} size={16} /> {intentNote[1]}</p>}
 
         {mode === "entrar"
           ? <LoginForm onDone={(u) => (u.onboarded ? onDone(u, false) : go("/boas-vindas"))} onSignup={() => go("/cadastro")} />

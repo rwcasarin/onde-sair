@@ -11,3 +11,7 @@ export const useCity = () => useContext(CityContext);
 // Favoritos — compartilhados entre todas as telas
 export const FavContext = createContext({ faves: new Set(), toggle: () => {} });
 export const useFaves = () => useContext(FavContext);
+
+// Conta do visitante — `ask(intent)` leva ao login e lembra o que a pessoa queria fazer
+export const AccountContext = createContext({ user: null, ask: () => {} });
+export const useAccount = () => useContext(AccountContext);

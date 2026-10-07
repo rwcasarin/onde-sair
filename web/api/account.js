@@ -3,12 +3,13 @@
 // POST ?action=signup        { name, email, password, city, marketing }
 // POST ?action=login         { email, password }
 // POST ?action=logout
-// PATCH ?action=update       { name?, city?, vibes?, faves?, marketing?, onboarded? }
+// PATCH ?action=update       { name?, city?, vibes?, faves?, roteiros?, marketing?, onboarded? }
 // POST ?action=password      { current, next }
 // DELETE ?action=delete      → exclui a conta (LGPD)
 import { hashPassword, verifyPassword } from "./_lib/auth.js";
 import { loadUsers, updateUsers, publicUser, userCookie, clearUserCookie, currentUser, newUserId } from "./_lib/users.js";
 import { json, fail, body, handle, isCmsCall } from "./_lib/http.js";
+import { cleanRoteiros } from "../shared/myroteiros.js";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map();
@@ -91,6 +92,7 @@ export const PATCH = handle(async (request) => {
     if (p.city !== undefined) x.city = clean(p.city, 12);
     if (Array.isArray(p.vibes)) x.vibes = p.vibes.slice(0, 12).map(v => clean(v, 20));
     if (Array.isArray(p.faves)) x.faves = p.faves.slice(0, 500).map(v => clean(v, 20));
+    if (Array.isArray(p.roteiros)) x.roteiros = cleanRoteiros(p.roteiros);
     if (p.marketing !== undefined) x.marketing = !!p.marketing;
     if (p.onboarded !== undefined) x.onboarded = !!p.onboarded;
     x.lastSeen = new Date().toISOString();

@@ -6,6 +6,7 @@ import {
   HeroMedia, Crumbs, VibePill, IconPill, PriceDots, Tag, MapArt, MiniPlaceCard, FaveButton, Footer, affById,
 } from "../components/site.jsx";
 import { useNav, useCity, useFaves } from "../nav.js";
+import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -97,6 +98,7 @@ export function Detalhe({ id }) {
             <button className={"btn-outline btn-lg" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved}>
               <Icon name="heart" size={18} fill={saved} /> {saved ? "Salvo" : "Salvar"}
             </button>
+            <AddToRoteiro place={p} />
             <button className="btn-outline btn-lg" onClick={share}><Icon name="share" size={18} /> {shared ? "Copiado!" : "Compartilhar"}</button>
           </div>
         </div>

@@ -52,7 +52,7 @@ export function migrateLegacyHash() {
 // Tela ↔ URL
 // ---------------------------------------------------------------------
 export const slugOf = (x) => x?.slug || slugify(x?.name || x?.title || x?.label || "");
-const bySlug = (list, s) => list.find(x => slugOf(x) === s) || list.find(x => x.id === s);
+export const bySlug = (list, s) => list.find(x => slugOf(x) === s) || list.find(x => x.id === s);
 
 export const placePath = (p) => "/lugares/" + slugOf(typeof p === "string" ? PLACES.find(x => x.id === p) || { slug: p } : p);
 export const roteiroPath = (r) => "/roteiros/" + slugOf(typeof r === "string" ? ROTEIROS.find(x => x.id === r) || { slug: r } : r);
@@ -60,7 +60,7 @@ export const storyPath = (s) => "/historias/" + slugOf(typeof s === "string" ? A
 export const vibePath = (aff) => "/vibes/" + slugOf(AFFINITIES.find(a => a.id === aff) || { slug: aff });
 
 const STATIC = {
-  home: "/", lista: "/lugares", roteiros: "/roteiros", mapa: "/guia", favoritos: "/favoritos",
+  home: "/", lista: "/lugares", roteiros: "/roteiros", mapa: "/guia", favoritos: "/perfil/favoritos",
   perfil: "/perfil", notificacoes: "/notificacoes", onboarding: "/cidade", historias: "/historias",
 };
 
@@ -74,6 +74,15 @@ export function toPath(screen, params = {}) {
     case "roteiro": return roteiroPath(params.id);
     case "historia": return storyPath(params.id);
     case "mapa": return params.id ? "/guia/" + slugOf(PLACES.find(x => x.id === params.id) || { slug: params.id }) : "/guia";
+    case "perfil": return { favoritos: "/perfil/favoritos", favRoteiros: "/perfil/favoritos/roteiros", meus: "/perfil/roteiros", conta: "/perfil/conta" }[params.tab] || "/perfil";
+    case "meuRoteiro": return "/perfil/roteiros/" + encodeURIComponent(params.id);
+    case "meuRoteiroEditar": {
+      if (params.id && params.id !== "novo") return "/perfil/roteiros/" + encodeURIComponent(params.id) + "/editar";
+      const q = new URLSearchParams();
+      if (params.lugar) q.set("lugar", slugOf(PLACES.find(x => x.id === params.lugar) || { slug: params.lugar }));
+      if (params.copiar) q.set("copiar", params.copiar.startsWith("ur") ? params.copiar : slugOf(ROTEIROS.find(x => x.id === params.copiar) || { slug: params.copiar }));
+      return "/perfil/roteiros/novo" + (q.toString() ? "?" + q : "");
+    }
     case "entrar": return params.mode === "cadastro" ? "/cadastro" : params.mode === "boas-vindas" ? "/boas-vindas" : "/entrar";
     default: return STATIC[screen] || "/";
   }
@@ -86,6 +95,22 @@ export function fromPath(full) {
   const parts = pathname.split("/").filter(Boolean).map(decodeURIComponent);
   const [a, b] = parts;
   const notFound = { screen: "404", params: {} };
+  // área da conta: /perfil, /perfil/favoritos[/roteiros], /perfil/roteiros[/novo|/:id[/editar]], /perfil/conta
+  if (a === "perfil" || a === "favoritos") {
+    const [, , c, d, e] = parts;
+    const rest = a === "favoritos" ? ["favoritos", b, c] : [b, c, d, e];
+    const [x, y, z, w] = rest;
+    if (!x) return { screen: "perfil", params: { tab: "favoritos" } };
+    if (x === "favoritos" && !z) return y === "roteiros" ? { screen: "perfil", params: { tab: "favRoteiros" } } : !y ? { screen: "perfil", params: { tab: "favoritos" } } : notFound;
+    if (x === "conta" && !y) return { screen: "perfil", params: { tab: "conta" } };
+    if (x === "roteiros") {
+      if (!y) return { screen: "perfil", params: { tab: "meus" } };
+      if (y === "novo" && !z) return { screen: "meuRoteiroEditar", params: { id: "novo", lugar: q.get("lugar") ? (bySlug(PLACES, q.get("lugar"))?.id || "") : "", copiar: q.get("copiar") || "" } };
+      if (!z) return { screen: "meuRoteiro", params: { id: y } };
+      if (z === "editar" && !w) return { screen: "meuRoteiroEditar", params: { id: y } };
+    }
+    return notFound;
+  }
   if (parts.length > 2) return notFound;
   if (!a) return { screen: "home", params: {} };
   switch (a) {

@@ -120,12 +120,21 @@ Toda página tem URL própria. Conteúdos usam o **slug** definido no painel (ú
 | `/roteiros` · `/roteiros/{slug}` | Roteiros |
 | `/historias` · `/historias/{slug}` | Histórias |
 | `/guia` · `/guia/{slug}` | Guia da cidade (mapa) |
-| `/favoritos` | Favoritos |
 | `/entrar` · `/cadastro` · `/boas-vindas` | Conta do visitante |
-| `/perfil` · `/notificacoes` | Só com login (sem sessão, vão para `/entrar`) |
+| `/perfil/favoritos` · `/perfil/favoritos/roteiros` | Lugares e roteiros favoritos, com filtro por vibe (só com login) |
+| `/perfil/roteiros` | Meus roteiros: lista, editar, duplicar, excluir (só com login) |
+| `/perfil/roteiros/novo` · `?lugar={slug}` · `?copiar={slug}` | Criar roteiro do zero, a partir de um lugar ou copiando outro |
+| `/perfil/roteiros/{id}` · `/editar` | Ver e editar um roteiro meu |
+| `/perfil/conta` · `/notificacoes` | Dados da conta e notificações (só com login) |
 | `/cidade` | Escolha de cidade |
 
-`vercel.json` devolve o `index.html` para qualquer caminho fora de `/api`, `/assets` e `/images`. Endereços inexistentes mostram a página 404. Links antigos `#/admin/...` são redirecionados para `/admin/...`.
+`vercel.json` devolve o `index.html` para qualquer caminho fora de `/api`, `/assets` e `/images`. Endereços inexistentes mostram a página 404. Links antigos `#/admin/...` são redirecionados para `/admin/...`; `/favoritos` leva a `/perfil/favoritos`.
+
+Ações que exigem conta (favoritar, montar ou copiar roteiro, abrir páginas do perfil) levam ao login com uma mensagem do motivo e, depois de entrar, voltam para onde a pessoa estava (o favorito já fica salvo).
+
+### Roteiros do usuário
+
+Ficam na conta (`users.json`, campo `roteiros`), visíveis só para o dono. Formato e validação em `shared/myroteiros.js` (usado pelo site e pela API): até 50 roteiros e 20 paradas cada. O editor segue a dinâmica do admin (abas Informações · Paradas · Dicas, paradas com lugar vinculado ou livres, reordenar, opcional, prévia no mapa). Na página do lugar, **Adicionar a um roteiro** inclui o lugar num roteiro existente (sem duplicar) ou cria um novo com ele. Nos roteiros da curadoria, **Copiar e adaptar** cria uma cópia editável (“baseado em…”); nos próprios, **Duplicar**.
 
 ## Endereço com Google Maps
 

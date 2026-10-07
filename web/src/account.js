@@ -1,6 +1,7 @@
 // Conta do visitante (cadastro, login, favoritos e vibes)
 // Nuvem: /api/account. Offline: localStorage.
 import { REMOTE, api } from "./admin/store.js";
+import { cleanRoteiro, cleanRoteiros, blankStep, LIMITS } from "../shared/myroteiros.js";
 
 const LOCAL_USERS = "onde-sair-users";
 const LOCAL_SESSION = "onde-sair-user";
@@ -85,6 +86,52 @@ export async function updateAccount(patch) {
   writeLocal(users);
   return setUser(pub(users.find(u => u.id === account.user.id)));
 }
+
+// ---------- Meus roteiros ----------
+export const myRoteiros = () => account.user?.roteiros || [];
+export const findMyRoteiro = (id) => myRoteiros().find(r => r.id === id);
+async function setRoteiros(list) { return updateAccount({ roteiros: cleanRoteiros(list) }); }
+
+export async function saveMyRoteiro(r) {
+  const now = new Date().toISOString();
+  const item = cleanRoteiro({ ...r, createdAt: r.createdAt || now, updatedAt: now });
+  const list = myRoteiros();
+  if (!list.some(x => x.id === item.id) && list.length >= LIMITS.roteiros) throw new Error(`Você chegou ao limite de ${LIMITS.roteiros} roteiros. Exclua algum para criar outro.`);
+  await setRoteiros(list.some(x => x.id === item.id) ? list.map(x => x.id === item.id ? item : x) : [item, ...list]);
+  return item;
+}
+export async function deleteMyRoteiro(id) { await setRoteiros(myRoteiros().filter(r => r.id !== id)); }
+
+// Coloca um lugar no fim de um roteiro meu (ou avisa que já está nele)
+export async function addPlaceToRoteiro(id, place) {
+  const r = findMyRoteiro(id);
+  if (!r) throw new Error("Roteiro não encontrado.");
+  if (r.steps.some(s => s.place === place.id)) return { already: true, roteiro: r };
+  if (r.steps.length >= LIMITS.steps) throw new Error(`Um roteiro pode ter até ${LIMITS.steps} paradas.`);
+  const steps = r.steps.length === 1 && !r.steps[0].title && !r.steps[0].place ? [] : r.steps;
+  const saved = await saveMyRoteiro({ ...r, steps: [...steps, blankStep({ place: place.id, title: place.name, sub: place.sub || "" })] });
+  return { roteiro: saved };
+}
+
+// Cópia editável de um roteiro da curadoria ou meu
+export function copyOf(src, { mine = false } = {}) {
+  const c = cleanRoteiro({
+    ...src, id: "", createdAt: "", updatedAt: "",
+    title: mine ? `${src.title} (cópia)` : src.title,
+    stats: { tempo: src.stats?.tempo, invest: src.stats?.invest, ideal: src.stats?.ideal },
+    steps: (src.steps || []).map(s => blankStep({ time: s.time, title: s.title, sub: s.sub, place: s.place || "", optional: !!s.optional, desc: s.desc })),
+    tips: { dica: src.tips?.dica, horario: src.tips?.horario, comoChegar: src.tips?.comoChegar, lembrete: src.tips?.lembrete },
+    from: { id: src.id, title: src.title, mine },
+  });
+  c.id = "";
+  return c;
+}
+
+// Ação pedida sem login (salvar favorito, montar roteiro): guardada até a pessoa entrar
+const INTENT = "os-intent";
+export function setIntent(intent) { try { sessionStorage.setItem(INTENT, JSON.stringify(intent)); } catch { /* */ } }
+export function peekIntent() { try { return JSON.parse(sessionStorage.getItem(INTENT) || "null"); } catch { return null; } }
+export function takeIntent() { const i = peekIntent(); try { sessionStorage.removeItem(INTENT); } catch { /* */ } return i; }
 
 export async function logoutAccount() {
   if (REMOTE) await api("account?action=logout", { method: "POST" }).catch(() => {});
