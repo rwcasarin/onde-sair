@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { Analytics } from "@vercel/analytics/react";
 import { boot } from "./admin/store.js"; // conteúdo salvo (local) ou da API (nuvem)
 import App from "./App.jsx";
 import "./styles.css";
@@ -17,9 +18,14 @@ function Root() {
     window.addEventListener("hashchange", on);
     return () => window.removeEventListener("hashchange", on);
   }, []);
-  return admin
-    ? <Suspense fallback={<div className="a-loading">Carregando painel…</div>}><AdminApp /></Suspense>
-    : <App />;
+  return (
+    <>
+      {admin
+        ? <Suspense fallback={<div className="a-loading">Carregando painel…</div>}><AdminApp /></Suspense>
+        : <App />}
+      <Analytics />
+    </>
+  );
 }
 
 // busca o conteúdo publicado na API antes de renderizar (sem API, segue o modo local)
