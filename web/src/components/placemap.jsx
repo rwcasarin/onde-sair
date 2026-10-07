@@ -38,11 +38,11 @@ export function MapCard({ place, isMain, onClose }) {
  * items: [{ id, place?, title?, num?, art? }] — place traz geo/endereço; num = pin numerado (roteiro);
  *        art = posição {x,y} no mapa ilustrado para paradas sem lugar
  * mainId: pin principal (maior, sempre em destaque). activeId/onSelect: pin selecionado (abre o card).
- * frame: enquadramento padrão — com mainId, raio de `radiusKm` em volta do pin principal (página do lugar);
+ * frame: enquadramento padrão — com mainId, raio de `radiusKm` (1 km) em volta do pin principal (página do lugar);
  *        com `city`, a área da cidade (Guia da cidade); sem nenhum dos dois, todos os pins (lista, roteiros).
  * route: liga os pins na ordem. card: mostra o card ao selecionar. onPick: clique no mapa devolve {lat,lng} (painel).
  */
-export function PlaceMap({ items, mainId = null, activeId = null, onSelect, route = false, card = true, onPick, className = "", fallbackLabel = true, radiusKm = 2, city = null }) {
+export function PlaceMap({ items, mainId = null, activeId = null, onSelect, route = false, card = true, onPick, className = "", fallbackLabel = true, radiusKm = 1, city = null }) {
   const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect;
   const key = SITE.mapsKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
   const [mode, setMode] = useState(key ? "loading" : "art");     // loading | google | art
