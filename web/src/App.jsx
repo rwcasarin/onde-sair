@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { NOTIFICATIONS, USER, cityName } from "./data.js";
+import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext } from "./nav.js";
 import { TopNav } from "./components/ui.jsx";
 import { Onboarding } from "./screens/onboarding.jsx";
@@ -14,7 +15,15 @@ import { Notificacoes } from "./screens/notificacoes.jsx";
 
 export default function App() {
   // rota = tela + parâmetros (id, aff, q, anchor)
-  const [route, setRoute] = useState({ screen: "home", params: {}, n: 0 });
+  // "Ver no site" a partir do painel abre direto na tela certa
+  const [route, setRoute] = useState(() => {
+    try {
+      const goto = JSON.parse(sessionStorage.getItem("os-goto") || "null");
+      sessionStorage.removeItem("os-goto");
+      if (goto) return { screen: goto.screen, params: goto.params || {}, n: 0 };
+    } catch { /* */ }
+    return { screen: "home", params: {}, n: 0 };
+  });
   const [city, setCity] = useState("sp");
   const [unread, setUnread] = useState(NOTIFICATIONS.filter(n => n.unread).length);
   const [faves, setFaves] = useState(new Set(["p2", "p10", "p3", "r4"]));
@@ -34,6 +43,15 @@ export default function App() {
 
   const { screen, params } = route;
 
+  if (SITE.maintenance) {
+    return (
+      <main className="maintenance">
+        <h1>Voltamos já.</h1>
+        <p>Estamos ajustando a curadoria. Enquanto isso, siga a gente nas redes.</p>
+      </main>
+    );
+  }
+
   if (screen === "onboarding") {
     return <Onboarding onDone={(state) => { setCity(state.city); nav("home"); }} />;
   }
@@ -46,6 +64,9 @@ export default function App() {
     <CityContext.Provider value={{ name: cityName(city), onCityClick: () => nav("onboarding") }}>
     <FavContext.Provider value={{ faves, toggle: toggleFave }}>
       <div className="app">
+        {SITE.announcement?.enabled && SITE.announcement.text && (
+          <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
+        )}
         <TopNav current={screen} params={params} city={cityName(city)} unread={unread} onCityClick={() => nav("onboarding")} />
         {screen === "home"         && <Home />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} />}

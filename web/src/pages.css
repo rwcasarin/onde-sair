@@ -599,3 +599,22 @@
   .where-map-lg { height: 240px; }
   .related-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
 }
+
+/* =================================================================
+   Controlados pelo painel: aviso no topo, manutenção, link admin
+   ================================================================= */
+.site-announce {
+  padding: 9px 16px; text-align: center;
+  font-size: 13px; font-weight: 600; color: #fff; background: var(--heading);
+}
+.site-announce.tone-magenta { background: var(--c-magenta); }
+.site-announce.tone-teal { background: var(--vip); }
+.site-announce.tone-yellow { background: var(--c-yellow); color: var(--heading); }
+.site-announce.off { opacity: .45; }
+.maintenance {
+  min-height: 100vh; display: grid; place-content: center; text-align: center; padding: 24px;
+  background: var(--bg); color: var(--heading);
+}
+.maintenance h1 { margin: 0; font-family: var(--serif); font-weight: 700; font-size: clamp(44px, 7vw, 80px); letter-spacing: -0.04em; }
+.maintenance p { color: var(--ink-2); }
+.site-footer-legal .site-footer-admin { color: var(--ink-3); }
