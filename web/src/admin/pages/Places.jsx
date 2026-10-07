@@ -8,6 +8,7 @@ import {
 } from "../kit.jsx";
 import { slugify, addCity, addBairro } from "../store.js";
 import { AddressAutocomplete, CreatableField, Pending, findCity, findBairro } from "./location.jsx";
+import { instaPost } from "../../insta.js";
 import { PlaceMap } from "../../components/placemap.jsx";
 import { loadGoogle, addressOf } from "../../maps.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
@@ -55,10 +56,12 @@ const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
   affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
   priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", site: "", insta: "", reserva: false, note: "",
+  showGallery: true, showInstagram: true, instaPosts: [],
   rating: 0, reviews: 0, map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
 
 const RULES = [
+  ["instaPosts", (d) => (d.instaPosts || []).every(u => !u.trim() || instaPost(u)), "Algum link do Instagram não é de um post (instagram.com/p/… ou /reel/…)."],
   ["name", (d) => d.name.trim().length >= 2, "Dê um nome ao lugar."],
   ["type", (d) => !!d.type, "Escolha o tipo.", true],
   ["city", (d) => !!d.city, "Escolha a cidade.", true],
@@ -106,7 +109,7 @@ function PlaceForm({ initial, isNew }) {
           ["conteudo", "Conteúdo", tabErr(["name", "desc"])],
           ["detalhes", "Detalhes práticos", tabErr(["type"])],
           ["vibes", "Vibes e tags", tabErr(["affs"])],
-          ["imagens", "Imagens"],
+          ["imagens", "Imagens", tabErr(["instaPosts"])],
           ["mapa", "Localização", tabErr(["end", "city", "bairro"])],
           ["seo", "SEO"],
         ]} />
@@ -177,8 +180,23 @@ function PlaceForm({ initial, isNew }) {
           </Card>
         )}
 
-        {tab === "imagens" && (
-          <Card subtitle="Envie fotos horizontais com boa luz. Elas são comprimidas automaticamente.">
+        {tab === "imagens" && (<>
+          <Card title="Instagram" subtitle="Seção “No Instagram”, antes das fotos do lugar. Cole os links dos posts que quer mostrar.">
+            <Toggle label="Mostrar a seção Instagram na página" hint="Aparece quando houver ao menos um post."
+              checked={draft.showInstagram !== false} onChange={(showInstagram) => set({ showInstagram })} />
+            <span className="a-label">Posts do Instagram (até 6)</span>
+            <Repeater items={(draft.instaPosts || []).map(url => ({ url }))} max={6} addLabel="Adicionar post"
+              newItem={() => ({ url: "" })} onChange={(items) => set({ instaPosts: items.map(x => x.url) })}
+              render={(it, upd) => (
+                <Input value={it.url} onChange={(url) => upd({ url })} placeholder="https://www.instagram.com/p/…" aria-label="Link do post"
+                  error={it.url.trim() && !instaPost(it.url) ? "Use o link de um post ou reel." : null} />
+              )} />
+            {errors.instaPosts && <p className="a-error">{errors.instaPosts}</p>}
+            {draft.insta ? <p className="a-hint">O link “Ver perfil” usa o Instagram {draft.insta} (Detalhes práticos).</p>
+              : <p className="a-hint">Preencha o Instagram do lugar em Detalhes práticos para mostrar o link do perfil.</p>}
+          </Card>
+          <Card title="Fotos do lugar" subtitle="Envie fotos horizontais com boa luz. Elas são comprimidas automaticamente.">
+            <Toggle label="Mostrar a seção Fotos do lugar na página" checked={draft.showGallery !== false} onChange={(showGallery) => set({ showGallery })} />
             <ImageField label="Foto principal (capa e cards)" path={placeImg(previewId)} hint="16:10 · mín. 1400 px" />
             {isNew && <p className="a-hint">Salve o lugar para liberar o envio da galeria.</p>}
             {!isNew && (
@@ -190,7 +208,7 @@ function PlaceForm({ initial, isNew }) {
               </>
             )}
           </Card>
-        )}
+        </>)}
 
         {tab === "mapa" && <LocationTab draft={draft} set={set} errors={errors} />}
 
