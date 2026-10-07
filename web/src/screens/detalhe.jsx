@@ -91,13 +91,14 @@ export function Detalhe({ id }) {
             </ul>
           )}
 
-          <div className="place-actions place-actions-eq">
-            <button className="btn-pill btn-sm" onClick={() => goTab("chegar")}><Icon name="send" size={16} /> Como chegar</button>
-            <button className={"btn-outline btn-sm" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved}>
-              <Icon name="heart" size={16} fill={saved} /> {saved ? "Salvo" : "Salvar"}
+          {/* ações: só ícones; o texto aparece no hover/foco */}
+          <div className="place-actions act-row">
+            <button className="act-btn primary" onClick={() => goTab("chegar")} aria-label="Como chegar"><Icon name="send" size={18} /><span className="act-label">Como chegar</span></button>
+            <button className={"act-btn" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
+              <Icon name="heart" size={18} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
             </button>
-            <AddToRoteiro place={p} className="btn-outline btn-sm" iconSize={16} />
-            <button className="btn-outline btn-sm" onClick={share}><Icon name="share" size={16} /> {shared ? "Copiado!" : "Compartilhar"}</button>
+            <AddToRoteiro place={p} className="act-btn" iconSize={18} compact />
+            <button className={"act-btn" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={18} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
           </div>
         </div>
       </section>
