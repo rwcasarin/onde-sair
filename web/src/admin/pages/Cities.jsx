@@ -3,7 +3,7 @@ import { Btn, Card, ChipInput, Input, Modal, PageHeader, Toggle, useAdmin, useDr
 import { saveCities, slugify } from "../store.js";
 
 export function CitiesPage() {
-  const { db, user, toast, confirm, setDirty } = useAdmin();
+  const { db, user, toast, saved, confirm, setDirty } = useAdmin();
   const { draft, set, dirty, commit } = useDraft({ cities: db.cities });
   const [adding, setAdding] = useState(null);
   const [err, setErr] = useState({});
@@ -21,7 +21,7 @@ export function CitiesPage() {
   function save() {
     if (!cities.some(c => c.active)) return toast("Mantenha pelo menos uma cidade ativa.", "error");
     saveCities(cities, user); commit({ cities });
-    toast("Cidades atualizadas no site.", "success");
+    saved("Cidades atualizadas no site.");
   }
   function addCity() {
     const e = {};

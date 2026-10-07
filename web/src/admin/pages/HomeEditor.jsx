@@ -9,7 +9,7 @@ import { openOnSite } from "./content.jsx";
 const COLORS = [["vibe-pink", "Rosa"], ["vibe-yellow", "Amarelo"], ["vibe-mint", "Menta"], ["vibe-lavender", "Lavanda"], ["vibe-orange", "Laranja"], ["vibe-sky", "Azul"]];
 
 export function HomePage() {
-  const { db, user, toast, setDirty } = useAdmin();
+  const { db, user, toast, saved, setDirty } = useAdmin();
   const { draft, set, dirty, commit } = useDraft(db.home);
   useEffect(() => { setDirty(dirty); return () => setDirty(false); }, [dirty, setDirty]);
   const hero = draft.hero;
@@ -21,7 +21,7 @@ export function HomePage() {
   function save() {
     if (!hero.title.trim()) return toast("O título do topo não pode ficar vazio.", "error");
     saveHome(draft, user); commit(draft);
-    toast("Home atualizada no site.", "success");
+    saved("Home atualizada no site.");
   }
 
   return (

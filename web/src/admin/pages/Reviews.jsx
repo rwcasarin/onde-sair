@@ -5,7 +5,7 @@ import { moderate, removeReviews, relTime, fmtDate, saveSettings } from "../stor
 const TONE = { pendente: "amber", aprovada: "green", rejeitada: "red" };
 
 export function ReviewsPage() {
-  const { db, user, toast, confirm, go } = useAdmin();
+  const { db, user, toast, saved, confirm, go } = useAdmin();
   const [tab, setTab] = useState("pendente");
   const [q, setQ] = useState("");
   const [place, setPlace] = useState("");
@@ -18,10 +18,10 @@ export function ReviewsPage() {
     (!q || `${r.author} ${r.text}`.toLowerCase().includes(q.toLowerCase())));
   const placeName = (id) => db.places.find(p => p.id === id)?.name || "—";
 
-  const act = (ids, patch, msg) => { moderate(ids, patch, user); toast(msg, "success"); };
+  const act = (ids, patch, msg) => { moderate(ids, patch, user); saved(msg); };
   async function del(ids) {
     if (await confirm({ title: `Excluir ${ids.length} avaliação(ões)?`, text: "A avaliação some do site e do histórico.", ok: "Excluir", danger: true })) {
-      removeReviews(ids, user); toast("Excluída(s).", "success");
+      removeReviews(ids, user); saved("Excluída(s).");
     }
   }
 
@@ -77,7 +77,7 @@ export function ReviewsPage() {
         <div className="a-stack">
           <Card title="Regras de publicação">
             <Toggle label="Exigir aprovação antes de publicar" hint="Desligado, avaliações entram no ar na hora e você modera depois."
-              checked={db.settings.reviewsRequireApproval} onChange={(v) => { saveSettings({ ...db.settings, reviewsRequireApproval: v }, user); toast("Regra atualizada.", "success"); }} />
+              checked={db.settings.reviewsRequireApproval} onChange={(v) => { saveSettings({ ...db.settings, reviewsRequireApproval: v }, user); saved("Regra atualizada."); }} />
           </Card>
           <Card title="Guia rápido de moderação">
             <ul className="a-guide">

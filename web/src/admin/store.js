@@ -261,6 +261,13 @@ function merge(server, baseC, local) {
 }
 
 let saving = false, pending = false;
+let waiters = [];
+// Resolve quando as gravações em andamento terminarem: true = salvo no servidor
+export function whenSynced() {
+  if (!REMOTE || !adminLoaded) return Promise.resolve(true);
+  if (!saving && !pending) return Promise.resolve(sync.status !== "error" && sync.status !== "conflict");
+  return new Promise(r => waiters.push(r));
+}
 async function pushRemote({ force = false } = {}) {
   if (saving) { pending = true; return; }
   saving = true; pending = false; sync.status = "saving"; sync.error = null; notify();
@@ -294,7 +301,9 @@ async function pushRemote({ force = false } = {}) {
   saving = false;
   notify();
   // alterações feitas durante o salvamento: grava em seguida (se deu erro, ficam para a próxima tentativa)
-  if (pending && sync.status === "saved") pushRemote();
+  if (pending && sync.status === "saved") { pushRemote(); return; }
+  const done = waiters; waiters = [];
+  done.forEach(r => r(sync.status === "saved"));
 }
 export function retrySave() { pushRemote(); }
 // Admin: grava a versão deste navegador mesmo havendo alterações de outra sessão
