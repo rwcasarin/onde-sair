@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PLACES, VIBE_ORDER, placeImg } from "../data.js";
+import { PLACES, CITIES, VIBE_ORDER, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { PageHead, VibePill, PriceDots, Footer } from "../components/site.jsx";
@@ -9,11 +9,12 @@ import { useNav, useCity } from "../nav.js";
 // "Guia da cidade" — mapa com a curadoria
 export function Mapa({ id }) {
   const nav = useNav();
-  const { name: city } = useCity();
+  const { id: cityId, name: city } = useCity();
   const [aff, setAff] = useState(null);
   const [active, setActive] = useState(id || null);   // pin selecionado (abre o card)
 
-  const list = aff ? PLACES.filter(p => p.affs.includes(aff)) : PLACES;
+  const inCity = PLACES.filter(p => !cityId || p.city === cityId);
+  const list = aff ? inCity.filter(p => p.affs.includes(aff)) : inCity;
   const cur = list.find(p => p.id === active);
 
   return (
@@ -45,7 +46,7 @@ export function Mapa({ id }) {
             ))}
           </ul>
 
-          <PlaceMap className="guide-map" activeId={cur?.id} onSelect={setActive}
+          <PlaceMap className="guide-map" city={CITIES.find(c => c.id === cityId)} activeId={cur?.id} onSelect={setActive}
             items={list.map(p => ({ id: p.id, place: p }))} />
         </section>
       </div>

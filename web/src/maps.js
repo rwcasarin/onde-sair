@@ -65,6 +65,34 @@ export function geocodePlace(g, p) {
   return queue;
 }
 
+// Área da cidade (viewport do Geocoding), guardada no navegador: { n, s, e, w }
+export function cityArea(g, city) {
+  if (!city) return Promise.resolve(null);
+  const key = "city|" + city.id + "|" + city.name;
+  const c = readCache()[key];
+  if (c) return Promise.resolve(c === "x" ? null : c);
+  if (geocodeOff) return Promise.resolve(null);
+  queue = queue.then(() => new Promise((resolve) => {
+    new g.Geocoder().geocode({ address: [city.name, city.sub, "Brasil"].filter(Boolean).join(", "), region: "br" }, (res, status) => {
+      const v = status === "OK" && res?.[0]?.geometry?.viewport;
+      if (v) {
+        const ne = v.getNorthEast(), sw = v.getSouthWest();
+        cache[key] = { n: ne.lat(), e: ne.lng(), s: sw.lat(), w: sw.lng() };
+      } else if (status === "ZERO_RESULTS") cache[key] = "x";
+      else if (status === "REQUEST_DENIED") geocodeOff = true;
+      writeCache();
+      resolve(cache[key] && cache[key] !== "x" ? cache[key] : null);
+    });
+  }));
+  return queue;
+}
+
+// Retângulo que contém um raio de `km` em volta de um ponto
+export function radiusArea(c, km) {
+  const dLat = km / 111.32, dLng = km / (111.32 * Math.cos(c.lat * Math.PI / 180));
+  return { n: c.lat + dLat, s: c.lat - dLat, e: c.lng + dLng, w: c.lng - dLng };
+}
+
 // Distância em km entre duas coordenadas
 export function distanceKm(a, b) {
   const r = (d) => d * Math.PI / 180, R = 6371;

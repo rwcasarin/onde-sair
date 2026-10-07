@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { placeImg } from "../data.js";
 import { SITE } from "../admin/store.js";
-import { loadGoogle, knownCoords, geocodePlace, distanceKm, MAP_STYLE } from "../maps.js";
+import { loadGoogle, knownCoords, geocodePlace, cityArea, radiusArea, MAP_STYLE } from "../maps.js";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
 import { MapArt, Rating, FaveButton } from "./site.jsx";
@@ -38,13 +38,16 @@ export function MapCard({ place, isMain, onClose }) {
  * items: [{ id, place?, title?, num?, art? }] — place traz geo/endereço; num = pin numerado (roteiro);
  *        art = posição {x,y} no mapa ilustrado para paradas sem lugar
  * mainId: pin principal (maior, sempre em destaque). activeId/onSelect: pin selecionado (abre o card).
+ * frame: enquadramento padrão — com mainId, raio de `radiusKm` em volta do pin principal (página do lugar);
+ *        com `city`, a área da cidade (Guia da cidade); sem nenhum dos dois, todos os pins (lista, roteiros).
  * route: liga os pins na ordem. card: mostra o card ao selecionar. onPick: clique no mapa devolve {lat,lng} (painel).
  */
-export function PlaceMap({ items, mainId = null, activeId = null, onSelect, route = false, card = true, onPick, className = "", fallbackLabel = true, focusKm = 3 }) {
+export function PlaceMap({ items, mainId = null, activeId = null, onSelect, route = false, card = true, onPick, className = "", fallbackLabel = true, radiusKm = 2, city = null }) {
   const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect;
   const key = SITE.mapsKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
   const [mode, setMode] = useState(key ? "loading" : "art");     // loading | google | art
   const [coords, setCoords] = useState({});
+  const [area, setArea] = useState(null);   // área da cidade (Guia)
   const el = useRef(null), gref = useRef(null), mapRef = useRef(null), pins = useRef(new Map()), line = useRef(null), fitted = useRef("");
   const sig = items.map(i => i.id + (i.place ? ":" + (i.place.geo ? i.place.geo.lat + "," + i.place.geo.lng : i.place.end) : "")).join("|");
 
@@ -59,6 +62,7 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
       if (!alive) return;
       if (!g.Map || !g.OverlayView) { setMode("art"); return; }
       gref.current = g; setMode("google");
+      if (city) cityArea(g, city).then(a => alive && setArea(a));
       for (const i of items) {
         if (!i.place || known[i.id]) continue;
         const c = await geocodePlace(g, i.place);
@@ -69,7 +73,7 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
     const fail = () => alive && setMode("art");
     window.addEventListener("os-maps-auth-failure", fail);
     return () => { alive = false; window.removeEventListener("os-maps-auth-failure", fail); };
-  }, [key, sig]); // eslint-disable-line
+  }, [key, sig, city?.id]); // eslint-disable-line
 
   // cria o mapa uma vez
   useEffect(() => {
@@ -117,23 +121,24 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
       if (path.length > 1) line.current = new g.Polyline({ map, path, strokeOpacity: 0, icons: [{ icon: { path: "M 0,-1 0,1", strokeOpacity: .9, strokeColor: "#3B2A7C", scale: 2.5 }, offset: "0", repeat: "12px" }] });
     }
 
-    // enquadra quando os pontos mudam (não a cada seleção)
+    // enquadramento padrão (não muda a cada seleção)
+    const main = mainId && coords[mainId];
     const pts = items.map(i => coords[i.id]).filter(Boolean);
-    const fitSig = pts.map(p => p.lat + "," + p.lng).join(";");
+    const box = main ? radiusArea(main, radiusKm) : city ? area : null;
+    const fitSig = box ? JSON.stringify(box) : pts.map(p => p.lat + "," + p.lng).join(";");
     // no painel (onPick) só enquadra a primeira vez, para o clique de ajuste não mexer no zoom
-    if (pts.length && fitSig !== fitted.current && !(onPick && fitted.current)) {
+    if ((box || pts.length) && fitSig !== fitted.current && !(onPick && fitted.current)) {
       fitted.current = fitSig;
-      const main = mainId && coords[mainId];
-      // com pin principal: foca nele e nos vizinhos mais próximos; os demais seguem no mapa
-      const focus = main ? pts.filter(p => distanceKm(main, p) <= focusKm) : pts;
-      if (focus.length === 1) { map.setCenter(focus[0]); map.setZoom(15); }
+      const b = new g.LatLngBounds();
+      if (box) { b.extend({ lat: box.s, lng: box.w }); b.extend({ lat: box.n, lng: box.e }); map.fitBounds(b, 0); }
+      else if (pts.length === 1) { map.setCenter(pts[0]); map.setZoom(15); }
       else {
-        const b = new g.LatLngBounds(); focus.forEach(p => b.extend(p));
+        pts.forEach(p => b.extend(p));
         map.fitBounds(b, 56);
-        g.event.addListenerOnce(map, "idle", () => { if (map.getZoom() > 16) map.setZoom(16); if (map.getZoom() < 12 && main) { map.setCenter(main); map.setZoom(14); } });
+        g.event.addListenerOnce(map, "idle", () => { if (map.getZoom() > 16) map.setZoom(16); });
       }
     }
-  }, [mode, coords, activeId, mainId, route, sig]); // eslint-disable-line
+  }, [mode, coords, activeId, mainId, route, sig, area, radiusKm]); // eslint-disable-line
 
   // ao escolher um pin pela lista, traz o pin para a vista
   useEffect(() => {
