@@ -11,7 +11,6 @@ import { AddressAutocomplete, CreatableField, Pending, findCity, findBairro } fr
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 
 export const REASON_ICONS = ["eye", "star", "heart", "users", "music", "leaf", "sun", "coins", "clock", "sparkle", "image", "camera", "wine", "smile", "pin"];
-const EXTRAS = ["Vista linda", "Boa música", "Para ir com amigos", "Experiência única", "Boa luz", "Sem pressa", "Para ir com crianças", "Programa a dois"];
 
 // ---------------------------------------------------------------------
 // Lista
@@ -52,7 +51,7 @@ export function PlacesList() {
 // ---------------------------------------------------------------------
 const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
-  affs: [], tags: [], extras: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
+  affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
   priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", site: "", insta: "", reserva: false, note: "",
   rating: 0, reviews: 0, map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
@@ -171,10 +170,8 @@ function PlaceForm({ initial, isNew }) {
           <Card>
             <PillPicker label="Vibes" error={errors.affs} hint="A primeira marcada é a vibe principal (aparece na etiqueta do topo)."
               value={draft.affs} onChange={(affs) => set({ affs })} options={db.vibes.map(v => [v.id, v.label, v.cls])} />
-            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} hint="Aparecem nos cards da listagem. Até 3 funcionam melhor."
+            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} hint="Aparecem no topo da página do lugar (abaixo das vibes) e nos cards da listagem. De 3 a 5 funcionam melhor."
               suggestions={[...new Set(db.places.flatMap(p => p.tags || []))]} />
-            <PillPicker label="Destaques do topo" hint="Pílulas extras exibidas no topo da página do lugar."
-              value={draft.extras} onChange={(extras) => set({ extras })} options={EXTRAS.map(e => [e, e])} />
           </Card>
         )}
 

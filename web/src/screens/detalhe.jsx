@@ -3,7 +3,7 @@ import { CITIES, PLACES, ROTEIROS, VIBE_STYLE, PRICE_RANGE, PLACE_TIPS, placeImg
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, IconPill, PriceDots, Tag, MapArt, MiniPlaceCard, FaveButton, Footer, affById,
+  HeroMedia, Crumbs, VibePill, PriceDots, Tag, MapArt, MiniPlaceCard, FaveButton, Footer, affById,
 } from "../components/site.jsx";
 import { useNav, useCity, useFaves } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
@@ -21,16 +21,6 @@ const directions = (p) => p.geo
   ? `https://www.google.com/maps/dir/?api=1&destination=${p.geo.lat},${p.geo.lng}${p.placeId ? "&destination_place_id=" + p.placeId : ""}`
   : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress(p))}`;
 
-const EXTRA_PILL = {
-  "Vista linda":          ["eye", "vibe-mint"],
-  "Boa música":           ["music", "vibe-lavender"],
-  "Para ir com amigos":   ["users", "vibe-sky"],
-  "Experiência única":    ["sparkle", "vibe-yellow"],
-  "Boa luz":              ["sun", "vibe-yellow"],
-  "Sem pressa":           ["clock", "vibe-mint"],
-  "Para ir com crianças": ["smile", "vibe-sky"],
-  "Programa a dois":      ["heart", "vibe-pink"],
-};
 const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["dicas", "Dicas"], ["confira", "Confira também"]];
 
 export function Detalhe({ id }) {
@@ -88,18 +78,23 @@ export function Detalhe({ id }) {
             <li><Icon name="utensils" size={18} /> {p.cuisine}</li>
           </ul>
 
-          <div className="hero2-vibes">
+          {/* hierarquia: vibes (médio) → tags (pequeno, discreto) → ações (pequeno, mesmo tamanho) */}
+          <div className="hero2-vibes place-vibes">
             {p.affs.map(a => <VibePill key={a} aff={a} />)}
-            {p.extras.map(e => <IconPill key={e} icon={EXTRA_PILL[e]?.[0] || "star"} cls={EXTRA_PILL[e]?.[1]}>{e}</IconPill>)}
           </div>
+          {p.tags?.length > 0 && (
+            <ul className="place-tags" aria-label="Tags">
+              {p.tags.map(t => <li key={t}>{t}</li>)}
+            </ul>
+          )}
 
-          <div className="place-actions">
-            <button className="btn-pill btn-lg" onClick={() => goTab("chegar")}><Icon name="send" size={18} /> Como chegar</button>
-            <button className={"btn-outline btn-lg" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved}>
-              <Icon name="heart" size={18} fill={saved} /> {saved ? "Salvo" : "Salvar"}
+          <div className="place-actions place-actions-eq">
+            <button className="btn-pill btn-sm" onClick={() => goTab("chegar")}><Icon name="send" size={16} /> Como chegar</button>
+            <button className={"btn-outline btn-sm" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved}>
+              <Icon name="heart" size={16} fill={saved} /> {saved ? "Salvo" : "Salvar"}
             </button>
-            <AddToRoteiro place={p} />
-            <button className="btn-outline btn-lg" onClick={share}><Icon name="share" size={18} /> {shared ? "Copiado!" : "Compartilhar"}</button>
+            <AddToRoteiro place={p} className="btn-outline btn-sm" iconSize={16} />
+            <button className="btn-outline btn-sm" onClick={share}><Icon name="share" size={16} /> {shared ? "Copiado!" : "Compartilhar"}</button>
           </div>
         </div>
       </section>

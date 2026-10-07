@@ -856,3 +856,16 @@
 .author .author-avatar { width: 56px; height: 56px; flex: none; font-size: 24px; }
 .rot-form .auth-field label { justify-content: flex-start; gap: 2px; }
 .hero2-copy:has(.add-rot-pop) { z-index: 60; }   /* menu "Adicionar a um roteiro" acima das abas fixas */
+
+/* ---------- Topo do lugar: vibes → tags → ações ---------- */
+.hero2-place .place-vibes { margin-top: 18px; }
+.place-tags { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; }
+.place-tags li { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; color: var(--ink-3); font-size: 12px; font-weight: 500; }
+.place-actions-eq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 20px; max-width: 460px; }
+.place-actions-eq > button, .place-actions-eq .add-rot, .place-actions-eq .add-rot > button { width: 100%; }
+.place-actions-eq > button, .place-actions-eq .add-rot > button { height: 40px; padding: 0 12px; gap: 8px; font-size: 13.5px; justify-content: center; white-space: nowrap; }
+.place-actions-eq .btn-outline { border-width: 1.5px; }
+@media (max-width: 640px) {
+  .place-actions-eq { max-width: none; }
+  .place-actions-eq > button, .place-actions-eq .add-rot > button { font-size: 13px; padding: 0 8px; }
+}
