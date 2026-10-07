@@ -9,6 +9,7 @@ import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { findMyRoteiro, myRoteiros, deleteMyRoteiro } from "../account.js";
 import { INVEST_LABELS } from "../../shared/myroteiros.js";
 import { NotFound } from "./notfound.jsx";
+import { PlaceMap } from "../components/placemap.jsx";
 
 const STEP_COLORS = ["var(--c-magenta)", "var(--primary)", "#F58220", "var(--c-teal)", "var(--c-yellow)"];
 const INVEST = ["Grátis", "$", "$$", "$$$"];
@@ -30,6 +31,7 @@ function RoteiroView({ r, mine = false }) {
   const { faves, toggle } = useFaves();
   const { ask, user } = useAccount();
   const [confirmDel, setConfirmDel] = useState(false);
+  const [mapSel, setMapSel] = useState(null);
   const saved = faves.has(r.id);
   const others = ROTEIROS.filter(x => x.id !== r.id).slice(0, 5);
   const firstPlace = r.steps.find(s => s.place)?.place;
@@ -47,6 +49,7 @@ function RoteiroView({ r, mine = false }) {
     const base = pl ? pl.map : { x: 20 + i * 18, y: 50 };
     return { x: Math.min(88, Math.max(12, base.x)), y: Math.min(85, Math.max(12, base.y)), num: i + 1, color: STEP_COLORS[i % STEP_COLORS.length], title: s.title };
   });
+  const mapItems = r.steps.map((s, i) => ({ id: "s" + i, place: s.place ? placeById(s.place) : null, title: s.title, num: i + 1, art: pins[i] }));
 
   return (
     <main className="home2">
@@ -118,7 +121,7 @@ function RoteiroView({ r, mine = false }) {
               <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("mapa"); }}>Ver mapa completo <Icon name="arrow" size={16} /></a>
             </div>
             <div className="rot-map-inner">
-              <MapArt className="rot-map" pins={pins} route />
+              <PlaceMap className="rot-map" route activeId={mapSel} onSelect={setMapSel} items={mapItems} />
               <ol className="rot-map-list">
                 <li className="rot-map-list-title">Neste roteiro</li>
                 {r.steps.map((s, i) => (

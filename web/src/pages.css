@@ -916,3 +916,36 @@
 .act-btn:hover .act-label, .act-btn:focus-visible .act-label, .act-btn.show .act-label { max-width: 190px; margin-left: 8px; opacity: 1; }
 .act-btn:focus-visible { outline: 3px solid var(--c-teal); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .act-btn, .act-label { transition: none; } }
+
+/* =====================================================================
+   Mapas (Google Maps) — padrão único
+   ===================================================================== */
+.gmap { position: relative; overflow: hidden; border-radius: 10px; background: #F1EEE6; }
+.gmap-canvas { position: absolute; inset: 0; }
+.gmap-loading { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; color: var(--ink-3); font-size: 13px; background: #F1EEE6; z-index: 2; }
+.gmap-loading span { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--primary-soft); border-top-color: var(--primary); animation: gmap-spin .8s linear infinite; }
+@keyframes gmap-spin { to { transform: rotate(360deg); } }
+.gmap .map-pop { z-index: 5; }
+.map-pop { position: absolute; }
+.map-pop-close { position: absolute; top: -10px; right: -10px; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--heading); color: #fff; box-shadow: 0 4px 10px rgba(30,21,80,.3); cursor: pointer; }
+a.btn-pill { text-decoration: none; }
+
+/* pins da marca (asterisco) */
+.gpin { position: absolute; transform: translate(-50%, -100%); border: 0; padding: 0; background: none; cursor: pointer; transition: transform .2s ease; }
+.gpin.static { cursor: default; }
+.gpin-head { position: relative; display: grid; place-items: center; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 6px 14px -4px rgba(30,21,80,.45); transition: background .2s, transform .2s, width .2s, height .2s; }
+.gpin-head svg, .gpin-head b { transform: rotate(45deg); }
+.gpin-head svg { width: 55%; height: 55%; }
+/* principal: lugar atual — maior, magenta, asterisco branco */
+.gpin-main .gpin-head { width: 46px; height: 46px; background: var(--c-magenta); color: #fff; border: 3px solid #fff; }
+/* demais lugares: pequenos e discretos */
+.gpin-other .gpin-head { width: 26px; height: 26px; background: #fff; color: var(--primary); border: 2px solid var(--primary-border); box-shadow: 0 3px 8px -3px rgba(30,21,80,.35); }
+.gpin-other:hover .gpin-head { border-color: var(--primary); transform: rotate(-45deg) scale(1.12); }
+.gpin-other.on .gpin-head { width: 38px; height: 38px; background: var(--heading); color: #fff; border: 3px solid #fff; }
+.gpin-main.on .gpin-head { transform: rotate(-45deg) scale(1.08); }
+/* paradas do roteiro: numeradas */
+.gpin-step .gpin-head { width: 32px; height: 32px; background: var(--pin, var(--primary)); color: #fff; border: 2px solid #fff; }
+.gpin-step .gpin-head b { font-size: 14px; font-weight: 800; }
+.gpin-step.on .gpin-head { transform: rotate(-45deg) scale(1.15); }
+.gpin:focus-visible { outline: none; }
+.gpin:focus-visible .gpin-head { box-shadow: 0 0 0 3px var(--c-teal); }

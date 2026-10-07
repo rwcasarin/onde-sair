@@ -6,10 +6,11 @@ import { CITIES } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, ListingCard, MapArt, Rating, GeoCard, Footer, affById,
+  HeroMedia, Crumbs, VibePill, ListingCard, GeoCard, Footer, affById,
 } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
+import { PlaceMap } from "../components/placemap.jsx";
 
 const SORTS = [["relevancia", "Mais relevantes"], ["rating", "Melhor avaliados"], ["preco", "Menor preço"], ["reviews", "Mais comentados"]];
 
@@ -89,7 +90,7 @@ export function Lista({ aff = null, q = "" }) {
   const lede = page ? page.lede : query
     ? <>Tudo o que encontramos para “{query}”. Refine pelos filtros ao lado.</>
     : "Todos os endereços que passaram pelo crivo. Escolha uma vibe ou use os filtros.";
-  const cur = results.find(p => p.id === activePin) || results[0];
+  const cur = results.find(p => p.id === activePin);
 
   return (
     <main className="home2">
@@ -224,22 +225,8 @@ export function Lista({ aff = null, q = "" }) {
               {results.map(p => <ListingCard key={p.id} p={p} badge={p.id === mostSaved && results.length > 2 ? "Mais salvo" : null} />)}
             </div>
           ) : (
-            <MapArt
-              className="listing-map"
-              pins={results.map(p => ({ x: p.map.x, y: p.map.y, title: p.name, active: cur?.id === p.id, color: cur?.id === p.id ? "var(--c-magenta)" : undefined, onClick: () => setActivePin(p.id) }))}
-            >
-              {cur && (
-                <div className="map-pop">
-                  <ImageSlot className="map-pop-img" src={`images/lugares/${cur.id}.jpg`} compact />
-                  <div>
-                    <h3>{cur.name}</h3>
-                    <span className="listing-sub">{cur.sub} • {cur.bairro}</span>
-                    <Rating p={cur} />
-                  </div>
-                  <button className="btn-pill" onClick={() => nav("detalhe", { id: cur.id })}>Ver lugar</button>
-                </div>
-              )}
-            </MapArt>
+            <PlaceMap className="listing-map" activeId={cur?.id} onSelect={setActivePin}
+              items={results.map(p => ({ id: p.id, place: p }))} />
           )}
 
           {/* Seleção de quem já foi */}

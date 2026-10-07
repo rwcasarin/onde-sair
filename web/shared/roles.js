@@ -38,7 +38,7 @@ export function publicView(db) {
     cities: db.cities || [],
     campaigns: (db.campaigns || []).filter(c => c.status === "enviada"),
     reviews: (db.reviews || []).filter(r => r.status === "aprovada" && r.featured).map(({ id, author, rating, text, createdAt, status, featured, place }) => ({ id, author, rating, text, createdAt, status, featured, place })),
-    settings: (({ mapsKey, ...rest }) => rest)(db.settings || {}),   // a chave do Google Maps fica só no painel
+    settings: db.settings,   // inclui a chave do Google Maps (chave de navegador: protegida pela restrição de domínio)
     updates: db.updates || [],   // atualizações de conteúdo já aplicadas (ver src/admin/updates.js)
     members: [], team: [], activity: [],
   };

@@ -2,6 +2,7 @@
 // cidade e bairro preenchidos a partir do endereço, com cadastro na hora (sem duplicidade).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AIcon, Btn, Field } from "../kit.jsx";
+import { loadGoogle } from "../../maps.js";
 
 // ---------------------------------------------------------------------
 // Normalização (comparação sem acento, caixa ou espaços extras)
@@ -14,22 +15,7 @@ export const findBairro = (city, name) => (city?.bairros || []).find(b => norm(b
 // ---------------------------------------------------------------------
 // Carregamento do Google Maps JS (uma vez por página)
 // ---------------------------------------------------------------------
-let mapsPromise = null;
-export function loadPlaces(key) {
-  if (window.google?.maps?.importLibrary) return window.google.maps.importLibrary("places");
-  if (!key) return Promise.reject(new Error("sem-chave"));
-  if (!mapsPromise) {
-    mapsPromise = new Promise((resolve, reject) => {
-      window.__osMapsReady = () => resolve();
-      const s = document.createElement("script");
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&v=weekly&loading=async&language=pt-BR&region=BR&callback=__osMapsReady`;
-      s.async = true;
-      s.onerror = () => { mapsPromise = null; reject(new Error("falha-ao-carregar")); };
-      document.head.appendChild(s);
-    }).then(() => window.google.maps.importLibrary("places"));
-  }
-  return mapsPromise;
-}
+export const loadPlaces = (key) => loadGoogle(key).then((g) => g.importLibrary("places"));
 
 // Converte o resultado do Google no formato do lugar
 export function parsePlace(place) {

@@ -387,10 +387,11 @@ export function syncPublic() {
   Object.assign(TAGLINES, { sub: db.settings.tagline, campaign: db.settings.campaign });
   SITE.announcement = db.settings.announcement;
   SITE.maintenance = db.settings.maintenance;
+  SITE.mapsKey = db.settings.mapsKey || "";
   SITE.defaultCity = CITIES.some(c => c.id === db.settings.defaultCity) ? db.settings.defaultCity : CITIES[0]?.id;
 }
 // Configurações lidas pelo site público (faixa de aviso, manutenção)
-export const SITE = { announcement: null, maintenance: false, defaultCity: "sorocaba" };
+export const SITE = { announcement: null, maintenance: false, defaultCity: "sorocaba", mapsKey: "" };
 
 // ---------------------------------------------------------------------
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)
