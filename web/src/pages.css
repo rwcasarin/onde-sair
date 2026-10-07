@@ -895,3 +895,24 @@
   .city-select .city-pop { position: fixed; top: 76px; bottom: auto; left: 16px; right: 16px; width: auto; }
   .city-select.place-top .city-pop { top: auto; bottom: 16px; }
 }
+
+/* ---------- Ações do lugar: redondas, só ícone; texto aparece no hover ---------- */
+.act-row { display: flex; flex-wrap: nowrap; align-items: center; gap: 10px; margin-top: 20px; }
+.act-btn {
+  display: inline-flex; align-items: center; height: 46px; min-width: 46px; padding: 0 13px;
+  border: 1.5px solid var(--heading); border-radius: 999px; background: var(--paper); color: var(--heading);
+  font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; cursor: pointer;
+  transition: background .25s ease, color .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.act-btn > svg { flex: none; }
+.act-btn.primary { background: var(--heading); color: #fff; }
+.act-btn:hover { box-shadow: 0 8px 20px -12px rgba(42,28,94,.6); }
+.act-btn:not(.primary):hover { background: var(--primary-soft); }
+.act-btn.on { background: var(--cta-soft); border-color: var(--c-magenta); color: var(--cta-dark); }
+.act-label {
+  display: inline-block; max-width: 0; margin-left: 0; opacity: 0;
+  transition: max-width .4s cubic-bezier(.2,.8,.2,1), margin-left .4s cubic-bezier(.2,.8,.2,1), opacity .25s ease .05s;
+}
+.act-btn:hover .act-label, .act-btn:focus-visible .act-label, .act-btn.show .act-label { max-width: 190px; margin-left: 8px; opacity: 1; }
+.act-btn:focus-visible { outline: 3px solid var(--c-teal); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .act-btn, .act-label { transition: none; } }

@@ -4,7 +4,7 @@ import { Icon } from "./icons.jsx";
 import { useNav, useAccount } from "../nav.js";
 import { myRoteiros, addPlaceToRoteiro } from "../account.js";
 
-export function AddToRoteiro({ place, className = "btn-outline btn-lg", iconSize = 18 }) {
+export function AddToRoteiro({ place, className = "btn-outline btn-lg", iconSize = 18, compact = false }) {
   const nav = useNav();
   const { user, ask } = useAccount();
   const [open, setOpen] = useState(false);
@@ -33,7 +33,9 @@ export function AddToRoteiro({ place, className = "btn-outline btn-lg", iconSize
 
   return (
     <div className="add-rot" ref={box}>
-      <button className={className} onClick={toggle} aria-expanded={open} aria-haspopup="dialog"><Icon name="list" size={iconSize} /> Adicionar a um roteiro</button>
+      <button className={className + (open ? " show" : "")} onClick={toggle} aria-expanded={open} aria-haspopup="dialog" aria-label="Adicionar a um roteiro">
+        <Icon name="list" size={iconSize} />{compact ? <span className="act-label">Adicionar a um roteiro</span> : " Adicionar a um roteiro"}
+      </button>
       {open && (
         <div className="add-rot-pop" role="dialog" aria-label="Adicionar a um roteiro">
           {done && !done.error && (
