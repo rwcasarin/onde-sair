@@ -1,5 +1,6 @@
 import { AFFINITIES, TYPES, priceLabel } from "../data.js";
-import { useNav } from "../nav.js";
+import { useNav, useCity } from "../nav.js";
+import { CitySelect } from "./cityselect.jsx";
 import { href, toPath } from "../router.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
@@ -26,13 +27,14 @@ export function NavLink({ id, params, active, children }) {
   );
 }
 
-export function CityPill({ city, onClick }) {
+export function CityPill() {
+  const { id, name, set } = useCity();
   return (
-    <button className="city-pill" onClick={onClick}>
+    <CitySelect value={id} onChange={set} className="city-pill" align="right" label={`Cidade: ${name}. Trocar cidade`}>
       <Icon name="pin" size={16} />
-      <span>{city}</span>
+      <span>{name}</span>
       <Icon name="chevron" size={14} />
-    </button>
+    </CitySelect>
   );
 }
 
@@ -54,7 +56,7 @@ const NAV_ITEMS = [
   { label: "Para parceiros", id: "home",     params: { anchor: "parceiros" }, active: () => false },
 ];
 
-export function TopNav({ current, params = {}, city, unread, user, onCityClick }) {
+export function TopNav({ current, params = {}, unread, user }) {
   const nav = useNav();
   return (
     <header className="topnav">
@@ -66,7 +68,7 @@ export function TopNav({ current, params = {}, city, unread, user, onCityClick }
           ))}
         </nav>
         <div className="nav-right">
-          <CityPill city={city} onClick={onCityClick} />
+          <CityPill />
           <IconBtn title="Buscar" onClick={() => nav("lista")}><Icon name="search" size={20} /></IconBtn>
           <IconBtn title="Favoritos" onClick={() => nav("favoritos")}><Icon name="heart" size={20} /></IconBtn>
           {user && <IconBtn title="Notificações" badge={unread > 0 ? unread : null} onClick={() => nav("notificacoes")}><Icon name="bell" size={20} /></IconBtn>}
