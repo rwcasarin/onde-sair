@@ -11,23 +11,23 @@ export async function GET(request) {
   const err = (e) => "ERR " + e?.name + ": " + e?.message;
   const rd = async (useCache) => { const r = await get(P, { access: "private", useCache }); const txt = r ? await new Response(r.stream).text() : null; return { n: txt && JSON.parse(txt).n, etag: r?.blob.etag, cc: r?.headers.get("cache-control"), age: r?.headers.get("age"), xc: r?.headers.get("x-vercel-cache") }; };
   try {
-    let a = await put(P, JSON.stringify({ n: 1 }), opts); log("put n=1 etag", a.etag);
-    for (let k = 2; k <= 4; k++) {
+    const cur = await get("cms/content.json", { access: "private", useCache: false });
+    const text = await new Response(cur.stream).text();
+    const data = JSON.parse(text);
+    log("content.json bytes", text.length);
+    log("content.json etag", cur.blob.etag);
+    log("chaves", Object.keys(data).map(k => k + ":" + JSON.stringify(data[k]).length));
+    log("atividade recente", (data.activity || []).slice(0, 25).map(x => [x.at, x.who, x.action, x.target]));
+    // repete o fluxo antigo (ler → comparar → gravar com ifMatch) com um corpo do mesmo tamanho
+    const K = "cms/_diag_content.json";
+    let r = await put(K, text, opts); let et = r.etag; log("cópia put", [et, r.size]);
+    for (let i = 1; i <= 3; i++) {
       const t0 = Date.now();
-      a = await put(P, JSON.stringify({ n: k }), opts).catch(e => ({ etag: err(e) })); log("put n=" + k + " (" + (Date.now() - t0) + "ms)", a.etag);
-      const seen = [];
-      for (let i = 0; i < 12; i++) { const g = await rd(false); const h = await head(P).catch(e => ({ etag: err(e) })); seen.push([Date.now() - t0, g.n, g.etag === a.etag, h.etag === a.etag, g.xc, g.age]); if (g.n === k && i > 2) break; await new Promise(r => setTimeout(r, 150)); }
-      log("leituras após put n=" + k + " [ms, n lido, getEtag==put, headEtag==put, x-vercel-cache, age]", seen);
+      const g = await get(K, { access: "private", useCache: false }); await new Response(g.stream).text();
+      const same = g.blob.etag === et;
+      const w = await put(K, text.replace(/"_n":\d+|^\{/, (m) => m === "{" ? '{"_n":' + i + "," : '"_n":' + i), { ...opts, ifMatch: g.blob.etag }).then(x => (et = x.etag, "ok"), err);
+      log("fluxo antigo #" + i + " (" + (Date.now() - t0) + "ms)", { getEtagIgualAoUltimoPut: same, gravacao: w });
     }
-    const g = await rd(false), h = await head(P);
-    log("etags", { put: a.etag, get: g.etag, head: h.etag });
-    log("ifMatch=put", await put(P, JSON.stringify({ n: 10 }), { ...opts, ifMatch: a.etag }).then(r => (a = r, "ok"), err));
-    log("ifMatch=get(fresco)", await (async () => { await new Promise(r => setTimeout(r, 1500)); const g2 = await rd(false); return put(P, JSON.stringify({ n: 11 }), { ...opts, ifMatch: g2.etag }).then(r => (a = r, "ok"), err); })());
-    log("ifMatch=head", await (async () => { const h2 = await head(P); return put(P, JSON.stringify({ n: 12 }), { ...opts, ifMatch: h2.etag }).then(r => (a = r, "ok"), err); })());
-    log("ifMatch=errado", await put(P, JSON.stringify({ n: 13 }), { ...opts, ifMatch: '"nao-existe"' }).then(() => "ok (!)", err));
-    const t1 = Date.now(); const rapid = [];
-    for (let i = 0; i < 4; i++) rapid.push(await put(P, JSON.stringify({ n: 20 + i }), opts).then(() => "ok " + (Date.now() - t1) + "ms", err));
-    log("4 puts seguidos", rapid);
   } catch (e) { log("fatal", err(e)); }
   return Response.json(out);
 }
