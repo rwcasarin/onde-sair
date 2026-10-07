@@ -5,6 +5,7 @@
 // =====================================================================
 
 const CITIES = [
+  { id: "sorocaba", name: "Sorocaba",   sub: "SP", active: true },
   { id: "sp",   name: "São Paulo",      sub: "SP", active: true },
   { id: "rio",  name: "Rio de Janeiro", sub: "RJ", active: true },
   { id: "bh",   name: "Belo Horizonte", sub: "MG", active: true },
@@ -134,22 +135,6 @@ const PLACES = [
     map: { x: 22, y: 38, label: "FC" },
   },
   {
-    id: "p4",
-    name: "Parque das Águas",
-    type: "Parques",
-    bairro: "Zona Norte",
-    desc: "O oásis verde da cidade. Pista, lago, sombra em peso. Família, casal, corredor — cabe todo mundo.",
-    dica: "Domingo 16h: caminhada no entorno do lago, depois pipoca na barraca da entrada. Tradição.",
-    by: "Curadoria · time Onde Sair",
-    affs: ["relax", "crianca", "eco"],
-    tint: "tint-relax",
-    rating: 4.8, reviews: 1840,
-    priceLevel: 0,
-    open: "Diariamente · 6h – 19h",
-    end: "Av. das Nações · Zona Norte",
-    map: { x: 70, y: 60, label: "PA" },
-  },
-  {
     id: "p5",
     name: "Clube Aurora",
     type: "Shows e baladas",
@@ -254,7 +239,7 @@ const FAV_LISTS = [
 const USER = {
   name: "Maria Antônia",
   initials: "MA",
-  city: "São Paulo",
+  city: "Sorocaba",
   joined: "Março 2026",
   saves: 32,
   done: 14,
@@ -271,7 +256,7 @@ const TAGLINES = {
 
 export { CITIES, AFFINITIES, TYPES, ROTEIROS, PLACES, REVIEWS, NOTIFICATIONS, FAV_LISTS, USER, TAGLINES };
 
-export const cityName = (id) => (CITIES.find(c => c.id === id) || { name: "São Paulo" }).name;
+export const cityName = (id) => (CITIES.find(c => c.id === id) || CITIES[0] || { name: "Sorocaba" }).name;
 export const priceLabel = (level) => level === 0 ? "Grátis" : "R$".repeat(level);
 
 // =====================================================================
@@ -305,7 +290,7 @@ export const TIPS_TODAY = [
   { place: "p3", aff: "relax"   },
   { place: "p7", aff: "turist"  },
   { place: "p9", aff: "eco"     },
-  { place: "p4", aff: "crianca" },
+  { place: "parque-das-aguas", aff: "crianca" },
 ];
 export const placeImg = (id) => `images/lugares/${id}.jpg`;
 
@@ -419,8 +404,6 @@ const PLACE_EXTRA = {
          reasons: [["eye", "Cozinha aberta: o jantar vira espetáculo"], ["star", "Menu degustação de 5 tempos"], ["sparkle", "Pratos que mudam toda semana"], ["users", "Serviço atento sem ser exagerado"], ["heart", "Perfeito para ocasiões especiais"]] },
   p3:  { sub: "Café de especialidade", cuisine: "Café e brunch", tagline: "Coado do dia, pão de fermentação natural e a melhor luz da manhã.", tags: ["Brunch", "Café especial", "Padaria"], momento: ["Brunch", "Almoço"], ambiente: ["Ambiente interno", "Ambiente externo"], reserva: false, extras: ["Boa luz", "Sem pressa"], note: "sábado de manhã tem outro gosto aqui.", phone: "(00) 3400-0217", site: "floradocafe.com.br", insta: "@floradocafe",
          reasons: [["sun", "Luz da manhã imbatível na janela"], ["star", "Pão de fermentação natural feito ali"], ["leaf", "Clima calmo, ninguém te apressa"], ["coins", "Brunch completo com preço honesto"], ["heart", "Ótimo pra começar o domingo"]] },
-  p4:  { sub: "Parque urbano", cuisine: "Ao ar livre", tagline: "O oásis verde da cidade: lago, sombra e espaço pra todo mundo.", tags: ["Natureza", "Família", "Grátis"], momento: ["Experiência cultural", "Almoço"], ambiente: ["Ambiente externo"], reserva: false, extras: ["Vista linda", "Para ir com crianças"], note: "domingo, lago e pipoca: tradição.", phone: "—", site: "parquedasaguas.gov.br", insta: "@parquedasaguas",
-         reasons: [["leaf", "Muito verde e sombra o dia inteiro"], ["users", "Cabe família, casal e corredor"], ["sun", "Pôr do sol bonito no lago"], ["coins", "Entrada gratuita"], ["smile", "Parquinho e espaço pras crianças"]] },
   p5:  { sub: "Clube de música", cuisine: "Bar e pista", tagline: "Line-up que respeita house e disco, até o sol nascer.", tags: ["Balada", "House", "Disco"], momento: ["Noite"], ambiente: ["Ambiente interno"], reserva: false, extras: ["Boa música", "Para ir com amigos"], note: "a pista só esquenta depois da meia-noite.", phone: "(00) 3500-0412", site: "clubeaurora.com.br", insta: "@clubeaurora",
          reasons: [["music", "Line-up de house e disco caprichado"], ["sparkle", "Som e luz de primeira"], ["users", "Público animado e sem pose"], ["star", "Entrada sem fila antes das 23h30"], ["heart", "Noite pra lembrar"]] },
   p6:  { sub: "Cinema de rua", cuisine: "Cinema e bar", tagline: "Sala única, cinema independente e pipoca que vale a ida.", tags: ["Cinema", "Cultura", "Programa a dois"], momento: ["Experiência cultural", "Noite"], ambiente: ["Ambiente interno"], reserva: true, extras: ["Programa a dois"], note: "filme cult e chope: combinação correta.", phone: "(00) 3600-0165", site: "cinevitoria.com.br", insta: "@cinevitoria",
@@ -537,7 +520,7 @@ const ROTEIRO_EXTRA = {
     quote: "O parque é sempre uma boa ideia. É onde a cidade respira.",
     steps: [
       { time: "09h – 11h", title: "Florado Café", sub: "Café da manhã sem pressa", place: "p3", tags: [["Café", "vibe-yellow"], ["Para relaxar", "vibe-mint"]], desc: "Comece o dia com coado do dia e pão na chapa, na mesa da janela." },
-      { time: "11h – 14h", title: "Parque das Águas", sub: "Natureza no meio da cidade", place: "p4", tags: [["Natureza", "vibe-mint"], ["Para relaxar", "vibe-mint"]], desc: "Caminhe pelo parque, faça uma pausa no lago e observe a cidade de outro ângulo. É o momento de respirar." },
+      { time: "11h – 14h", title: "Parque das Águas", sub: "Natureza no meio da cidade", place: "parque-das-aguas", tags: [["Natureza", "vibe-mint"], ["Para relaxar", "vibe-mint"]], desc: "Caminhe pelo parque, faça uma pausa no lago e observe a cidade de outro ângulo. É o momento de respirar." },
       { time: "14h – 16h", title: "Almoço no entorno", sub: "Sabores para todos os gostos", place: "p13", tags: [["Gastronomia", "vibe-pink"], ["Para comer bem", "vibe-orange"]], desc: "Do casual ao sofisticado, o entorno do parque tem ótimas opções. Selecionamos lugares que combinam com o clima do dia." },
       { time: "16h – 18h", title: "Sorvete e pôr do sol", sub: "Pra fechar o dia", place: "p14", optional: true, tags: [["Doces", "vibe-lavender"], ["Para explorar", "vibe-sky"]], desc: "Finalize o dia com um sorvete artesanal e o pôr do sol na beira do lago." },
     ],
@@ -561,7 +544,7 @@ const ROTEIRO_EXTRA = {
     about: "Quatro paradas testadas com criança de verdade — todas com troca, banheiro decente e sombra. Do parque ao sorvete artesanal, um sábado que agrada a família inteira.",
     quote: "Rolê bom com criança é rolê com sombra, espaço e sorvete.",
     steps: [
-      { time: "09h – 12h", title: "Parque das Águas", sub: "Parquinho e lago", place: "p4", tags: [["Natureza", "vibe-mint"], ["Família", "vibe-sky"]], desc: "Parquinho, pista de bicicleta e o lago com patos. Chegue cedo pra pegar sombra." },
+      { time: "09h – 12h", title: "Parque das Águas", sub: "Parquinho e lago", place: "parque-das-aguas", tags: [["Natureza", "vibe-mint"], ["Família", "vibe-sky"]], desc: "Parquinho, pista de bicicleta e o lago com patos. Chegue cedo pra pegar sombra." },
       { time: "12h – 14h", title: "Florado Café", sub: "Almoço tranquilo", place: "p3", tags: [["Brunch", "vibe-yellow"], ["Para relaxar", "vibe-mint"]], desc: "Brunch com opções pras crianças e mesa grande pra família." },
       { time: "14h – 15h", title: "Sorveteria Polar", sub: "Sobremesa obrigatória", place: "p14", tags: [["Doces", "vibe-pink"], ["Pra criançada", "vibe-sky"]], desc: "Criança prova três sabores antes de escolher. O sabor do mês sempre vale." },
       { time: "15h – 17h", title: "Feira do Largo", sub: "Música e brinquedos antigos", place: "p7", optional: true, tags: [["Música ao vivo", "vibe-lavender"], ["Grátis", "vibe-mint"]], desc: "Se ainda sobrar energia, a feira tem chorinho e brinquedos de antigamente." },

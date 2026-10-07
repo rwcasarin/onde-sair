@@ -123,7 +123,7 @@ function seed() {
   const members = Array.from({ length: 28 }, (_, i) => ({
     id: "u" + (i + 1), name: `${FIRST[i % FIRST.length]} ${LAST[(i * 3) % LAST.length]}`,
     email: `${slugify(FIRST[i % FIRST.length])}.${slugify(LAST[(i * 3) % LAST.length])}${i}@email.com`,
-    city: ["sp", "rio", "bh", "cwb", "poa", "rec"][i % 6],
+    city: ["sorocaba", "sp", "rio", "bh", "cwb", "poa", "rec"][i % 7],
     status: i === 5 ? "bloqueado" : i % 9 === 0 ? "pendente" : "ativo",
     saves: (i * 7) % 40, reviews: i % 6, joined: daysAgo(10 + i * 9), lastSeen: daysAgo(i % 12),
   }));
@@ -135,7 +135,7 @@ function seed() {
     { id: "t4", name: "Lucas Prado", email: "lucas@ondesair.com.br", password: "convite", role: "curador", status: "convidado", lastLogin: null },
   ];
 
-  const cities = clone(CITIES).map((c, i) => ({ ...c, active: true, bairros: i === 0 ? [...BAIRROS_BASE] : BAIRROS_BASE.slice(0, 3) }));
+  const cities = clone(CITIES).map(c => ({ ...c, active: true, bairros: c.id === "sorocaba" ? [] : c.id === "sp" ? [...BAIRROS_BASE] : BAIRROS_BASE.slice(0, 3) }));
   cities.push({ id: "for", name: "Fortaleza", sub: "CE", active: false, bairros: [] });
 
   const campaigns = [
@@ -147,7 +147,7 @@ function seed() {
     siteName: "Onde Sair", tagline: TAGLINES.sub, campaign: TAGLINES.campaign,
     contactEmail: "contato@ondesair.com.br", instagram: "@ondesair", tiktok: "@ondesair", youtube: "/ondesair", spotify: "Onde Sair",
     seoTitle: "Onde Sair · O lugar certo pra cada vibe", seoDesc: "Curadoria por afinidade: lugares, roteiros e experiências escolhidos por quem vive a cidade.",
-    defaultCity: "sp", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
+    defaultCity: "sorocaba", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
     newsletter: true, maintenance: false, reviewsRequireApproval: true,
   };
 
@@ -387,9 +387,10 @@ export function syncPublic() {
   Object.assign(TAGLINES, { sub: db.settings.tagline, campaign: db.settings.campaign });
   SITE.announcement = db.settings.announcement;
   SITE.maintenance = db.settings.maintenance;
+  SITE.defaultCity = CITIES.some(c => c.id === db.settings.defaultCity) ? db.settings.defaultCity : CITIES[0]?.id;
 }
 // Configurações lidas pelo site público (faixa de aviso, manutenção)
-export const SITE = { announcement: null, maintenance: false };
+export const SITE = { announcement: null, maintenance: false, defaultCity: "sorocaba" };
 
 // ---------------------------------------------------------------------
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)
