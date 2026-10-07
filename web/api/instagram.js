@@ -4,11 +4,12 @@
 // Usa o Business Discovery da API do Instagram (Graph API): a conta profissional do Onde Sair
 // consulta os posts de outros perfis profissionais (empresa/criador) públicos, sem precisar de
 // autorização de cada lugar. Perfis privados, pessoais ou inexistentes voltam como "indisponivel".
-// Variáveis de ambiente: INSTAGRAM_ACCESS_TOKEN e INSTAGRAM_BUSINESS_ID (id da conta do Onde Sair).
+// Credenciais: Configurações › Integrações no painel (ou INSTAGRAM_ACCESS_TOKEN / INSTAGRAM_BUSINESS_ID).
 import { readJSON } from "./_lib/storage.js";
 import { json, fail, handle } from "./_lib/http.js";
 import { requireUser } from "./_lib/auth.js";
 import { isLive } from "../shared/roles.js";
+import { instagramCreds } from "./_lib/secrets.js";
 
 const LIMIT = 10;
 const TTL = 60 * 60 * 1000;   // 1 h em memória (além do cache da CDN)
@@ -18,10 +19,12 @@ export const cleanHandle = (h = "") => String(h).trim().replace(/^https?:\/\/(ww
 const validHandle = (h) => /^[A-Za-z0-9._]{1,30}$/.test(h);
 
 async function fetchProfile(handle) {
-  const token = process.env.INSTAGRAM_ACCESS_TOKEN, me = process.env.INSTAGRAM_BUSINESS_ID;
-  if (!token || !me) return { status: "nao-configurado", posts: [] };
+  const creds = await instagramCreds();
+  if (!creds) return { status: "nao-configurado", posts: [] };
+  const { token, businessId: me } = creds;
   const hit = memo.get(handle);
-  if (hit && Date.now() - hit.at < TTL) return hit.data;
+  if (hit && hit.me !== me + token.slice(-6)) memo.delete(handle);
+  if (memo.has(handle) && Date.now() - hit.at < TTL) return hit.data;
   const base = process.env.INSTAGRAM_GRAPH_URL || "https://graph.facebook.com/v23.0";
   const fields = `business_discovery.username(${handle}){username,media_count,media.limit(${LIMIT}){permalink,media_type,timestamp}}`;
   let data;
@@ -44,7 +47,7 @@ async function fetchProfile(handle) {
     console.error("instagram", e);
     return { status: "erro", posts: [] };
   }
-  memo.set(handle, { at: Date.now(), data });
+  memo.set(handle, { at: Date.now(), data, me: me + token.slice(-6) });
   return data;
 }
 
