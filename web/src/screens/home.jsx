@@ -9,10 +9,11 @@ import { ImageSlot } from "../components/image-slot.jsx";
 import { HeroMedia, VibePill, SectionHead, MiniPlaceCard, GeoCard, Footer } from "../components/site.jsx";
 import { href, storyPath } from "../router.js";
 import { useNav, useCity } from "../nav.js";
+import { CitySelect } from "../components/cityselect.jsx";
 
 export function Home() {
   const nav = useNav();
-  const { name, onCityClick } = useCity();
+  const { id: cityId, name, set: setCity } = useCity();
   const [q, setQ] = useState("");
 
   return (
@@ -31,9 +32,9 @@ export function Home() {
               type="text" value={q} onChange={(e) => setQ(e.target.value)}
               placeholder="Busque por lugares, bairros, experiências…" aria-label="Buscar"
             />
-            <button type="button" className="hero2-search-city" onClick={onCityClick}>
+            <CitySelect value={cityId} onChange={setCity} className="hero2-search-city" align="right" label="Trocar cidade da busca">
               <Icon name="pin" size={18} /> {name} <Icon name="chevron" size={14} />
-            </button>
+            </CitySelect>
             <button type="submit" className="btn-pill">Buscar</button>
           </form>
 

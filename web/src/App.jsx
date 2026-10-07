@@ -91,6 +91,13 @@ export default function App() {
     return () => document.removeEventListener("click", onClick);
   }, []);
 
+  // troca de cidade (menu, rodapé, busca, filtros): vale na hora e fica salva na conta
+  const changeCity = useCallback((id) => {
+    if (!id) return;
+    setCity(id);
+    if (account.user && account.user.city !== id) updateAccount({ city: id }).catch(() => {});
+  }, []);
+
   // ação que exige conta: guarda a intenção, leva ao login e volta para onde estava
   const ask = useCallback((intent) => { setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
 
@@ -138,14 +145,14 @@ export default function App() {
 
   return (
     <NavContext.Provider value={nav}>
-    <CityContext.Provider value={{ name: cityName(city), onCityClick: () => nav("onboarding") }}>
+    <CityContext.Provider value={{ id: city, name: cityName(city), set: changeCity, onCityClick: () => nav("onboarding") }}>
     <FavContext.Provider value={{ faves, toggle: toggleFave }}>
     <AccountContext.Provider value={{ user, ask }}>
       <div className="app">
         {SITE.announcement?.enabled && SITE.announcement.text && (
           <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
         )}
-        <TopNav current={screen} params={params} city={cityName(city)} unread={unread} user={user} onCityClick={() => nav("onboarding")} />
+        <TopNav current={screen} params={params} unread={unread} user={user} />
         {screen === "home"         && <Home />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}

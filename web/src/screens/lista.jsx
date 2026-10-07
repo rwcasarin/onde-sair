@@ -2,14 +2,15 @@ import { useMemo, useState } from "react";
 import {
   PLACES, VIBE_ORDER, VIBE_PAGE, PRICE_BUCKETS, MOMENTOS, AMBIENTES, TESTIMONIALS, vibeImg,
 } from "../data.js";
+import { CITIES } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
   HeroMedia, Crumbs, VibePill, ListingCard, MapArt, Rating, GeoCard, Footer, affById,
 } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
+import { CityField } from "../components/cityselect.jsx";
 
-const BAIRROS = [...new Set(PLACES.map(p => p.bairro))].sort();
 const SORTS = [["relevancia", "Mais relevantes"], ["rating", "Melhor avaliados"], ["preco", "Menor preço"], ["reviews", "Mais comentados"]];
 
 function toggleIn(set, v) { const n = new Set(set); n.has(v) ? n.delete(v) : n.add(v); return n; }
@@ -25,8 +26,10 @@ function CheckRow({ checked, onChange, children, count, boxed }) {
 
 export function Lista({ aff = null, q = "" }) {
   const nav = useNav();
-  const { name: city } = useCity();
+  const { id: globalCity, name: city, set: setGlobalCity } = useCity();
   const [vibe, setVibe] = useState(aff);
+  // cidade do filtro: começa na cidade escolhida no site; "" = todas
+  const [cityF, setCityF] = useState(globalCity || "");
   const [bairroSel, setBairroSel] = useState("");
   const [bairros, setBairros] = useState(new Set());
   const [showAllBairros, setShowAllBairros] = useState(false);
@@ -43,8 +46,8 @@ export function Lista({ aff = null, q = "" }) {
   const a = vibe ? affById(vibe) : null;
   const page = vibe ? VIBE_PAGE[vibe] : null;
 
-  // base: vibe + busca (as contagens dos filtros partem daqui)
-  const base = useMemo(() => PLACES.filter(p => {
+  // vibe + busca (sem cidade): base das contagens por cidade
+  const anyCity = useMemo(() => PLACES.filter(p => {
     if (vibe && !p.affs.includes(vibe)) return false;
     if (query) {
       const hay = [p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" ").toLowerCase();
@@ -52,6 +55,14 @@ export function Lista({ aff = null, q = "" }) {
     }
     return true;
   }), [vibe, query]);
+  const cityCounts = useMemo(() => anyCity.reduce((m, p) => ({ ...m, [p.city]: (m[p.city] || 0) + 1 }), {}), [anyCity]);
+  // base: vibe + busca + cidade (as contagens dos outros filtros partem daqui)
+  const base = useMemo(() => anyCity.filter(p => !cityF || p.city === cityF), [anyCity, cityF]);
+  const BAIRROS = useMemo(() => [...new Set(base.map(p => p.bairro).filter(Boolean))].sort((x, y) => x.localeCompare(y, "pt-BR")), [base]);
+  function changeCity(v) {
+    setCityF(v); setBairroSel(""); setBairros(new Set()); setShowAllBairros(false);
+    if (v) setGlobalCity(v);
+  }
 
   let results = base.filter(p => {
     if (bairroSel && p.bairro !== bairroSel) return false;
@@ -114,6 +125,11 @@ export function Lista({ aff = null, q = "" }) {
           </div>
 
           <div className="filter-block">
+            <h3>Cidade</h3>
+            <CityField value={cityF} onChange={changeCity} counts={cityCounts} />
+          </div>
+
+          <div className="filter-block">
             <h3>Bairro / Região</h3>
             <div className="select-wrap">
               <select value={bairroSel} onChange={(e) => setBairroSel(e.target.value)} aria-label="Bairro">
@@ -168,7 +184,7 @@ export function Lista({ aff = null, q = "" }) {
         {/* ---------- Resultados ---------- */}
         <section className="results" id="resultados">
           <div className="results-bar">
-            <h2>{results.length} {results.length === 1 ? "lugar encontrado" : "lugares encontrados"} em {city}</h2>
+            <h2>{results.length} {results.length === 1 ? "lugar encontrado" : "lugares encontrados"} {cityF ? `em ${CITIES.find(c => c.id === cityF)?.name || city}` : "em todas as cidades"}</h2>
             <button className="btn-outline filters-toggle" onClick={() => setFiltersOpen(!filtersOpen)}>
               <Icon name="list" size={16} /> Filtros{filterCount ? ` · ${filterCount}` : ""}
             </button>
@@ -198,7 +214,10 @@ export function Lista({ aff = null, q = "" }) {
             <div className="empty-state">
               <h3>Nada bateu com esses filtros.</h3>
               <p>Tente afrouxar um filtro — a cidade tem mais do que parece.</p>
-              <button className="btn-outline" onClick={() => { clearAll(); setQuery(""); }}>Limpar filtros</button>
+              <div className="row gap-12 wrap" style={{ justifyContent: "center" }}>
+                <button className="btn-outline" onClick={() => { clearAll(); setQuery(""); }}>Limpar filtros</button>
+                {cityF && Object.keys(cityCounts).some(c => c !== cityF) && <button className="btn-outline" onClick={() => changeCity("")}>Ver em todas as cidades</button>}
+              </div>
             </div>
           ) : view === "lista" ? (
             <div className="listing-grid">
