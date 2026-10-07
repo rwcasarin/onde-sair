@@ -65,20 +65,18 @@ export function geocodePlace(g, p) {
   return queue;
 }
 
-// Área da cidade (viewport do Geocoding), guardada no navegador: { n, s, e, w }
-export function cityArea(g, city) {
+// Centro da cidade (Geocoding), guardado no navegador: { lat, lng }
+export function cityCenter(g, city) {
   if (!city) return Promise.resolve(null);
-  const key = "city|" + city.id + "|" + city.name;
+  const key = "center|" + city.id + "|" + city.name;
   const c = readCache()[key];
   if (c) return Promise.resolve(c === "x" ? null : c);
   if (geocodeOff) return Promise.resolve(null);
   queue = queue.then(() => new Promise((resolve) => {
     new g.Geocoder().geocode({ address: [city.name, city.sub, "Brasil"].filter(Boolean).join(", "), region: "br" }, (res, status) => {
-      const v = status === "OK" && res?.[0]?.geometry?.viewport;
-      if (v) {
-        const ne = v.getNorthEast(), sw = v.getSouthWest();
-        cache[key] = { n: ne.lat(), e: ne.lng(), s: sw.lat(), w: sw.lng() };
-      } else if (status === "ZERO_RESULTS") cache[key] = "x";
+      const l = status === "OK" && res?.[0]?.geometry?.location;
+      if (l) cache[key] = { lat: +l.lat().toFixed(6), lng: +l.lng().toFixed(6) };
+      else if (status === "ZERO_RESULTS") cache[key] = "x";
       else if (status === "REQUEST_DENIED") geocodeOff = true;
       writeCache();
       resolve(cache[key] && cache[key] !== "x" ? cache[key] : null);

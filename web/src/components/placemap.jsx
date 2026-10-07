@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { placeImg } from "../data.js";
 import { SITE } from "../admin/store.js";
-import { loadGoogle, knownCoords, geocodePlace, cityArea, radiusArea, MAP_STYLE } from "../maps.js";
+import { loadGoogle, knownCoords, geocodePlace, cityCenter, radiusArea, MAP_STYLE } from "../maps.js";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
 import { MapArt, Rating, FaveButton } from "./site.jsx";
@@ -39,15 +39,15 @@ export function MapCard({ place, isMain, onClose }) {
  *        art = posição {x,y} no mapa ilustrado para paradas sem lugar
  * mainId: pin principal (maior, sempre em destaque). activeId/onSelect: pin selecionado (abre o card).
  * frame: enquadramento padrão — com mainId, raio de `radiusKm` (1 km) em volta do pin principal (página do lugar);
- *        com `city`, a área da cidade (Guia da cidade); sem nenhum dos dois, todos os pins (lista, roteiros).
+ *        com `city`, raio de `cityKm` (5 km) em volta do centro da cidade (Guia da cidade); sem nenhum dos dois, todos os pins (lista, roteiros).
  * route: liga os pins na ordem. card: mostra o card ao selecionar. onPick: clique no mapa devolve {lat,lng} (painel).
  */
-export function PlaceMap({ items, mainId = null, activeId = null, onSelect, route = false, card = true, onPick, className = "", fallbackLabel = true, radiusKm = 1, city = null }) {
+export function PlaceMap({ items, mainId = null, activeId = null, onSelect, route = false, card = true, onPick, className = "", fallbackLabel = true, radiusKm = 1, city = null, cityKm = 5 }) {
   const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect;
   const key = SITE.mapsKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
   const [mode, setMode] = useState(key ? "loading" : "art");     // loading | google | art
   const [coords, setCoords] = useState({});
-  const [area, setArea] = useState(null);   // área da cidade (Guia)
+  const [center, setCenter] = useState(null);   // centro da cidade (Guia)
   const el = useRef(null), gref = useRef(null), mapRef = useRef(null), pins = useRef(new Map()), line = useRef(null), fitted = useRef("");
   const sig = items.map(i => i.id + (i.place ? ":" + (i.place.geo ? i.place.geo.lat + "," + i.place.geo.lng : i.place.end) : "")).join("|");
 
@@ -62,7 +62,7 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
       if (!alive) return;
       if (!g.Map || !g.OverlayView) { setMode("art"); return; }
       gref.current = g; setMode("google");
-      if (city) cityArea(g, city).then(a => alive && setArea(a));
+      if (city) cityCenter(g, city).then(c => alive && setCenter(c));
       for (const i of items) {
         if (!i.place || known[i.id]) continue;
         const c = await geocodePlace(g, i.place);
@@ -124,7 +124,7 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
     // enquadramento padrão (não muda a cada seleção)
     const main = mainId && coords[mainId];
     const pts = items.map(i => coords[i.id]).filter(Boolean);
-    const box = main ? radiusArea(main, radiusKm) : city ? area : null;
+    const box = main ? radiusArea(main, radiusKm) : city && center ? radiusArea(center, cityKm) : null;
     const fitSig = box ? JSON.stringify(box) : pts.map(p => p.lat + "," + p.lng).join(";");
     // no painel (onPick) só enquadra a primeira vez, para o clique de ajuste não mexer no zoom
     if ((box || pts.length) && fitSig !== fitted.current && !(onPick && fitted.current)) {
@@ -138,7 +138,7 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
         g.event.addListenerOnce(map, "idle", () => { if (map.getZoom() > 16) map.setZoom(16); });
       }
     }
-  }, [mode, coords, activeId, mainId, route, sig, area, radiusKm]); // eslint-disable-line
+  }, [mode, coords, activeId, mainId, route, sig, center, radiusKm, cityKm]); // eslint-disable-line
 
   // ao escolher um pin pela lista, traz o pin para a vista
   useEffect(() => {
