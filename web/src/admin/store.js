@@ -261,12 +261,19 @@ function merge(server, baseC, local) {
 }
 
 let saving = false, pending = false;
-async function pushRemote() {
+async function pushRemote({ force = false } = {}) {
   if (saving) { pending = true; return; }
-  saving = true; sync.status = "saving"; sync.error = null; notify();
+  saving = true; pending = false; sync.status = "saving"; sync.error = null; notify();
   let content = contentOf(db);
   try {
-    for (let attempt = 0; ; attempt++) {
+    if (force) {                                             // admin: aplica as minhas alterações por cima da versão do servidor
+      const latest = await api("admin/db");
+      content = merge(contentOf(latest.db), base || {}, content);
+      const r = await api("admin/db", { method: "PUT", body: { db: content, etag: latest.etag, force: true } });
+      etag = r.etag; base = content; sync.status = "saved"; sync.at = now();
+      db = { ...db, ...content, team: latest.db.team, media: latest.db.media };
+      syncPublic();
+    } else for (let attempt = 0; ; attempt++) {
       try {
         const r = await api("admin/db", { method: "PUT", body: { db: content, etag } });
         etag = r.etag; base = content; sync.status = "saved"; sync.at = now();
@@ -282,12 +289,16 @@ async function pushRemote() {
     }
   } catch (e) {
     sync.status = e.status === 409 ? "conflict" : "error";
-    sync.error = e.status === 409 ? "Outra pessoa alterou o conteúdo ao mesmo tempo. Recarregue para continuar." : e.message;
+    sync.error = e.status === 409 ? "Este conteúdo foi alterado em outra sessão enquanto você editava." : e.message;
   }
   saving = false;
   notify();
-  if (pending && sync.status === "saved") { pending = false; pushRemote(); }
+  // alterações feitas durante o salvamento: grava em seguida (se deu erro, ficam para a próxima tentativa)
+  if (pending && sync.status === "saved") pushRemote();
 }
+export function retrySave() { pushRemote(); }
+// Admin: grava a versão deste navegador mesmo havendo alterações de outra sessão
+export async function forceSave() { await pushRemote({ force: true }); return sync.status === "saved"; }
 export async function reloadFromServer() { sync.status = "idle"; sync.error = null; await adminLoad(); }
 export const lastStorageError = () => storageError;
 
