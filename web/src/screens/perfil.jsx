@@ -1,41 +1,38 @@
 import { useState } from "react";
-import { PLACES, VIBE_ORDER } from "../data.js";
+import { PLACES, ROTEIROS, VIBE_ORDER, CITIES, cityName } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, VibePill, MiniPlaceCard, SectionHead, Footer } from "../components/site.jsx";
-import { useNav, useCity, useFaves } from "../nav.js";
+import { PageHead, VibePill, MiniPlaceCard, RoteiroMini, SectionHead, Footer } from "../components/site.jsx";
+import { useNav, useFaves } from "../nav.js";
+import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword, PROVIDER_LABEL } from "../account.js";
 
-const HISTORY = [
-  { when: "Esta semana",  icon: "pin",      text: "Você foi ao Quintal do Centro · Centro" },
-  { when: "8 jun · dom",  icon: "bookmark", text: "Salvou o roteiro “Domingo sem pressa: parque, café e pôr do sol”" },
-  { when: "1 jun · dom",  icon: "star",     text: "Avaliou Florado Café · 5 estrelas" },
-  { when: "29 mai · qui", icon: "sparkle",  text: "VIP na Casa Komorebi · mesa pra 2 confirmada" },
-  { when: "23 mai · sex", icon: "users",    text: "Criou o rolê “Aniversário da Bia” com 6 lugares" },
-];
-const MY_REVIEWS = [
-  { p: "p1", rating: 5, text: "A dica do pastel de pernil salvou a noite. Voltei na mesma semana." },
-  { p: "p3", rating: 5, text: "Melhor coado da cidade. Brunch de sábado virou ritual da família." },
-  { p: "p8", rating: 4, text: "Bao excelente, soju forte na medida. Cabe pra date." },
-];
+const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); } catch { return ""; } };
 
 export function Perfil({ user }) {
   const nav = useNav();
-  const { name: city } = useCity();
   const { faves } = useFaves();
-  const [tab, setTab] = useState("historico");
-  const [affs, setAffs] = useState(new Set(["dates", "impress", "relax"]));
+  const [tab, setTab] = useState("salvos");
+  const [affs, setAffs] = useState(new Set(user.vibes || []));
+  const [saving, setSaving] = useState("");
 
-  const stats = [[faves.size, "Salvos"], [user.done, "Já fui"], [user.lists, "Rolês"], [MY_REVIEWS.length, "Avaliações"], [3, "VIPs usadas"]];
+  const savedPlaces = PLACES.filter(p => faves.has(p.id));
+  const savedRoteiros = ROTEIROS.filter(r => faves.has(r.id));
+  const stats = [[faves.size, "Salvos"], [affs.size, "Vibes"], [(user.providers || []).length + (user.hasPassword ? 1 : 0), "Formas de entrar"]];
 
-  function toggleAff(a) { const n = new Set(affs); n.has(a) ? n.delete(a) : n.add(a); setAffs(n); }
+  async function toggleAff(a) {
+    const n = new Set(affs); n.has(a) ? n.delete(a) : n.add(a); setAffs(n);
+    setSaving("vibes");
+    try { await updateAccount({ vibes: [...n] }); } finally { setSaving(""); }
+  }
 
   return (
     <main className="home2">
       <div className="shell">
-        <PageHead crumbs={[["Início", "home"], ["Perfil"]]} title={user.name} lede={`Membro desde ${user.joined} · ${city}`}>
+        <PageHead crumbs={[["Início", "home"], ["Perfil"]]} title={user.name} lede={`Na Onde Sair desde ${since(user.joined)} · ${cityName(user.city)}`}>
           <div className="row gap-12">
-            <button className="btn-outline">Editar perfil</button>
-            <button className="btn-pill">Convidar amigo</button>
+            <span className="profile-avatar" aria-hidden="true">{user.avatar ? <img src={user.avatar} alt="" /> : (user.name || "?").charAt(0).toUpperCase()}</span>
+            <button className="btn-outline" onClick={() => setTab("conta")}>Editar perfil</button>
+            <button className="btn-outline" onClick={async () => { await logoutAccount(); nav("home"); }}>Sair</button>
           </div>
         </PageHead>
 
@@ -44,58 +41,42 @@ export function Perfil({ user }) {
         </ul>
 
         <section className="h2-section">
-          <SectionHead title="Suas vibes" sub="Calibramos suas dicas por essas escolhas. Toque para ligar ou desligar." />
+          <SectionHead title="Suas vibes" sub={saving === "vibes" ? "Salvando…" : "Calibramos suas dicas por essas escolhas. Toque para ligar ou desligar."} />
           <div className="hero2-vibes">
             {VIBE_ORDER.map(a => <VibePill key={a} aff={a} active={affs.has(a)} onClick={() => toggleAff(a)} />)}
           </div>
         </section>
 
         <div className="underline-tabs" role="tablist">
-          {[["historico", "Histórico"], ["avaliacoes", "Minhas avaliações"], ["conta", "Conta & VIP"]].map(([id, l]) => (
+          {[["salvos", "Meus salvos"], ["conta", "Dados da conta"], ["plano", "Plano & VIP"]].map(([id, l]) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? "on" : ""} onClick={() => setTab(id)}>{l}</button>
           ))}
         </div>
 
         <section className="tab-panel">
-          {tab === "historico" && (
-            <ol className="timeline2">
-              {HISTORY.map((h, i) => (
-                <li key={i}><span className="timeline2-icon"><Icon name={h.icon} size={16} /></span><span className="timeline2-when">{h.when}</span><p>{h.text}</p></li>
-              ))}
-            </ol>
+          {tab === "salvos" && (faves.size === 0
+            ? <div className="empty-note"><Icon name="heart" size={22} /><p>Você ainda não salvou nada. Toque no coração de um lugar ou roteiro pra guardar aqui.</p><button className="btn-pill" onClick={() => nav("lista")}>Explorar lugares</button></div>
+            : <>
+                {savedPlaces.length > 0 && <div className="tips-grid">{savedPlaces.map(p => <MiniPlaceCard key={p.id} p={p} />)}</div>}
+                {savedRoteiros.length > 0 && <div className="roteiro-minis">{savedRoteiros.map(r => <RoteiroMini key={r.id} r={r} />)}</div>}
+              </>
           )}
 
-          {tab === "avaliacoes" && (
-            <div className="tip-reviews">
-              {MY_REVIEWS.map(r => {
-                const p = PLACES.find(x => x.id === r.p);
-                return (
-                  <article key={r.p} className="tip-review" onClick={() => nav("detalhe", { id: p.id })} style={{ cursor: "pointer" }}>
-                    <header>
-                      <ImageSlot className="avatar-slot sm square" src={`images/lugares/${p.id}.jpg`} compact />
-                      <div><strong>{p.name}</strong><span>{p.sub} · {p.bairro}</span></div>
-                      <span className="stars-row">{"★".repeat(r.rating)}<i>{"★".repeat(5 - r.rating)}</i></span>
-                    </header>
-                    <p>{r.text}</p>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+          {tab === "conta" && <AccountData user={user} onGone={() => nav("home")} />}
 
-          {tab === "conta" && (
+          {tab === "plano" && (
             <div className="account-grid">
               <div className="info-box">
                 <h2 className="h2t">Plano atual</h2>
-                <p><strong>Onde Sair · Grátis</strong><br />Dicas personalizadas, mapa, favoritos e rolês em grupo.</p>
+                <p><strong>Onde Sair · {user.plan || "Grátis"}</strong><br />Dicas personalizadas, mapa, favoritos e rolês em grupo.</p>
                 <button className="btn-outline">Conhecer o VIP <Icon name="arrow" size={14} /></button>
               </div>
               <div className="save-card">
                 <Icon name="sparkle" size={30} fill />
                 <div>
-                  <h3>3 VIPs disponíveis</h3>
-                  <p>Próxima reserva: Mesa 14 · sex, 21h. Mesa garantida e brinde na chegada.</p>
-                  <button className="btn-white">Ver reservas</button>
+                  <h3>{user.plan === "VIP" ? "Você é VIP" : "Vire VIP"}</h3>
+                  <p>Mesa garantida, brinde na chegada e convites para eventos da curadoria.</p>
+                  <button className="btn-white">Saiba mais</button>
                 </div>
               </div>
             </div>
@@ -105,13 +86,84 @@ export function Perfil({ user }) {
         <section className="h2-section">
           <SectionHead title="Sugerido pra você" sub="A partir das suas vibes." link="Ver mais" onLink={() => nav("lista")} />
           <div className="tips-grid">
-            {PLACES.filter(p => p.affs.some(a => affs.has(a))).slice(0, 6).map(p => (
-              <MiniPlaceCard key={p.id} p={p} aff={p.affs.find(a => affs.has(a))} />
+            {PLACES.filter(p => !affs.size || p.affs.some(a => affs.has(a))).slice(0, 6).map(p => (
+              <MiniPlaceCard key={p.id} p={p} aff={p.affs.find(a => affs.has(a)) || p.affs[0]} />
             ))}
           </div>
         </section>
       </div>
       <Footer />
     </main>
+  );
+}
+
+function AccountData({ user, onGone }) {
+  const [f, setF] = useState({ name: user.name || "", city: user.city || "sp", marketing: !!user.marketing, email: "" });
+  const [msg, setMsg] = useState("");
+  const [pw, setPw] = useState({ current: "", next: "" });
+  const [pwMsg, setPwMsg] = useState("");
+  const [confirmDel, setConfirmDel] = useState(false);
+  const set = (p) => { setF({ ...f, ...p }); setMsg(""); };
+
+  async function save(e) {
+    e.preventDefault();
+    if (f.name.trim().length < 2) return setMsg("Informe seu nome.");
+    if (f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return setMsg("Esse e-mail não parece válido.");
+    try {
+      await updateAccount({ name: f.name.trim(), city: f.city, marketing: f.marketing, ...(f.email && !user.email ? { email: f.email } : {}) });
+      setMsg("Dados salvos.");
+    } catch (err) { setMsg(err.message); }
+  }
+  async function savePw(e) {
+    e.preventDefault();
+    try { await changeAccountPassword(pw.current, pw.next); setPw({ current: "", next: "" }); setPwMsg(user.hasPassword ? "Senha alterada." : "Senha criada. Agora você também pode entrar com e-mail e senha."); }
+    catch (err) { setPwMsg(err.message); }
+  }
+
+  return (
+    <div className="account-data">
+      <form className="auth-form info-box" onSubmit={save}>
+        <h2 className="h2t">Seus dados</h2>
+        <div className="auth-field"><label htmlFor="ac-name">Nome</label><input id="ac-name" value={f.name} onChange={(e) => set({ name: e.target.value })} /></div>
+        <div className="auth-field">
+          <label htmlFor="ac-email">E-mail</label>
+          {user.email ? <input id="ac-email" value={user.email} disabled /> : <input id="ac-email" type="email" placeholder="Adicione um e-mail" value={f.email} onChange={(e) => set({ email: e.target.value })} />}
+        </div>
+        <div className="auth-field">
+          <label htmlFor="ac-city">Cidade</label>
+          <div className="auth-select"><select id="ac-city" value={f.city} onChange={(e) => set({ city: e.target.value })}>{CITIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><Icon name="chevron" size={16} /></div>
+        </div>
+        <label className="auth-check"><input type="checkbox" checked={f.marketing} onChange={(e) => set({ marketing: e.target.checked })} /><span>Receber o roteiro da semana por e-mail</span></label>
+        {msg && <p className="auth-hint" role="status">{msg}</p>}
+        <button className="btn-pill" type="submit">Salvar dados</button>
+      </form>
+
+      <div className="info-box">
+        <h2 className="h2t">Como você entra</h2>
+        <ul className="auth-providers">
+          {["google", "instagram", "tiktok"].map(p => (
+            <li key={p} className={(user.providers || []).includes(p) ? "on" : ""}>{PROVIDER_LABEL[p]}<span>{(user.providers || []).includes(p) ? "Conectado" : "Não conectado"}</span></li>
+          ))}
+          <li className={user.hasPassword ? "on" : ""}>E-mail e senha<span>{user.hasPassword ? "Ativo" : "Sem senha"}</span></li>
+        </ul>
+        {(user.email || user.hasPassword) && (
+          <form className="auth-form" onSubmit={savePw}>
+            <h3>{user.hasPassword ? "Trocar senha" : "Criar uma senha"}</h3>
+            {user.hasPassword && <div className="auth-field"><label htmlFor="ac-cur">Senha atual</label><input id="ac-cur" type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>}
+            <div className="auth-field"><label htmlFor="ac-new">Nova senha</label><input id="ac-new" type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
+            {pwMsg && <p className="auth-hint" role="status">{pwMsg}</p>}
+            <button className="btn-outline" type="submit">{user.hasPassword ? "Trocar senha" : "Criar senha"}</button>
+          </form>
+        )}
+      </div>
+
+      <div className="info-box danger-box">
+        <h2 className="h2t">Excluir conta</h2>
+        <p>Apaga seus dados, salvos e vibes. Não dá pra desfazer.</p>
+        {confirmDel
+          ? <div className="row gap-12"><button className="btn-danger" onClick={async () => { await deleteAccount(); onGone(); }}>Excluir de vez</button><button className="btn-outline" onClick={() => setConfirmDel(false)}>Cancelar</button></div>
+          : <button className="btn-outline" onClick={() => setConfirmDel(true)}>Excluir minha conta</button>}
+      </div>
+    </div>
   );
 }

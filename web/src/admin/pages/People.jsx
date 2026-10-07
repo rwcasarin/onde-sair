@@ -20,8 +20,8 @@ export function MembersPage() {
 
   async function block(ids, v) {
     if (v && !(await confirm({ title: `Bloquear ${ids.length} usuário(s)?`, text: "Eles não conseguirão entrar nem publicar avaliações.", ok: "Bloquear", danger: true }))) return;
-    updateMembers(ids, { status: v ? "bloqueado" : "ativo" }, user);
-    toast(v ? "Bloqueado(s)." : "Desbloqueado(s).", "success");
+    try { await updateMembers(ids, { status: v ? "bloqueado" : "ativo" }, user); toast(v ? "Bloqueado(s)." : "Desbloqueado(s).", "success"); }
+    catch (e) { toast(e.message, "error"); }
   }
   function exportCsv() {
     const head = ["nome", "email", "cidade", "plano", "status", "salvos", "avaliacoes", "entrou"];
@@ -72,7 +72,7 @@ export function MembersPage() {
             {m.status === "bloqueado"
               ? <Btn icon="check" onClick={() => block([m.id], false)}>Desbloquear</Btn>
               : <Btn kind="danger" icon="ban" onClick={() => block([m.id], true)}>Bloquear</Btn>}
-            <Btn onClick={() => { updateMembers([m.id], { plan: m.plan === "VIP" ? "Grátis" : "VIP" }, user); toast("Plano atualizado.", "success"); }}>{m.plan === "VIP" ? "Remover VIP" : "Conceder VIP"}</Btn>
+            <Btn onClick={async () => { try { await updateMembers([m.id], { plan: m.plan === "VIP" ? "Grátis" : "VIP" }, user); toast("Plano atualizado.", "success"); } catch (e) { toast(e.message, "error"); } }}>{m.plan === "VIP" ? "Remover VIP" : "Conceder VIP"}</Btn>
             <Btn kind="primary" onClick={() => setOpen(null)}>Fechar</Btn>
           </>}>
           <dl className="a-meta a-meta-cols">
@@ -84,6 +84,8 @@ export function MembersPage() {
             <div><dt>Último acesso</dt><dd>{relTime(m.lastSeen)}</dd></div>
             <div><dt>Lugares salvos</dt><dd>{m.saves}</dd></div>
             <div><dt>Avaliações</dt><dd>{m.reviews}</dd></div>
+            {m.providers && <div><dt>Entra com</dt><dd>{[...(m.hasPassword ? ["E-mail e senha"] : []), ...m.providers.map(p => ({ google: "Google", instagram: "Instagram", tiktok: "TikTok" }[p] || p))].join(", ") || "—"}</dd></div>}
+            {m.vibes?.length > 0 && <div><dt>Vibes</dt><dd>{m.vibes.map(v => db.vibes.find(x => x.id === v)?.label || v).join(", ")}</dd></div>}
           </dl>
           <p className="a-hint">Por privacidade (LGPD), o painel mostra só os dados necessários. Pedidos de exclusão de conta são atendidos em Configurações › Dados.</p>
         </Modal>
