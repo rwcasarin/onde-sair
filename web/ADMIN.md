@@ -25,6 +25,14 @@ Store **privado** `onde-sair-cms`, ligado ao projeto pela variável `BLOB_READ_W
 
 Gravações usam **ETag** (controle de concorrência). Se duas pessoas salvarem ao mesmo tempo, o painel mescla automaticamente as alterações (campo a campo / item a item); só avisa se não conseguir.
 
+### Conteúdo novo vindo do código
+
+O banco publicado não é recriado a partir da semente. Para incluir conteúdo pelo código (ex.: os lugares de Sorocaba, `dados/lugares-sorocaba.xlsx`), registre uma atualização em `src/admin/updates.js` com um `id` novo:
+
+- o site já mostra o conteúdo novo aos visitantes (aplicado só na memória);
+- na primeira vez que um **administrador** abre o painel, a atualização é gravada no banco e aparece em Atividade ("Sistema adicionou …");
+- o `id` fica salvo em `updates` no banco, então a atualização não roda de novo: o que a equipe editar ou excluir depois não volta.
+
 ## API
 
 | Rota | Acesso | Função |

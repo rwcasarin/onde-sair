@@ -45,7 +45,7 @@ export default function App() {
   const path = usePath();
   const { screen, params } = fromPath(path);
 
-  const [city, setCity] = useState("sp");
+  const [city, setCity] = useState(SITE.defaultCity);
   const [unread, setUnread] = useState(NOTIFICATIONS.filter(n => n.unread).length);
   const [faves, setFaves] = useState(new Set());
   const [user, setUser] = useState(account.user);

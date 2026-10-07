@@ -39,6 +39,7 @@ export function publicView(db) {
     campaigns: (db.campaigns || []).filter(c => c.status === "enviada"),
     reviews: (db.reviews || []).filter(r => r.status === "aprovada" && r.featured).map(({ id, author, rating, text, createdAt, status, featured, place }) => ({ id, author, rating, text, createdAt, status, featured, place })),
     settings: (({ mapsKey, ...rest }) => rest)(db.settings || {}),   // a chave do Google Maps fica só no painel
+    updates: db.updates || [],   // atualizações de conteúdo já aplicadas (ver src/admin/updates.js)
     members: [], team: [], activity: [],
   };
 }

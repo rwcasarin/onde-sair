@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { CITIES, AFFINITIES, TAGLINES } from "../data.js";
+import { SITE } from "../admin/store.js";
 
 export function Onboarding({ onDone }) {
   const [step, setStep] = useState(0);
-  const [city, setCity] = useState("sp");
+  const [city, setCity] = useState(SITE.defaultCity);
   const [affs, setAffs] = useState(new Set(["dates", "impress"]));
   const [pace, setPace] = useState("equilibrado");
   const A = AFFINITIES;

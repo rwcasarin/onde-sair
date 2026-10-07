@@ -13,6 +13,7 @@ import {
   VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
   VIBE_TO_ROTEIRO, BRAND_VALUES, PLACE_TIPS, ROTEIRO_TAGS,
 } from "../data.js";
+import { applyUpdates } from "./updates.js";
 
 const KEY = "onde-sair-cms-v1";
 const SESSION_KEY = "onde-sair-cms-session";
@@ -122,7 +123,7 @@ function seed() {
   const members = Array.from({ length: 28 }, (_, i) => ({
     id: "u" + (i + 1), name: `${FIRST[i % FIRST.length]} ${LAST[(i * 3) % LAST.length]}`,
     email: `${slugify(FIRST[i % FIRST.length])}.${slugify(LAST[(i * 3) % LAST.length])}${i}@email.com`,
-    city: ["sp", "rio", "bh", "cwb", "poa", "rec"][i % 6],
+    city: ["sorocaba", "sp", "rio", "bh", "cwb", "poa", "rec"][i % 7],
     status: i === 5 ? "bloqueado" : i % 9 === 0 ? "pendente" : "ativo",
     saves: (i * 7) % 40, reviews: i % 6, joined: daysAgo(10 + i * 9), lastSeen: daysAgo(i % 12),
   }));
@@ -134,7 +135,7 @@ function seed() {
     { id: "t4", name: "Lucas Prado", email: "lucas@ondesair.com.br", password: "convite", role: "curador", status: "convidado", lastLogin: null },
   ];
 
-  const cities = clone(CITIES).map((c, i) => ({ ...c, active: true, bairros: i === 0 ? [...BAIRROS_BASE] : BAIRROS_BASE.slice(0, 3) }));
+  const cities = clone(CITIES).map(c => ({ ...c, active: true, bairros: c.id === "sorocaba" ? [] : c.id === "sp" ? [...BAIRROS_BASE] : BAIRROS_BASE.slice(0, 3) }));
   cities.push({ id: "for", name: "Fortaleza", sub: "CE", active: false, bairros: [] });
 
   const campaigns = [
@@ -146,7 +147,7 @@ function seed() {
     siteName: "Onde Sair", tagline: TAGLINES.sub, campaign: TAGLINES.campaign,
     contactEmail: "contato@ondesair.com.br", instagram: "@ondesair", tiktok: "@ondesair", youtube: "/ondesair", spotify: "Onde Sair",
     seoTitle: "Onde Sair · O lugar certo pra cada vibe", seoDesc: "Curadoria por afinidade: lugares, roteiros e experiências escolhidos por quem vive a cidade.",
-    defaultCity: "sp", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
+    defaultCity: "sorocaba", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
     newsletter: true, maintenance: false, reviewsRequireApproval: true,
   };
 
@@ -169,11 +170,23 @@ let db = load();
 const listeners = new Set();
 
 function load() {
+  let d = clone(SEED);
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...clone(SEED), ...JSON.parse(raw) };
+    if (raw) d = { ...d, ...JSON.parse(raw) };
   } catch { /* storage indisponível */ }
-  return clone(SEED);
+  // modo local: o conteúdo novo entra direto no banco do navegador
+  if (logUpdates(d, applyUpdates(d))) {
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* storage indisponível */ }
+  }
+  return d;
+}
+// Registra na atividade o conteúdo que entrou por atualização (ver updates.js)
+function logUpdates(d, applied) {
+  applied.forEach(u => {
+    d.activity = [{ at: now(), who: "Sistema", action: "adicionou " + u.label, target: u.names.join(", "), type: "lugar" }, ...(d.activity || [])].slice(0, 200);
+  });
+  return applied.length > 0;
 }
 
 let storageError = null;
@@ -215,6 +228,7 @@ export async function boot() {
     const data = await r.json();
     REMOTE = true;
     db = data.db ? { ...clone(SEED), ...data.db } : clone(SEED);
+    applyUpdates(db);   // só na memória: o visitante já vê o conteúdo novo; quem grava é o painel
     syncPublic();
   } catch { /* offline ou sem API: modo local */ }
 }
@@ -231,6 +245,9 @@ export async function adminLoad() {
     const again = await api("admin/db"); db = { ...clone(SEED), ...again.db }; etag = again.etag; base = contentOf(db);
   }
   adminLoaded = true;
+  // conteúdo novo do código (updates.js): grava no servidor na primeira carga de um administrador,
+  // único perfil que pode mexer em cidades e publicar tudo de uma vez
+  if (can(r.user, "settings.edit") && logUpdates(db, applyUpdates(db))) { syncPublic(); notify(); await pushRemote(); return; }
   notify();
 }
 
@@ -363,16 +380,17 @@ export function syncPublic() {
 
   const featured = db.reviews.filter(r => r.status === "aprovada" && r.featured);
   if (featured.length) {
-    replace(PLACE_TIPS, featured.slice(0, 3).map(r => ({
-      name: r.author, when: relTime(r.createdAt), text: r.text, tags: [["Avaliação " + r.rating + "★", "vibe-yellow"]],
+    replace(PLACE_TIPS, featured.map(r => ({
+      place: r.place, name: r.author, when: relTime(r.createdAt), text: r.text, tags: [["Avaliação " + r.rating + "★", "vibe-yellow"]],
     })));
   }
   Object.assign(TAGLINES, { sub: db.settings.tagline, campaign: db.settings.campaign });
   SITE.announcement = db.settings.announcement;
   SITE.maintenance = db.settings.maintenance;
+  SITE.defaultCity = CITIES.some(c => c.id === db.settings.defaultCity) ? db.settings.defaultCity : CITIES[0]?.id;
 }
 // Configurações lidas pelo site público (faixa de aviso, manutenção)
-export const SITE = { announcement: null, maintenance: false };
+export const SITE = { announcement: null, maintenance: false, defaultCity: "sorocaba" };
 
 // ---------------------------------------------------------------------
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)

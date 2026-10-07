@@ -28,6 +28,9 @@ export function Detalhe({ id }) {
   const { name: city } = useCity();
   const { faves, toggle } = useFaves();
   const p = PLACES.find(x => x.id === id) || PLACES[0];
+  // avaliações em destaque deste lugar (as de exemplo, sem lugar, valem para todos)
+  const tips = PLACE_TIPS.filter(t => !t.place || t.place === p.id).slice(0, 3);
+  const tabs = tips.length ? TABS : TABS.filter(([t]) => t !== "dicas");
   const [tab, setTab] = useState("visao");
   const [shift, setShift] = useState(0);
   const [shared, setShared] = useState(false);
@@ -102,7 +105,7 @@ export function Detalhe({ id }) {
       {/* ================= ABAS ================= */}
       <nav className="page-tabs" aria-label="Seções">
         <div className="shell">
-          {TABS.map(([id, label]) => (
+          {tabs.map(([id, label]) => (
             <button key={id} className={tab === id ? "on" : ""} onClick={() => goTab(id)}>{label}</button>
           ))}
         </div>
@@ -115,9 +118,8 @@ export function Detalhe({ id }) {
             <h2 className="h2t">Sobre o lugar</h2>
             <p>{p.desc}</p>
             <p>
-              {p.name} entrou pra nossa curadoria depois de três visitas em momentos diferentes. Em todas, manteve o que importa:
-              atendimento atento sem ser exagerado, ingredientes honestos e conta sem sustos. É o tipo de lugar que faz você querer
-              ficar mais um pouco — ideal para {p.affs.map(a => affById(a).label.toLowerCase().replace(/^(para|pra) /, "")).join(", ")}.
+              É o tipo de lugar que faz você querer ficar mais um pouco: a gente indica
+              pra {p.affs.map(a => affById(a).label.toLowerCase().replace(/^(para|pra) /, "")).join(", ")}.
             </p>
           </div>
           <blockquote className="big-quote">
@@ -168,9 +170,7 @@ export function Detalhe({ id }) {
               <h2>Onde fica</h2>
               <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("mapa", { id: p.id }); }}>Ver no mapa <Icon name="arrow" size={16} /></a>
             </div>
-            <MapArt className="where-map where-map-lg" pins={[{ x: 50, y: 42, label: p.name }]}>
-              <span className="map-art-chip" style={{ left: "14%", top: "78%" }}><b>M</b> Metrô · 700 m</span>
-            </MapArt>
+            <MapArt className="where-map where-map-lg" pins={[{ x: 50, y: 42, label: p.name }]} />
             <p className="where-address"><Icon name="pin" size={16} /> {fullAddress(p)}
               <a className="where-route" href={directions(p)} target="_blank" rel="noreferrer">Como chegar <Icon name="arrow" size={14} /></a></p>
           </div>
@@ -187,15 +187,15 @@ export function Detalhe({ id }) {
           </div>
         </section>
 
-        {/* 5 · Dicas de quem já foi */}
-        <section className="place-row" id="sec-dicas">
+        {/* 5 · Dicas de quem já foi (só com avaliações deste lugar) */}
+        {tips.length > 0 && <section className="place-row" id="sec-dicas">
           <div>
             <div className="h2-head">
               <h2>Dicas de quem já foi</h2>
               <a href="#" className="h2-link" onClick={(e) => e.preventDefault()}>Ver todas as dicas <Icon name="arrow" size={16} /></a>
             </div>
             <div className="tip-reviews">
-              {PLACE_TIPS.map(t => (
+              {tips.map(t => (
                 <article key={t.name} className="tip-review">
                   <header>
                     <ImageSlot className="avatar-slot sm" src={`images/pessoas/${t.name.split(" ")[0].toLowerCase()}.jpg`} compact />
@@ -208,7 +208,7 @@ export function Detalhe({ id }) {
               ))}
             </div>
           </div>
-        </section>
+        </section>}
 
         {/* 6 · Confira também — 2 lugares + 2 roteiros */}
         <section className="place-row" id="sec-confira">

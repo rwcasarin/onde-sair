@@ -71,7 +71,7 @@ export function PlaceEditor({ id }) {
   const isNew = id === "novo";
   const found = db.places.find(p => p.id === id);
   if (!isNew && !found) return <NotFoundItem what="Lugar" path="lugares" />;
-  return <PlaceForm initial={isNew ? { ...BLANK, by: `Curadoria · ${user.name.split(" ")[0]}` } : found} isNew={isNew} />;
+  return <PlaceForm initial={isNew ? { ...BLANK, city: db.settings.defaultCity || BLANK.city, by: `Curadoria · ${user.name.split(" ")[0]}` } : found} isNew={isNew} />;
 }
 
 function PlaceForm({ initial, isNew }) {
