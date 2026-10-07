@@ -1,25 +1,25 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, cityName } from "./data.js";
 import { SITE } from "./admin/store.js";
-import { NavContext, CityContext, FavContext } from "./nav.js";
-import { usePath, go, toPath, fromPath } from "./router.js";
+import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
+import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
 import { TopNav } from "./components/ui.jsx";
 import { Onboarding } from "./screens/onboarding.jsx";
 import { Home } from "./screens/home.jsx";
 import { Lista } from "./screens/lista.jsx";
 import { Detalhe } from "./screens/detalhe.jsx";
-import { Roteiro, Roteiros } from "./screens/roteiro.jsx";
+import { Roteiro, Roteiros, MeuRoteiro } from "./screens/roteiro.jsx";
+import { MeuRoteiroEditor } from "./screens/meuroteiro.jsx";
 import { Historia, Historias } from "./screens/historia.jsx";
 import { Mapa } from "./screens/mapa.jsx";
-import { Favoritos } from "./screens/favoritos.jsx";
 import { Perfil } from "./screens/perfil.jsx";
 import { Notificacoes } from "./screens/notificacoes.jsx";
 import { Entrar } from "./screens/entrar.jsx";
 import { NotFound } from "./screens/notfound.jsx";
-import { account, loadAccount, subscribeAccount, updateAccount } from "./account.js";
+import { account, loadAccount, subscribeAccount, updateAccount, setIntent, takeIntent, findMyRoteiro } from "./account.js";
 
 // telas que exigem conta (sem sessão, levam para /entrar)
-const PRIVATE = new Set(["perfil", "notificacoes"]);
+const PRIVATE = new Set(["perfil", "notificacoes", "meuRoteiro", "meuRoteiroEditar"]);
 
 function titleFor(screen, params) {
   const t = (s) => s + " · Onde Sair";
@@ -32,6 +32,9 @@ function titleFor(screen, params) {
     case "detalhe": { const p = PLACES.find(x => x.id === params.id); return t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
     case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return t(r ? r.title : "Roteiro"); }
     case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return t(s ? s.title : "História"); }
+    case "perfil": return t({ favoritos: "Lugares favoritos", favRoteiros: "Roteiros favoritos", meus: "Meus roteiros", conta: "Dados da conta" }[params.tab] || "Meu perfil");
+    case "meuRoteiro": return t(findMyRoteiro(params.id)?.title || "Meu roteiro");
+    case "meuRoteiroEditar": return t(params.id === "novo" ? "Novo roteiro" : "Editar roteiro");
     case "entrar": return t({ cadastro: "Criar conta", "boas-vindas": "Boas-vindas" }[params.mode] || "Entrar");
     case "404": return t("Página não encontrada");
     default: return t({ roteiros: "Roteiros", historias: "Histórias", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
@@ -44,7 +47,7 @@ export default function App() {
 
   const [city, setCity] = useState("sp");
   const [unread, setUnread] = useState(NOTIFICATIONS.filter(n => n.unread).length);
-  const [faves, setFaves] = useState(new Set(["p2", "p10", "p3", "r4"]));
+  const [faves, setFaves] = useState(new Set());
   const [user, setUser] = useState(account.user);
   const [ready, setReady] = useState(account.ready);
   const favesRef = useRef(faves);
@@ -62,6 +65,7 @@ export default function App() {
         if (merged.size !== (a.user.faves || []).length) updateAccount({ faves: [...merged] }).catch(() => {});
         if (a.user.city) setCity(a.user.city);
       }
+      if (!id && prevId) setFaves(new Set());          // saiu da conta
       prevId = id;
     });
     if (!account.ready) loadAccount(); else prevId = null;
@@ -87,7 +91,11 @@ export default function App() {
     return () => document.removeEventListener("click", onClick);
   }, []);
 
+  // ação que exige conta: guarda a intenção, leva ao login e volta para onde estava
+  const ask = useCallback((intent) => { setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
+
   const toggleFave = useCallback((id) => {
+    if (!account.user) return ask({ type: "fave", id });
     const next = new Set(favesRef.current);
     next.has(id) ? next.delete(id) : next.add(id);
     setFaves(next);
@@ -96,7 +104,20 @@ export default function App() {
 
   // páginas da conta exigem login; quem já entrou não vê /entrar
   const blocked = ready && !user && PRIVATE.has(screen);
-  useEffect(() => { if (blocked) go("/entrar", { replace: true }); }, [blocked]);
+  useEffect(() => { if (blocked) { setIntent({ type: "voltar", back: path }); go("/entrar", { replace: true }); } }, [blocked]); // eslint-disable-line
+
+  // depois de entrar: conclui o que a pessoa tentou fazer sem conta
+  function afterLogin(u, isNew) {
+    if (u?.city) setCity(u.city);
+    const i = takeIntent();
+    if (i?.type === "fave" && i.id) {
+      const f = new Set([...(account.user?.faves || []), ...favesRef.current, i.id]);
+      setFaves(f); updateAccount({ faves: [...f] }).catch(() => {});
+    }
+    if (i?.type === "copiar") return nav("meuRoteiroEditar", { id: "novo", copiar: i.id });
+    if (i?.back && !/^\/(entrar|cadastro|boas-vindas)/.test(i.back)) { go(i.back); window.scrollTo(0, 0); return; }
+    nav(isNew ? "home" : "perfil");
+  }
   useEffect(() => { document.title = titleFor(screen, params); }, [path]); // eslint-disable-line
 
   if (SITE.maintenance) {
@@ -119,6 +140,7 @@ export default function App() {
     <NavContext.Provider value={nav}>
     <CityContext.Provider value={{ name: cityName(city), onCityClick: () => nav("onboarding") }}>
     <FavContext.Provider value={{ faves, toggle: toggleFave }}>
+    <AccountContext.Provider value={{ user, ask }}>
       <div className="app">
         {SITE.announcement?.enabled && SITE.announcement.text && (
           <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
@@ -132,12 +154,14 @@ export default function App() {
         {screen === "historias"    && <Historias />}
         {screen === "historia"     && <Historia key={key} id={params.id} />}
         {screen === "mapa"         && <Mapa key={key} id={params.id} />}
-        {screen === "favoritos"    && <Favoritos />}
-        {screen === "perfil"       && user && <Perfil user={user} />}
+        {screen === "perfil"       && user && <Perfil key={params.tab} user={user} tab={params.tab} />}
+        {screen === "meuRoteiro"   && user && <MeuRoteiro key={key} id={params.id} />}
+        {screen === "meuRoteiroEditar" && user && <MeuRoteiroEditor key={key} id={params.id} lugar={params.lugar} copiar={params.copiar} />}
         {screen === "notificacoes" && user && <Notificacoes onMarkAllRead={() => setUnread(0)} />}
-        {screen === "entrar"       && <Entrar key={key} mode={params.mode} onDone={(u, isNew) => { if (u?.city) setCity(u.city); nav(isNew ? "home" : "perfil"); }} />}
+        {screen === "entrar"       && <Entrar key={key} mode={params.mode} onDone={afterLogin} />}
         {screen === "404"          && <NotFound />}
       </div>
+    </AccountContext.Provider>
     </FavContext.Provider>
     </CityContext.Provider>
     </NavContext.Provider>
