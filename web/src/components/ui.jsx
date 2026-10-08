@@ -1,7 +1,8 @@
 import { AFFINITIES, TYPES, priceLabel } from "../data.js";
 import { useNav, useCity } from "../nav.js";
 import { CitySelect } from "./cityselect.jsx";
-import { href, toPath } from "../router.js";
+import { href, toPath, go } from "../router.js";
+import { menuItems, isActive } from "../menus.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 
@@ -47,14 +48,16 @@ export function IconBtn({ children, badge, onClick, title }) {
   );
 }
 
-const NAV_ITEMS = [
-  { label: "Hoje",           id: "home",     active: (c) => c === "home" },
-  { label: "Vibes",          id: "home",     params: { anchor: "vibes" }, active: (c, p) => c === "lista" && !!p.aff },
-  { label: "Lugares",        id: "lista",    active: (c, p) => (c === "lista" && !p.aff) || c === "detalhe" },
-  { label: "Roteiros",       id: "roteiros", active: (c) => c === "roteiros" || c === "roteiro" },
-  { label: "Guia da cidade", id: "mapa",     active: (c) => c === "mapa" },
-  { label: "Para parceiros", id: "home",     params: { anchor: "parceiros" }, active: () => false },
-];
+// Link de um item de menu (tela do site, página de conteúdo ou link externo)
+export function MenuLink({ to, className, children, ...rest }) {
+  const nav = useNav();
+  if (to.external) return <a className={className} href={to.url} {...(to.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} {...rest}>{children}</a>;
+  if (to.internal && to.newTab) return <a className={className} href={href(to.path)} target="_blank" rel="noopener" {...rest}>{children}</a>;
+  return (
+    <a className={className} href={href(to.path)} {...rest}
+      onClick={(e) => { e.preventDefault(); if (to.screen) nav(to.screen, to.params || {}); else { go(to.path); window.scrollTo(0, 0); } }}>{children}</a>
+  );
+}
 
 export function TopNav({ current, params = {}, unread, user }) {
   const nav = useNav();
@@ -63,8 +66,8 @@ export function TopNav({ current, params = {}, unread, user }) {
       <div className="topnav-inner">
         <Brand />
         <nav className="navlinks">
-          {NAV_ITEMS.map(n => (
-            <NavLink key={n.label} id={n.id} params={n.params} active={n.active(current, params)}>{n.label}</NavLink>
+          {menuItems("header").map(({ it, to }) => (
+            <MenuLink key={it.id} to={to} className={"navlink" + (isActive(it, current, params) ? " active" : "")}>{it.label}</MenuLink>
           ))}
         </nav>
         <div className="nav-right">

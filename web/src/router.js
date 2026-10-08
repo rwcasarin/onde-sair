@@ -2,7 +2,7 @@
 // No servidor usa caminhos reais (/lugares/quintal-do-centro); aberto como
 // arquivo (onde-sair.html) usa o mesmo caminho depois do # (#/lugares/...).
 import { useEffect, useState } from "react";
-import { PLACES, ROTEIROS, AFFINITIES, ALL_STORIES } from "./data.js";
+import { PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES } from "./data.js";
 import { slugify } from "./admin/store.js";
 
 export const HASH_MODE = typeof location !== "undefined" && location.protocol === "file:";
@@ -73,6 +73,7 @@ export function toPath(screen, params = {}) {
     case "detalhe": return placePath(params.id);
     case "roteiro": return roteiroPath(params.id);
     case "historia": return storyPath(params.id);
+    case "pagina": return "/" + slugOf(PAGES.find(x => x.id === params.id) || { slug: params.id });
     case "mapa": return params.id ? "/guia/" + slugOf(PLACES.find(x => x.id === params.id) || { slug: params.id }) : "/guia";
     case "perfil": return { favoritos: "/perfil/favoritos", favRoteiros: "/perfil/favoritos/roteiros", meus: "/perfil/roteiros", conta: "/perfil/conta" }[params.tab] || "/perfil";
     case "meuRoteiro": return "/perfil/roteiros/" + encodeURIComponent(params.id);
@@ -143,7 +144,10 @@ export function fromPath(full) {
       return b ? notFound : { screen: "entrar", params: { mode: a } };
     default: {
       const screen = Object.keys(STATIC).find(k => STATIC[k] === "/" + a);
-      return screen && !b ? { screen, params: {} } : notFound;
+      if (screen && !b) return { screen, params: {} };
+      // página de conteúdo publicada: /{slug}
+      const pg = !b && PAGES.find(x => x.slug === a);
+      return pg ? { screen: "pagina", params: { id: pg.id } } : notFound;
     }
   }
 }

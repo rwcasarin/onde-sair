@@ -33,6 +33,8 @@ export function publicView(db) {
     places: live(db.places),
     roteiros: live(db.roteiros),
     stories: live(db.stories),
+    ...(db.pages ? { pages: live(db.pages) } : {}),   // sem páginas/menus salvos, o site usa os iniciais
+    ...(db.menus ? { menus: db.menus } : {}),
     vibes: db.vibes || [],
     home: db.home,
     cities: db.cities || [],

@@ -8,6 +8,8 @@ import { Dashboard, ActivityPage } from "./pages/Dashboard.jsx";
 import { PlacesList, PlaceEditor } from "./pages/Places.jsx";
 import { RoteirosList, RoteiroEditor } from "./pages/Roteiros.jsx";
 import { StoriesList, StoryEditor } from "./pages/Stories.jsx";
+import { PagesList, PageEditor } from "./pages/Pages.jsx";
+import { MenusPage } from "./pages/Menus.jsx";
 import { VibesPage } from "./pages/Vibes.jsx";
 import { HomePage } from "./pages/HomeEditor.jsx";
 import { ReviewsPage } from "./pages/Reviews.jsx";
@@ -31,7 +33,9 @@ const NAV = [
     { path: "lugares", label: "Lugares", icon: "pin", perm: "content.edit", badge: (db) => db.places.filter(p => p.status === "revisao").length },
     { path: "roteiros", label: "Roteiros", icon: "route", perm: "content.edit", badge: (db) => db.roteiros.filter(p => p.status === "revisao").length },
     { path: "historias", label: "Histórias", icon: "file", perm: "content.edit", badge: (db) => db.stories.filter(p => p.status === "revisao").length },
+    { path: "paginas", label: "Páginas", icon: "page", perm: "content.edit", badge: (db) => (db.pages || []).filter(p => p.status === "revisao").length },
     { path: "home", label: "Home", icon: "layout", perm: "home.edit" },
+    { path: "menus", label: "Menus", icon: "menu", perm: "home.edit" },
     { path: "vibes", label: "Vibes", icon: "palette", perm: "home.edit" },
     { path: "midia", label: "Mídia", icon: "image", perm: "media.manage" },
   ]],
@@ -115,6 +119,8 @@ export default function AdminApp() {
     lugares: id ? <PlaceEditor key={id} id={id} /> : <PlacesList />,
     roteiros: id ? <RoteiroEditor key={id} id={id} /> : <RoteirosList />,
     historias: id ? <StoryEditor key={id} id={id} /> : <StoriesList />,
+    paginas: id ? <PageEditor key={id} id={id} /> : <PagesList />,
+    menus: <MenusPage />,
     home: <HomePage />,
     vibes: <VibesPage />,
     midia: <MediaPage />,

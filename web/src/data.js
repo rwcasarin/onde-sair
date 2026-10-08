@@ -567,3 +567,45 @@ export const ROTEIRO_TAGS = {
   r5: [["Pra economizar", "vibe-orange"], ["Samba", "vibe-pink"]],
   r6: [["Família", "vibe-sky"], ["Ao ar livre", "vibe-mint"]],
 };
+
+// ---------- Páginas de conteúdo e menus (editáveis no painel) ----------
+// PAGES/MENUS são preenchidos pelo painel (syncPublic) com o que está publicado.
+export const PAGES = [];
+export const MENUS = { header: [], footer: [], legal: [] };
+
+// Páginas iniciais (rascunhos para a equipe completar e publicar)
+export const SEED_PAGES = [
+  { id: "pg1", slug: "sobre", title: "Sobre o Onde Sair", excerpt: "Curadoria por afinidade: lugares escolhidos por quem vive a cidade.",
+    body: "<p>O Onde Sair nasceu pra responder a pergunta de todo fim de semana: <strong>onde a gente vai?</strong></p><h2>Como escolhemos os lugares</h2><p>Cada lugar passa pelo crivo de quem mora na cidade. Visitamos, provamos e só recomendamos o que indicaríamos pra um amigo.</p>" },
+  { id: "pg2", slug: "fale-com-a-gente", title: "Fale com a gente", excerpt: "Dúvidas, sugestões de lugares ou parcerias.",
+    body: "<p>Quer indicar um lugar, corrigir uma informação ou propor uma parceria? Escreva pra <a href=\"mailto:contato@ondesair.com.br\">contato@ondesair.com.br</a>.</p>" },
+  { id: "pg3", slug: "trabalhe-conosco", title: "Trabalhe conosco", excerpt: "Venha fazer curadoria com a gente.",
+    body: "<p>Estamos sempre de olho em gente que conhece a cidade e escreve bem. Mande seu portfólio pra <a href=\"mailto:contato@ondesair.com.br\">contato@ondesair.com.br</a>.</p>" },
+  { id: "pg4", slug: "termos-de-uso", title: "Termos de uso", excerpt: "Regras de uso do site Onde Sair.",
+    body: "<p>Escreva aqui os termos de uso do site.</p>" },
+  { id: "pg5", slug: "privacidade", title: "Política de privacidade", excerpt: "Como tratamos os seus dados.",
+    body: "<p>Escreva aqui a política de privacidade do site.</p>" },
+];
+
+// Menus iniciais (iguais aos fixos de antes). Tipos: site (tela do site), page (página de conteúdo), url (link)
+export const SEED_MENUS = {
+  header: [
+    { id: "m1", label: "Hoje", type: "site", target: "home" },
+    { id: "m2", label: "Vibes", type: "site", target: "home#vibes" },
+    { id: "m3", label: "Lugares", type: "site", target: "lista" },
+    { id: "m4", label: "Roteiros", type: "site", target: "roteiros" },
+    { id: "m5", label: "Guia da cidade", type: "site", target: "mapa" },
+    { id: "m6", label: "Para parceiros", type: "site", target: "home#parceiros" },
+  ],
+  footer: [
+    { id: "m7", label: "Sobre", type: "page", page: "pg1" },
+    { id: "m8", label: "Histórias", type: "site", target: "historias" },
+    { id: "m9", label: "Para parceiros", type: "site", target: "home#parceiros" },
+    { id: "m10", label: "Fale com a gente", type: "page", page: "pg2" },
+    { id: "m11", label: "Trabalhe conosco", type: "page", page: "pg3" },
+  ],
+  legal: [
+    { id: "m12", label: "Termos de uso", type: "page", page: "pg4" },
+    { id: "m13", label: "Privacidade", type: "page", page: "pg5" },
+  ],
+};

@@ -6,6 +6,8 @@ import { ImageSlot } from "./image-slot.jsx";
 import { href, go, toPath } from "../router.js";
 import { useNav, useCity, useFaves } from "../nav.js";
 import { CitySelect } from "./cityselect.jsx";
+import { MenuLink } from "./ui.jsx";
+import { menuItems } from "../menus.js";
 
 export const affById = (id) => AFFINITIES.find(a => a.id === id);
 export const placeById = (id) => PLACES.find(p => p.id === id);
@@ -260,8 +262,6 @@ export function MapArt({ pins = [], route = false, park = true, className = "", 
 // ---------- Rodapé ----------
 export function Footer() {
   const { id: cityId, name: city, set: setCity } = useCity();
-  const nav = useNav();
-  const links = [["Sobre"], ["Histórias", "historias"], ["Para parceiros", "home", { anchor: "parceiros" }], ["Fale com a gente"], ["Trabalhe conosco"]];
   const social = [["instagram", "Instagram"], ["tiktok", "TikTok"], ["youtube", "YouTube"], ["spotify", "Spotify"]];
   return (
     <footer className="site-footer">
@@ -272,7 +272,7 @@ export function Footer() {
             <span className="site-footer-motto">O lugar certo<br />pra cada vibe.</span>
           </div>
           <nav className="site-footer-links">
-            {links.map(([l, s, params]) => <a key={l} href={s ? href(toPath(s, params)) : "#"} onClick={(e) => { e.preventDefault(); s && nav(s, params); }}>{l}</a>)}
+            {menuItems("footer").map(({ it, to }) => <MenuLink key={it.id} to={to}>{it.label}</MenuLink>)}
           </nav>
           <div className="site-footer-social">
             {social.map(([icon, label]) => (
@@ -286,8 +286,7 @@ export function Footer() {
         <div className="site-footer-bottom">
           <span>© {new Date().getFullYear()} Onde Sair. Todos os direitos reservados.</span>
           <span className="site-footer-legal">
-            <a href="#" onClick={(e) => e.preventDefault()}>Termos de uso</a>
-            <a href="#" onClick={(e) => e.preventDefault()}>Privacidade</a>
+            {menuItems("legal").map(({ it, to }) => <MenuLink key={it.id} to={to}>{it.label}</MenuLink>)}
             <a href={href("/admin")} className="site-footer-admin">Área administrativa</a>
           </span>
         </div>

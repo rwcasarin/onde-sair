@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, cityName } from "./data.js";
+import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, cityName } from "./data.js";
 import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
 import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
@@ -16,6 +16,8 @@ import { Perfil } from "./screens/perfil.jsx";
 import { Notificacoes } from "./screens/notificacoes.jsx";
 import { Entrar } from "./screens/entrar.jsx";
 import { NotFound } from "./screens/notfound.jsx";
+import { Pagina } from "./screens/pagina.jsx";
+import { htmlToText } from "./richtext.js";
 import { account, loadAccount, subscribeAccount, updateAccount, setIntent, takeIntent, findMyRoteiro } from "./account.js";
 
 // telas que exigem conta (sem sessão, levam para /entrar)
@@ -24,21 +26,45 @@ const PRIVATE = new Set(["perfil", "notificacoes", "meuRoteiro", "meuRoteiroEdit
 function titleFor(screen, params) {
   const t = (s) => s + " · Onde Sair";
   switch (screen) {
-    case "home": return "Onde Sair · O lugar certo pra cada vibe";
+    case "home": return SITE.seoTitle || "Onde Sair · O lugar certo pra cada vibe";
     case "lista": {
       const v = AFFINITIES.find(a => a.id === params.aff);
       return t(params.q ? `Busca: ${params.q}` : v ? v.label : "Lugares");
     }
-    case "detalhe": { const p = PLACES.find(x => x.id === params.id); return t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
-    case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return t(r ? r.title : "Roteiro"); }
-    case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return t(s ? s.title : "História"); }
+    case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
+    case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return r?.seo?.title || t(r ? r.title : "Roteiro"); }
+    case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return s?.seo?.title || t(s ? s.title : "História"); }
     case "perfil": return t({ favoritos: "Lugares favoritos", favRoteiros: "Roteiros favoritos", meus: "Meus roteiros", conta: "Dados da conta" }[params.tab] || "Meu perfil");
     case "meuRoteiro": return t(findMyRoteiro(params.id)?.title || "Meu roteiro");
     case "meuRoteiroEditar": return t(params.id === "novo" ? "Novo roteiro" : "Editar roteiro");
     case "entrar": return t({ cadastro: "Criar conta", "boas-vindas": "Boas-vindas" }[params.mode] || "Entrar");
+    case "pagina": { const pg = PAGES.find(x => x.id === params.id); return pg?.seo?.title || t(pg ? pg.title : "Página"); }
     case "404": return t("Página não encontrada");
     default: return t({ roteiros: "Roteiros", historias: "Histórias", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
   }
+}
+
+// Descrição e indexação de cada tela (SEO preenchido no painel; senão, o padrão do site)
+function metaFor(screen, params) {
+  const item = { detalhe: PLACES, roteiro: ROTEIROS, historia: ALL_STORIES, pagina: PAGES }[screen]?.find(x => x.id === params.id);
+  const desc = item?.seo?.desc || (screen === "pagina" && item ? item.excerpt || htmlToText(item.body).slice(0, 160) : "") ||
+    (screen === "detalhe" ? item?.tagline : screen === "historia" ? item?.desc : "") || SITE.seoDesc || "";
+  return { desc, noindex: !!item?.seo?.noindex || screen === "404" || PRIVATE.has(screen) || screen === "entrar" };
+}
+function setTag(attr, key, content) {
+  let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+  if (content == null) { el?.remove(); return; }
+  if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+  el.setAttribute("content", content);
+}
+function applyMeta({ title, desc, noindex }) {
+  setTag("name", "description", desc || null);
+  setTag("property", "og:title", title);
+  setTag("property", "og:description", desc || null);
+  setTag("name", "robots", noindex ? "noindex, nofollow" : null);
+  let link = document.head.querySelector('link[rel="canonical"]');
+  if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
+  link.href = location.origin + location.pathname;
 }
 
 export default function App() {
@@ -125,7 +151,11 @@ export default function App() {
     if (i?.back && !/^\/(entrar|cadastro|boas-vindas)/.test(i.back)) { go(i.back); window.scrollTo(0, 0); return; }
     nav(isNew ? "home" : "perfil");
   }
-  useEffect(() => { document.title = titleFor(screen, params); }, [path]); // eslint-disable-line
+  useEffect(() => {
+    const title = titleFor(screen, params);
+    document.title = title;
+    applyMeta({ title, ...metaFor(screen, params) });
+  }, [path]); // eslint-disable-line
 
   if (SITE.maintenance) {
     return (
@@ -166,6 +196,7 @@ export default function App() {
         {screen === "meuRoteiroEditar" && user && <MeuRoteiroEditor key={key} id={params.id} lugar={params.lugar} copiar={params.copiar} />}
         {screen === "notificacoes" && user && <Notificacoes onMarkAllRead={() => setUnread(0)} />}
         {screen === "entrar"       && <Entrar key={key} mode={params.mode} onDone={afterLogin} />}
+        {screen === "pagina"       && <Pagina key={key} id={params.id} />}
         {screen === "404"          && <NotFound />}
       </div>
     </AccountContext.Provider>
