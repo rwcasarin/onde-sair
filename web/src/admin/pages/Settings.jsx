@@ -150,8 +150,8 @@ function InstagramCard() {
     setBusy(true); setErr("");
     try {
       const d = await api("admin/integrations", { method: "POST", body: { instagram: { businessId, token } } });
-      setSt(d.instagram); setToken("");
-      toast(`Instagram conectado${d.instagram.username ? " como @" + d.instagram.username : ""}.`, "success");
+      setSt(d.instagram); setToken(""); setBusinessId(d.instagram.businessId || businessId);
+      toast(`Instagram conectado${d.instagram.username ? " como @" + d.instagram.username : ""}.` + (d.instagram.fixedFrom ? " O ID era da Página do Facebook: usamos o da conta do Instagram." : ""), "success");
     } catch (e) { setErr(e.message); }
     setBusy(false);
   }
@@ -166,9 +166,11 @@ function InstagramCard() {
   return (
     <Card title="Instagram" subtitle="Mostra os 10 posts mais recentes de cada lugar com perfil público profissional.">
       {!REMOTE ? <p className="a-hint">Disponível quando o painel está publicado (precisa do servidor).</p> : <>
-        {st && (st.configured
-          ? <p className="a-insta-status ok" role="status">Conectado{st.source === "vercel" ? " pelas variáveis da Vercel" : ""} · conta {st.businessId} · token {st.tokenHint}{st.updatedBy ? ` · por ${st.updatedBy}` : ""}</p>
-          : <p className="a-insta-status warn" role="status">Ainda não conectado. A seção Instagram não aparece nos lugares.</p>)}
+        {st && (!st.configured
+          ? <p className="a-insta-status warn" role="status">Ainda não conectado. A seção Instagram não aparece nos lugares.</p>
+          : st.health && !st.health.ok
+            ? <p className="a-insta-status err" role="alert"><strong>Conectado, mas com erro.</strong> {st.health.error}<br /><small>Conta {st.businessId} · token {st.tokenHint}{st.source === "vercel" ? " · variáveis da Vercel" : ""}</small></p>
+            : <p className="a-insta-status ok" role="status">Conectado{st.health?.username ? ` como @${st.health.username}` : ""}{st.source === "vercel" ? " pelas variáveis da Vercel" : ""} · conta {st.businessId} · token {st.tokenHint}{st.updatedBy ? ` · por ${st.updatedBy}` : ""}{st.health?.warn ? <><br /><small>{st.health.warn}</small></> : null}</p>)}
         <div className="a-form-grid">
           <Input label="ID da conta do Instagram" value={businessId} onChange={(v) => setBusinessId(v.trim())} placeholder="1784…" inputMode="numeric" autoComplete="off"
             hint="O instagram_business_account da conta do Onde Sair." />
