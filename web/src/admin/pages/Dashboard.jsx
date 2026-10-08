@@ -17,7 +17,7 @@ export function Dashboard() {
   const pendingReview = [
     ...db.places.filter(p => p.status === "revisao").map(p => ({ t: p.name, k: "Lugar", path: "lugares/" + p.id, s: p })),
     ...db.roteiros.filter(p => p.status === "revisao").map(p => ({ t: p.title, k: "Roteiro", path: "roteiros/" + p.id, s: p })),
-    ...db.stories.filter(p => p.status === "revisao").map(p => ({ t: p.title, k: "História", path: "historias/" + p.id, s: p })),
+    ...db.stories.filter(p => p.status === "revisao").map(p => ({ t: p.title, k: "Post", path: "radar/" + p.id, s: p })),
   ];
   const drafts = [...db.places, ...db.roteiros, ...db.stories].filter(x => x.status === "rascunho").length;
   const pendingReviews = db.reviews.filter(r => r.status === "pendente");
@@ -44,7 +44,7 @@ export function Dashboard() {
         title={`Olá, ${first}`}
         subtitle={`Hoje é ${today}. Aqui está o resumo da curadoria.`}
         actions={can(user, "content.edit") && <>
-          <Btn icon="plus" onClick={() => go("historias/novo")}>Nova história</Btn>
+          <Btn icon="plus" onClick={() => go("radar/novo")}>Novo post</Btn>
           <Btn icon="plus" onClick={() => go("roteiros/novo")}>Novo roteiro</Btn>
           <Btn kind="primary" icon="plus" onClick={() => go("lugares/novo")}>Novo lugar</Btn>
         </>}

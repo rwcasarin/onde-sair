@@ -277,6 +277,11 @@ button.vibe-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8p
 .tone-purple { background: var(--primary); color: #fff; }
 .tone-green  { background: #CDEFE2; color: #0E6B4F; }
 .tone-orange { background: #FFD8B5; color: #8A3A00; }
+.tone-pink   { background: #FFD3E2; color: #9A1450; }
+.tone-teal   { background: #C7F0EB; color: #0B5F57; }
+.tone-sky    { background: #D6E9FF; color: #1D4C8C; }
+.tone-yellow { background: #FFEFB0; color: #6B5200; }
+.tone-lavender { background: #E6DDFB; color: #45318F; }
 .story-body h3 {
   margin: 10px 0 8px;
   font-family: var(--serif); font-weight: 700;

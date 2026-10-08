@@ -56,12 +56,12 @@ export const bySlug = (list, s) => list.find(x => slugOf(x) === s) || list.find(
 
 export const placePath = (p) => "/lugares/" + slugOf(typeof p === "string" ? PLACES.find(x => x.id === p) || { slug: p } : p);
 export const roteiroPath = (r) => "/roteiros/" + slugOf(typeof r === "string" ? ROTEIROS.find(x => x.id === r) || { slug: r } : r);
-export const storyPath = (s) => "/historias/" + slugOf(typeof s === "string" ? ALL_STORIES.find(x => x.id === s) || { slug: s } : s);
+export const storyPath = (s) => "/radar/" + slugOf(typeof s === "string" ? ALL_STORIES.find(x => x.id === s) || { slug: s } : s);
 export const vibePath = (aff) => "/vibes/" + slugOf(AFFINITIES.find(a => a.id === aff) || { slug: aff });
 
 const STATIC = {
   home: "/", lista: "/lugares", roteiros: "/roteiros", mapa: "/guia", favoritos: "/perfil/favoritos",
-  perfil: "/perfil", notificacoes: "/notificacoes", onboarding: "/cidade", historias: "/historias",
+  perfil: "/perfil", notificacoes: "/notificacoes", onboarding: "/cidade", historias: "/radar",
 };
 
 export function toPath(screen, params = {}) {
@@ -130,7 +130,7 @@ export function fromPath(full) {
       const r = bySlug(ROTEIROS, b);
       return r ? { screen: "roteiro", params: { id: r.id } } : notFound;
     }
-    case "historias": {
+    case "radar": case "historias": {   // /historias: endereço antigo do blog (o App troca pela URL nova)
       if (!b) return { screen: "historias", params: {} };
       const s = bySlug(ALL_STORIES, b);
       return s ? { screen: "historia", params: { id: s.id } } : notFound;

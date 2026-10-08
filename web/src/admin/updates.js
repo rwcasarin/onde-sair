@@ -77,10 +77,33 @@ function partnersPage(d, at) {
   return [pg.title];
 }
 
+// "Dicas de quem já foi"/Histórias vira o blog "Radar": links do menu com o nome antigo passam a se chamar Radar
+function renameBlog(d) {
+  if (!d.menus) return [];
+  d.menus = Object.fromEntries(Object.entries(d.menus).map(([k, items]) => [k, (items || []).map(it =>
+    it.type === "site" && it.target === "historias" && /^hist[oó]rias$/i.test(it.label.trim()) ? { ...it, label: "Radar" } : it)]));
+  return ["menus"];
+}
+
+// Categorias do Radar passam a ser gerenciadas no painel (nome + cor da etiqueta)
+const RADAR_DEFAULTS = [["Novidades", "purple"], ["Listas", "pink"], ["Comer bem", "orange"], ["Vida noturna", "purple"], ["Ao ar livre", "green"], ["Agenda", "teal"], ["Cultura", "sky"], ["Guia do bairro", "yellow"]];
+function radarCategories(d) {
+  if (d.radarCategories?.length) return [];
+  const slug = (t) => norm(t).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const cats = [];
+  const add = (label, tone) => { if (label && !cats.some(c => norm(c.label) === norm(label))) cats.push({ id: "c-" + slug(label), label, tone: tone || "purple" }); };
+  RADAR_DEFAULTS.forEach(([l, t]) => add(l, (d.stories || []).find(s => norm(s.tag || "") === norm(l))?.tone || t));
+  (d.stories || []).forEach(s => add(s.tag, s.tone));                 // categorias já usadas nos posts
+  d.radarCategories = cats;
+  return cats.map(c => c.label);
+}
+
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
   { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
+  { id: "2026-10-blog-radar", label: "seção Radar (antigas Histórias)", apply: renameBlog },
+  { id: "2026-10-radar-categorias", label: "categorias do Radar", apply: radarCategories },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

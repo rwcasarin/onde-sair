@@ -1,25 +1,29 @@
-import { useRef, useState } from "react";
+import { useMemo } from "react";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
-  AIcon, Card, Input, Textarea, Select, Segmented, Field, PillPicker, ImageField, PageHeader, useAdmin, useDraft, Btn,
+  AIcon, Card, Input, Textarea, Select, Segmented, Field, PillPicker, ImageField, PageHeader, Toggle, useAdmin, useDraft, Btn,
 } from "../kit.jsx";
-import { slugify } from "../store.js";
+import { RichEditor } from "../richeditor.jsx";
+import { htmlToText, asHtml } from "../../richtext.js";
+import { slugify, can } from "../store.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 
-const TONES = [["purple", "Roxo"], ["green", "Verde"], ["orange", "Laranja"]];
 const SHAPES = [["teal", "Teal"], ["purple", "Roxo"], ["lavender", "Lavanda"]];
-const CATEGORIES = ["Vida noturna", "Ao ar livre", "Comer bem", "Agenda", "Cultura", "Guia do bairro"];
+
+// categorias do Radar (gerenciadas em Radar › Categorias)
+const catsOf = (db) => db.radarCategories || [];
 
 export function StoriesList() {
-  const { db } = useAdmin();
+  const { db, go, user } = useAdmin();
   return (
     <ContentList
-      coll="stories" title="Histórias" newLabel="Nova história"
-      subtitle="Conteúdos editoriais da seção “Dicas de quem já foi”."
+      coll="stories" title="Radar" newLabel="Novo post"
+      subtitle="O blog do Onde Sair: novidades, atualizações e listas de lugares (seção “Radar” da home e /radar)."
       searchText={(s) => `${s.title} ${s.tag} ${s.author}`}
-      filters={[{ key: "tag", label: "Categoria", options: [...new Set(db.stories.map(s => s.tag))], test: (s, v) => s.tag === v }]}
+      actions={can(user, "content.publish") && <Btn icon="list" onClick={() => go("radar/categorias")}>Categorias</Btn>}
+      filters={[{ key: "tag", label: "Categoria", options: [...new Set([...catsOf(db).map(c => c.label), ...db.stories.map(s => s.tag)])], test: (s, v) => s.tag === v }]}
       columns={[
-        { key: "title", label: "História", render: (s) => (
+        { key: "title", label: "Post", render: (s) => (
           <span className="a-cell-main">
             <ImageSlot className="a-thumb" src={s.img} compact />
             <span><strong>{s.title}</strong><em>{s.desc}</em></span>
@@ -33,19 +37,22 @@ export function StoriesList() {
   );
 }
 
-const BLANK = { title: "", slug: "", tag: "Comer bem", tone: "orange", shape: "teal", desc: "", body: "", author: "", img: "", places: [], status: "rascunho" };
+const BLANK = { title: "", slug: "", tag: "Novidades", tone: "orange", shape: "teal", desc: "", body: "", author: "", img: "", places: [], numbered: false, seo: { title: "", desc: "" }, status: "rascunho" };
 const RULES = [
-  ["title", (d) => d.title.trim().length >= 6, "Dê um título à história."],
+  ["title", (d) => d.title.trim().length >= 6, "Dê um título ao post."],
   ["desc", (d) => d.desc.trim().length >= 30, "Escreva um resumo com pelo menos 30 caracteres.", true],
-  ["body", (d) => d.body.trim().length >= 80, "O texto precisa de pelo menos 80 caracteres.", true],
+  ["body", (d) => htmlToText(asHtml(d.body)).length >= 80 || inlinePlaces(d.body).length > 0, "O texto precisa de pelo menos 80 caracteres (ou lugares inseridos).", true],
 ];
+// lugares inseridos no texto (cards no meio do post)
+export const inlinePlaces = (body = "") => [...String(body).matchAll(/<figure class="place" data-place="([\w-]+)"/g)].map(m => m[1]);
 
 export function StoryEditor({ id }) {
   const { db, user } = useAdmin();
   const isNew = id === "novo";
   const found = db.stories.find(s => s.id === id);
-  if (!isNew && !found) return <NotFoundItem what="História" path="historias" />;
-  return <StoryForm initial={isNew ? { ...BLANK, author: user.name } : { ...BLANK, ...found }} isNew={isNew} />;
+  if (!isNew && !found) return <NotFoundItem what="Post" path="radar" />;
+  const first = catsOf(db)[0];
+  return <StoryForm initial={isNew ? { ...BLANK, author: user.name, ...(first ? { tag: first.label, tone: first.tone } : {}) } : { ...BLANK, ...found, seo: { ...BLANK.seo, ...(found.seo || {}) } }} isNew={isNew} />;
 }
 
 function StoryForm({ initial, isNew }) {
@@ -55,62 +62,53 @@ function StoryForm({ initial, isNew }) {
     coll: "stories", draft, dirty, rules: RULES,
     commit: (saved) => commit(saved),
   });
-  const [preview, setPreview] = useState(false);
-  const area = useRef(null);
   const img = draft.img || `images/historias/${draft.id || "nova"}.jpg`;
-  const words = draft.body.trim().split(/\s+/).filter(Boolean).length;
-
-  // ferramentas de formatação (Markdown simples)
-  function wrap(before, after = before, placeholder = "texto") {
-    const el = area.current; if (!el) return;
-    const { selectionStart: a, selectionEnd: b, value } = el;
-    const sel = value.slice(a, b) || placeholder;
-    const body = value.slice(0, a) + before + sel + after + value.slice(b);
-    set({ body });
-    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(a + before.length, a + before.length + sel.length); });
-  }
-  function linePrefix(prefix) {
-    const el = area.current; if (!el) return;
-    const { selectionStart: a, value } = el;
-    const start = value.lastIndexOf("\n", a - 1) + 1;
-    set({ body: value.slice(0, start) + prefix + value.slice(start) });
-    requestAnimationFrame(() => el.focus());
-  }
+  const live = useMemo(() => db.places.filter(p => p.status === "publicado").map(p => ({
+    id: p.id, name: p.name, sub: p.sub, bairro: p.bairro, type: p.type, cityName: db.cities.find(c => c.id === p.city)?.name,
+  })), [db.places, db.cities]);
+  const inline = inlinePlaces(draft.body);
+  const text = htmlToText(asHtml(draft.body));
+  const slug = draft.slug || slugify(draft.title) || "…";
+  const setSeo = (patch) => set({ seo: { ...draft.seo, ...patch } });
 
   return (
     <EditorLayout
-      header={<PageHeader title={isNew ? "Nova história" : draft.title || "Sem título"} crumbs={[["Painel", "/"], ["Histórias", "historias"], [isNew ? "Nova" : draft.title]]}
-        subtitle={`/historias/${draft.slug || slugify(draft.title) || "…"}`} />}
+      header={<PageHeader title={isNew ? "Novo post" : draft.title || "Sem título"} crumbs={[["Painel", "/"], ["Radar", "radar"], [isNew ? "Novo" : draft.title]]}
+        subtitle={`/radar/${slug}`} />}
       main={<>
         <Card>
-          <Input label="Título" required value={draft.title} onChange={(v) => set({ title: v })} error={errors.title} maxCount={80} />
-          <Textarea label="Resumo" required value={draft.desc} onChange={(v) => set({ desc: v })} error={errors.desc} rows={2} maxCount={160} hint="Aparece no card da home." />
-          <Field label="Texto" error={errors.body} hint={`${words} palavra(s) · ~${Math.max(1, Math.round(words / 200))} min de leitura · Markdown: **negrito**, *itálico*, ## título, - lista, [link](url)`}>
-            <div className="a-md">
-              <div className="a-md-bar" role="toolbar" aria-label="Formatação">
-                <button type="button" onClick={() => wrap("**")} aria-label="Negrito"><b>B</b></button>
-                <button type="button" onClick={() => wrap("*")} aria-label="Itálico"><i>I</i></button>
-                <button type="button" onClick={() => linePrefix("## ")} aria-label="Título">H</button>
-                <button type="button" onClick={() => linePrefix("- ")} aria-label="Lista"><AIcon name="list" size={15} /></button>
-                <button type="button" onClick={() => wrap("[", "](https://)", "link")} aria-label="Link"><AIcon name="link" size={15} /></button>
-                <span className="a-md-sep" />
-                <button type="button" className={preview ? "on" : ""} onClick={() => setPreview(!preview)}><AIcon name="eye" size={15} /> {preview ? "Editar" : "Pré-visualizar"}</button>
-              </div>
-              {preview
-                ? <div className="a-md-preview">{renderMarkdown(draft.body)}</div>
-                : <textarea ref={area} className="a-input a-textarea a-md-area" rows={14} value={draft.body} onChange={(e) => set({ body: e.target.value })} aria-label="Texto da história" />}
-            </div>
-          </Field>
+          <Input label="Título" required value={draft.title} onChange={(v) => set({ title: v })} error={errors.title} maxCount={90}
+            hint="Para listas, algo como “5 lugares pra tomar café da manhã com estilo em Sorocaba”." />
+          <Textarea label="Resumo" required value={draft.desc} onChange={(v) => set({ desc: v })} error={errors.desc} rows={2} maxCount={160} hint="Aparece no card da home e embaixo do título." />
+          <RichEditor value={draft.body} onChange={(body) => set({ body })} error={errors.body} places={live}
+            placeholder="Escreva o post. Para listas, use o botão “Lugar” para inserir cada lugar como card."
+            hint="Use “Lugar” na barra para inserir lugares cadastrados como cards" />
+          <Toggle label="Numerar os lugares (post de lista)" hint="Os cards de lugar ganham 1, 2, 3… na ordem do texto."
+            checked={!!draft.numbered} onChange={(numbered) => set({ numbered })} />
         </Card>
-        <Card title="Lugares citados" subtitle="Viram cards no fim da história.">
+        <Card title="Lugares relacionados" subtitle="Opcional: aparecem em cards no fim do post (os que já estão no texto não se repetem).">
           <PillPicker value={draft.places} onChange={(places) => set({ places })} options={db.places.filter(p => p.status === "publicado").map(p => [p.id, p.name])} />
+        </Card>
+        <Card title="SEO" subtitle="Como o post aparece no Google e quando é compartilhado.">
+          <Input label="Endereço (URL)" prefix="ondesair.com.br/radar/" value={draft.slug} placeholder={slugify(draft.title)}
+            onChange={(v) => set({ slug: v.toLowerCase().replace(/\s+/g, "-") })} onBlur={() => draft.slug && set({ slug: slugify(draft.slug) })}
+            hint="Mudar o endereço de um post publicado quebra links antigos." />
+          <Input label="Título para buscadores" value={draft.seo.title} placeholder={`${draft.title || "Título do post"} · Radar Onde Sair`} onChange={(title) => setSeo({ title })} maxCount={60} />
+          <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={draft.desc || "Resumo do post."} rows={3} onChange={(desc) => setSeo({ desc })} maxCount={160}
+            hint="Sem preencher, usamos o resumo." />
+          <div className="a-serp" aria-label="Prévia no Google">
+            <span className="a-serp-url">ondesair.com.br › radar › {slug}</span>
+            <strong>{draft.seo.title || `${draft.title || "Título do post"} · Radar Onde Sair`}</strong>
+            <p>{(draft.seo.desc || draft.desc || "A descrição aparece aqui.").slice(0, 160)}</p>
+          </div>
         </Card>
       </>}
       side={<>
         <PublishPanel coll="stories" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
         <Card title="Apresentação">
-          <Select label="Categoria" value={draft.tag} onChange={(tag) => set({ tag })} options={[...new Set([...CATEGORIES, draft.tag])]} />
-          <Field label="Cor da etiqueta"><Segmented label="Cor da etiqueta" value={draft.tone} onChange={(tone) => set({ tone })} options={TONES} /></Field>
+          <Select label="Categoria" value={draft.tag} options={[...new Set([...catsOf(db).map(c => c.label), draft.tag].filter(Boolean))]}
+            onChange={(tag) => set({ tag, tone: catsOf(db).find(c => c.label === tag)?.tone || draft.tone })}
+            hint={<>A cor da etiqueta vem da categoria. <a href="#" onClick={(e) => { e.preventDefault(); go("radar/categorias"); }}>Gerenciar categorias</a></>} />
           <Field label="Forma sobre a foto"><Segmented label="Forma" value={draft.shape} onChange={(shape) => set({ shape })} options={SHAPES} /></Field>
           <Input label="Autor" value={draft.author} onChange={(author) => set({ author })} />
           <ImageField label="Capa" path={img} hint="3:4" ratio="3 / 4" />
@@ -121,41 +119,11 @@ function StoryForm({ initial, isNew }) {
             <div className="story-body"><span className={"story-tag tone-" + draft.tone}>{draft.tag}</span><h3>{draft.title || "Título"}</h3><p>{draft.desc || "Resumo"}</p></div>
           </article>
         </Card>
-        <Checklist items={[["Título", !!draft.title], ["Resumo", draft.desc.length >= 30], ["Texto com 80+ caracteres", draft.body.length >= 80], ["Ao menos um lugar citado", draft.places.length > 0]]} />
+        <Checklist items={[["Título", !!draft.title], ["Resumo", draft.desc.length >= 30], ["Texto com 80+ caracteres", text.length >= 80],
+          ["Lugares no post", inline.length + draft.places.length > 0], ["Meta descrição", (draft.seo.desc || "").trim().length >= 50]]} />
         {isNew && <p className="a-hint">Para mostrar na home, publique e marque em Conteúdo › Home.</p>}
         {!isNew && <Btn kind="ghost" size="sm" icon="layout" onClick={() => go("home")}>Destaques da home</Btn>}
       </>}
     />
   );
-}
-
-// Renderizador mínimo e seguro (gera elementos React; nunca HTML bruto)
-function inline(text, key) {
-  const parts = [];
-  const re = /(\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g;
-  let last = 0, m, i = 0;
-  while ((m = re.exec(text))) {
-    if (m.index > last) parts.push(text.slice(last, m.index));
-    const t = m[0];
-    if (t.startsWith("**")) parts.push(<strong key={key + i++}>{t.slice(2, -2)}</strong>);
-    else if (t.startsWith("*")) parts.push(<em key={key + i++}>{t.slice(1, -1)}</em>);
-    else {
-      const [, label, href] = t.match(/\[([^\]]+)\]\(([^)]+)\)/);
-      const safe = /^(https?:|mailto:|\/)/.test(href) ? href : "#";
-      parts.push(<a key={key + i++} href={safe} target="_blank" rel="noreferrer">{label}</a>);
-    }
-    last = m.index + t.length;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  return parts;
-}
-export function renderMarkdown(src) {
-  const blocks = src.split(/\n{2,}/).filter(b => b.trim());
-  if (!blocks.length) return <p className="a-hint">Nada para mostrar ainda.</p>;
-  return blocks.map((b, i) => {
-    if (b.startsWith("## ")) return <h3 key={i}>{inline(b.slice(3), i)}</h3>;
-    const lines = b.split("\n");
-    if (lines.every(l => l.startsWith("- "))) return <ul key={i}>{lines.map((l, j) => <li key={j}>{inline(l.slice(2), `${i}-${j}`)}</li>)}</ul>;
-    return <p key={i}>{lines.map((l, j) => <span key={j}>{j > 0 && <br />}{inline(l, `${i}-${j}`)}</span>)}</p>;
-  });
 }

@@ -9,7 +9,7 @@ import { STATUS, can, relTime, fmtDate, setStatus, removeItems, duplicateItem, s
 export const COLL = {
   places:   { one: "lugar", many: "lugares", path: "lugares", title: (x) => x.name, siteScreen: "detalhe" },
   roteiros: { one: "roteiro", many: "roteiros", path: "roteiros", title: (x) => x.title, siteScreen: "roteiro" },
-  stories:  { one: "história", many: "histórias", path: "historias", title: (x) => x.title, siteScreen: "historia" },
+  stories:  { one: "post", many: "posts", path: "radar", title: (x) => x.title, siteScreen: "historia" },
   pages:    { one: "página", many: "páginas", path: "paginas", title: (x) => x.title, siteScreen: "pagina" },
 };
 
@@ -22,7 +22,7 @@ export function openOnSite(screen, params = {}) {
 // ---------------------------------------------------------------------
 // Lista com abas de status, busca, filtros e ações em lote
 // ---------------------------------------------------------------------
-export function ContentList({ coll, title, subtitle, columns, filters = [], searchText, newLabel }) {
+export function ContentList({ coll, title, subtitle, columns, filters = [], searchText, newLabel, actions }) {
   const { db, user, go, toast, saved, confirm } = useAdmin();
   const meta = COLL[coll];
   const [tab, setTab] = useState("todos");
@@ -64,7 +64,7 @@ export function ContentList({ coll, title, subtitle, columns, filters = [], sear
   return (
     <>
       <PageHeader title={title} subtitle={subtitle} crumbs={[["Painel", "/"], [title]]}
-        actions={<Btn kind="primary" icon="plus" onClick={() => go(`${meta.path}/novo`)}>{newLabel}</Btn>} />
+        actions={<>{actions}<Btn kind="primary" icon="plus" onClick={() => go(`${meta.path}/novo`)}>{newLabel}</Btn></>} />
       <Card pad={false}>
         <div className="a-card-pad a-card-pad-tight">
           <Tabs value={tab} onChange={setTab} tabs={[
