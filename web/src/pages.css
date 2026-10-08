@@ -965,3 +965,25 @@ a.btn-pill { text-decoration: none; }
 .insta-post blockquote.instagram-media { display: grid; place-items: center; min-height: 200px; padding: 16px; background: #F3F0FB; border: 0; }
 .insta-fallback { font-weight: 600; color: var(--heading); }
 @media (max-width: 720px) { .insta-feed { grid-auto-columns: 82%; } }
+
+/* Páginas de conteúdo (texto rico do painel) */
+.page-content .rich-text { max-width: 760px; margin: 8px 0 64px; }
+.rich-text { font-size: 17px; line-height: 1.7; color: var(--ink-2); overflow-wrap: anywhere; }
+.rich-text > :first-child { margin-top: 0; }
+.rich-text p { margin: 0 0 1em; }
+.rich-text h2 { font-family: var(--serif); font-weight: 700; font-size: 28px; line-height: 1.2; letter-spacing: -0.02em; color: var(--heading); margin: 1.6em 0 .5em; }
+.rich-text h3 { font-family: var(--serif); font-weight: 700; font-size: 21px; line-height: 1.25; color: var(--heading); margin: 1.4em 0 .4em; }
+.rich-text ul, .rich-text ol { margin: 0 0 1em; padding-left: 1.4em; }
+.rich-text li { margin: .25em 0; }
+.rich-text blockquote { margin: 1.2em 0; padding: 4px 0 4px 18px; border-left: 3px solid var(--c-magenta); font-family: var(--serif); font-size: 20px; color: var(--heading); }
+.rich-text a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.rich-text hr { border: 0; border-top: 1px solid rgba(30,21,80,.15); margin: 2em 0; }
+.rich-text strong { color: var(--heading); }
+@media (max-width: 720px) { .rich-text { font-size: 16px; } .rich-text h2 { font-size: 24px; } }
+.rich-text figure { margin: 1.6em 0; }
+.rich-text figure.img img { display: block; width: 100%; height: auto; border-radius: 12px; }
+.rich-text figure.img.wide { margin-left: -6%; margin-right: -6%; }
+.rich-text figcaption { margin-top: 8px; font-size: 14px; line-height: 1.5; color: var(--ink-3, #6E6890); }
+.rich-text figure.embed iframe { display: block; width: 100%; border: 0; border-radius: 12px; background: transparent; }
+.rich-text figure.embed-code iframe { border-radius: 0; }
+@media (max-width: 860px) { .rich-text figure.img.wide { margin-left: 0; margin-right: 0; } }

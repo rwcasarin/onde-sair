@@ -11,7 +11,7 @@
 import {
   CITIES, AFFINITIES, ROTEIROS, PLACES, NOTIFICATIONS, TAGLINES,
   VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
-  VIBE_TO_ROTEIRO, BRAND_VALUES, PLACE_TIPS, ROTEIRO_TAGS,
+  VIBE_TO_ROTEIRO, BRAND_VALUES, PLACE_TIPS, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS,
 } from "../data.js";
 import { applyUpdates } from "./updates.js";
 
@@ -159,7 +159,13 @@ function seed() {
     { at: daysAgo(2, 15), who: "Lucas P.", action: "publicou", target: "Domingo sem pressa", type: "roteiro" },
   ];
 
-  return { version: 1, places, roteiros, stories, vibes, home, reviews, members, team, cities, campaigns, settings, activity, media: {} };
+  const pages = clone(SEED_PAGES).map((pg, i) => ({
+    ...pg, status: "rascunho", seo: { title: "", desc: "", noindex: false },
+    createdAt: daysAgo(1, 9 + i), updatedAt: daysAgo(1, 9 + i), updatedBy: "Curadoria · Onde Sair",
+  }));
+  const menus = clone(SEED_MENUS);
+
+  return { version: 1, places, roteiros, stories, pages, menus, vibes, home, reviews, members, team, cities, campaigns, settings, activity, media: {} };
 }
 
 // ---------------------------------------------------------------------
@@ -222,7 +228,8 @@ export async function boot() {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 6000);
-    const r = await fetch("/api/content", { signal: ctrl.signal, headers: { accept: "application/json" } });
+    // no-cache: o navegador sempre confere com a CDN (sem servir uma cópia velha depois de uma edição)
+    const r = await fetch("/api/content", { signal: ctrl.signal, cache: "no-cache", headers: { accept: "application/json" } });
     clearTimeout(t);
     if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) return;
     const data = await r.json();
@@ -359,6 +366,8 @@ export function syncPublic() {
   replace(PLACES, db.places.filter(isLive));
   replace(ROTEIROS, db.roteiros.filter(isLive).map(r => ({ ...r, paradas: r.steps.length })));
   replace(ALL_STORIES, db.stories.filter(isLive).map(s => ({ ...s, img: s.img || `images/historias/${s.id}.jpg` })));
+  replace(PAGES, (db.pages || []).filter(isLive));
+  Object.assign(MENUS, clone(db.menus || SEED_MENUS));
   replace(STORIES, db.home.storyIds.map(id => db.stories.find(s => s.id === id)).filter(s => s && isLive(s)).map(s => ({ ...s, img: s.img || `images/historias/${s.id}.jpg` })));
 
   const vibes = db.vibes.filter(v => v.active);
@@ -388,10 +397,12 @@ export function syncPublic() {
   SITE.announcement = db.settings.announcement;
   SITE.maintenance = db.settings.maintenance;
   SITE.mapsKey = db.settings.mapsKey || "";
+  SITE.seoTitle = db.settings.seoTitle || "";
+  SITE.seoDesc = db.settings.seoDesc || "";
   SITE.defaultCity = CITIES.some(c => c.id === db.settings.defaultCity) ? db.settings.defaultCity : CITIES[0]?.id;
 }
 // Configurações lidas pelo site público (faixa de aviso, manutenção)
-export const SITE = { announcement: null, maintenance: false, defaultCity: "sorocaba", mapsKey: "" };
+export const SITE = { announcement: null, maintenance: false, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
 
 // ---------------------------------------------------------------------
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)
@@ -432,8 +443,11 @@ function log(user, action, target, type) {
 // ---------------------------------------------------------------------
 // CRUD genérico de coleções com fluxo editorial
 // ---------------------------------------------------------------------
-const TYPE_LABEL = { places: "lugar", roteiros: "roteiro", stories: "história" };
-const PREFIX = { places: "p", roteiros: "r", stories: "s" };
+const TYPE_LABEL = { places: "lugar", roteiros: "roteiro", stories: "história", pages: "página" };
+const PREFIX = { places: "p", roteiros: "r", stories: "s", pages: "pg" };
+// endereços já usados pelo site: páginas de conteúdo (/{slug}) não podem usá-los
+export const RESERVED_SLUGS = ["lugares", "vibes", "roteiros", "historias", "guia", "entrar", "cadastro", "boas-vindas", "perfil", "favoritos",
+  "notificacoes", "cidade", "admin", "api", "assets", "images", "index", "404"];
 const titleOf = (item) => item.name || item.title || item.id;
 
 export function nextId(coll) {
@@ -445,7 +459,8 @@ export function nextId(coll) {
 export function uniqueSlug(coll, slug, id) {
   const base = slugify(slug) || PREFIX[coll] + Date.now().toString(36);
   let s = base, n = 2;
-  while (db[coll].some(x => x.id !== id && x.slug === s)) s = `${base}-${n++}`;
+  const taken = (v) => db[coll].some(x => x.id !== id && x.slug === v) || (coll === "pages" && RESERVED_SLUGS.includes(v));
+  while (taken(s)) s = `${base}-${n++}`;
   return s;
 }
 
@@ -497,6 +512,7 @@ export function duplicateItem(coll, id, user) {
 // ---------------------------------------------------------------------
 export function saveVibes(vibes, user) { db.vibes = vibes; log(user, "atualizou", "vibes", "vibes"); commit(); }
 export function saveHome(home, user) { db.home = home; log(user, "atualizou", "home", "home"); commit(); }
+export function saveMenus(menus, user) { db.menus = menus; log(user, "atualizou", "menus", "menus"); commit(); }
 export function saveSettings(settings, user) { db.settings = settings; log(user, "atualizou", "configurações", "config"); commit(); }
 // Cadastro rápido a partir do editor de lugar (sem duplicidade: ignora acentos e maiúsculas)
 const normName = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
