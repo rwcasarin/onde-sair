@@ -57,9 +57,30 @@ function addSorocaba(d, at) {
   return fresh.map(p => p.name);
 }
 
+// "Para parceiros" deixa de apontar para a faixa da home e vira uma página de conteúdo
+const PARTNERS = {
+  id: "pg-parceiros", slug: "para-parceiros", title: "Para parceiros", status: "publicado",
+  excerpt: "Vamos juntos por uma cidade mais viva.",
+  body: "<p>O Onde Sair é feito de <strong>lugares reais, pessoas reais e dicas de verdade</strong>. Se o seu lugar tem a cara da cidade, a gente quer conhecer.</p>"
+    + "<h2>Como trabalhamos</h2><ul><li>Curadoria humana e independente</li><li>Lugares visitados e aprovados</li><li>Dicas de quem vive a cidade</li><li>Apoie o que é local e faça a cidade girar</li></ul>"
+    + "<h2>Seja um parceiro</h2><p>Conte pra gente sobre o seu lugar ou a sua ideia de parceria: <a href=\"mailto:contato@ondesair.com.br\">contato@ondesair.com.br</a>.</p>",
+  seo: { title: "Para parceiros · Onde Sair", desc: "Tem um lugar com a cara da cidade? Conheça como o Onde Sair trabalha e seja um parceiro da curadoria.", noindex: false },
+};
+function partnersPage(d, at) {
+  d.pages = d.pages || [];
+  let pg = d.pages.find(p => p.id === PARTNERS.id || p.slug === PARTNERS.slug);
+  if (!pg) { pg = { ...JSON.parse(JSON.stringify(PARTNERS)), createdAt: at, updatedAt: at, updatedBy: "Curadoria · Onde Sair" }; d.pages = [...d.pages, pg]; }
+  if (d.menus) {
+    const toPage = (it) => it.type === "site" && it.target === "home#parceiros" ? { id: it.id, label: it.label, type: "page", page: pg.id } : it;
+    d.menus = Object.fromEntries(Object.entries(d.menus).map(([k, items]) => [k, (items || []).map(toPage)]));
+  }
+  return [pg.title];
+}
+
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
+  { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.
