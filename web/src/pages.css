@@ -987,3 +987,24 @@ a.btn-pill { text-decoration: none; }
 .rich-text figure.embed iframe { display: block; width: 100%; border: 0; border-radius: 12px; background: transparent; }
 .rich-text figure.embed-code iframe { border-radius: 0; }
 @media (max-width: 860px) { .rich-text figure.img.wide { margin-left: 0; margin-right: 0; } }
+
+/* Radar (blog): card de lugar dentro do post */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.story-text.rich-text { max-width: 760px; }
+.post-place { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 22px; margin: 1.6em 0; padding: 14px; border-radius: 16px; background: #fff; box-shadow: 0 10px 30px -18px rgba(30,21,80,.35); font-size: 15px; line-height: 1.5; }
+.post-place-img { position: relative; display: block; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; }
+.post-place-img .post-place-photo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.post-place-img .post-place-photo img { width: 100%; height: 100%; object-fit: cover; }
+.post-place-n { position: absolute; top: 10px; left: 10px; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--c-magenta); color: #fff; font-family: var(--serif); font-weight: 700; font-size: 20px; box-shadow: 0 4px 10px rgba(30,21,80,.25); }
+.post-place-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 4px 4px 4px 0; }
+.post-place-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.post-place-head h3 { margin: 0 !important; font-family: var(--serif); font-size: 24px; line-height: 1.15; }
+.post-place-head h3 a { color: var(--heading); text-decoration: none; }
+.post-place-head h3 a:hover { text-decoration: underline; }
+.post-place-sub { margin: 0 !important; color: var(--ink-2); font-size: 14px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.post-place-vibes { display: flex; gap: 6px; flex-wrap: wrap; }
+.post-place-tagline { margin: 0 !important; color: var(--ink-2); }
+.post-place-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.post-place-open { display: inline-flex; align-items: center; gap: 4px; }
+.rich-text .post-place-cta { align-self: flex-start; margin-top: auto; text-decoration: none; color: #fff; }
+@media (max-width: 720px) { .post-place { grid-template-columns: 1fr; } .post-place-head h3 { font-size: 21px; } }

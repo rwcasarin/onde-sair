@@ -9,7 +9,7 @@ export function expectedImages(db) {
   add(db.home.hero.img, "Home · foto do topo", "Home");
   db.home.vibeRoteiros.forEach(v => add(v.img, `Home · card ${v.title}`, "Home", "3 / 4"));
   add("images/home/banner-encontros.jpg", "Banner “Viva bons encontros”", "Home");
-  db.stories.forEach(s => add(s.img || `images/historias/${s.id}.jpg`, `História · ${s.title}`, "Histórias", "3 / 4"));
+  db.stories.forEach(s => add(s.img || `images/historias/${s.id}.jpg`, `Post · ${s.title}`, "Radar", "3 / 4"));
   db.vibes.forEach(v => add(vibeImg(v.id), `Vibe · ${v.label}`, "Vibes", "16 / 7"));
   add("images/vibes/lugares.jpg", "Página Lugares", "Vibes", "16 / 7");
   db.places.forEach(p => {

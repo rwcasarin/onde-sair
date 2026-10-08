@@ -18,6 +18,7 @@ const esc = (t = "") => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<"
 export function figureHtml({ src, alt = "", caption = "", wide = false }) {
   return `<figure class="img${wide ? " wide" : ""}"><img src="${esc(src)}" alt="${esc(alt)}">${caption ? `<figcaption>${esc(caption)}</figcaption>` : ""}</figure>`;
 }
+export const placeHtml = (id) => `<figure class="place" data-place="${esc(id)}"></figure>`;
 export const embedHtml = (code) => `<figure class="embed" data-embed="${esc(encodeURIComponent(code))}"></figure>`;
 
 // Links permitidos: http(s), e-mail, telefone, caminhos do site (/…) e âncoras (#…)
@@ -62,6 +63,16 @@ export function sanitizeHtml(html = "", opts = {}) {
 function figure(n, doc, opts) {
   const cls = (n.getAttribute("class") || "").split(/\s+/);
   const fig = doc.createElement("figure");
+  if (cls.includes("place")) {
+    const id = n.getAttribute("data-place") || "";
+    if (!/^[\w-]{1,60}$/.test(id)) return null;
+    fig.className = "place"; fig.setAttribute("data-place", id);
+    if (opts.editor) {
+      fig.setAttribute("contenteditable", "false");
+      const card = doc.createElement("span"); card.className = "rte-place-card"; card.textContent = opts.placeLabel?.(id) || "Lugar"; fig.appendChild(card);
+    }
+    return fig;
+  }
   if (cls.includes("embed")) {
     const code = n.getAttribute("data-embed") || "";
     if (!code || code.length > 60000) return null;
@@ -131,3 +142,19 @@ export function htmlToText(html = "") {
   const d = new DOMParser().parseFromString(`<body>${String(html).replace(/<\/(p|h2|h3|li|blockquote)>/gi, "$& ")}</body>`, "text/html");
   return (d.body.textContent || "").replace(/\s+/g, " ").trim();
 }
+
+// Textos antigos em Markdown simples (## título, - lista, **negrito**, *itálico*, [link](url)) → HTML
+export function mdToHtml(src = "") {
+  const inline = (t) => esc(t)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, label, url) => safeHref(url) ? `<a href="${esc(url)}">${label}</a>` : label);
+  return String(src).split(/\n{2,}/).map(b => b.trim()).filter(Boolean).map(b => {
+    if (b.startsWith("## ")) return `<h2>${inline(b.slice(3))}</h2>`;
+    const lines = b.split("\n");
+    if (lines.every(l => l.startsWith("- "))) return `<ul>${lines.map(l => `<li>${inline(l.slice(2))}</li>`).join("")}</ul>`;
+    return `<p>${lines.map(inline).join("<br>")}</p>`;
+  }).join("");
+}
+// Corpo do conteúdo como HTML (converte textos antigos que ainda estão em Markdown)
+export const asHtml = (body = "") => /<(p|h2|h3|ul|ol|figure|blockquote)[\s>]/i.test(body) ? body : mdToHtml(body);

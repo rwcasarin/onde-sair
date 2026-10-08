@@ -32,7 +32,7 @@ const NAV = [
   ["Conteúdo", [
     { path: "lugares", label: "Lugares", icon: "pin", perm: "content.edit", badge: (db) => db.places.filter(p => p.status === "revisao").length },
     { path: "roteiros", label: "Roteiros", icon: "route", perm: "content.edit", badge: (db) => db.roteiros.filter(p => p.status === "revisao").length },
-    { path: "historias", label: "Histórias", icon: "file", perm: "content.edit", badge: (db) => db.stories.filter(p => p.status === "revisao").length },
+    { path: "radar", label: "Radar (blog)", icon: "file", perm: "content.edit", badge: (db) => db.stories.filter(p => p.status === "revisao").length },
     { path: "paginas", label: "Páginas", icon: "page", perm: "content.edit", badge: (db) => (db.pages || []).filter(p => p.status === "revisao").length },
     { path: "home", label: "Home", icon: "layout", perm: "home.edit" },
     { path: "menus", label: "Menus", icon: "menu", perm: "home.edit" },
@@ -118,7 +118,8 @@ export default function AdminApp() {
     atividade: <ActivityPage />,
     lugares: id ? <PlaceEditor key={id} id={id} /> : <PlacesList />,
     roteiros: id ? <RoteiroEditor key={id} id={id} /> : <RoteirosList />,
-    historias: id ? <StoryEditor key={id} id={id} /> : <StoriesList />,
+    radar: id ? <StoryEditor key={id} id={id} /> : <StoriesList />,
+    historias: id ? <StoryEditor key={id} id={id} /> : <StoriesList />,   // endereço antigo
     paginas: id ? <PageEditor key={id} id={id} /> : <PagesList />,
     menus: <MenusPage />,
     home: <HomePage />,
@@ -273,7 +274,7 @@ function QuickSearch({ db, go }) {
   const results = q.trim().length < 2 ? [] : [
     ...db.places.map(p => ({ t: p.name, s: `Lugar · ${p.bairro}`, path: "lugares/" + p.id })),
     ...db.roteiros.map(r => ({ t: r.title, s: "Roteiro", path: "roteiros/" + r.id })),
-    ...db.stories.map(s => ({ t: s.title, s: "História", path: "historias/" + s.id })),
+    ...db.stories.map(s => ({ t: s.title, s: "Post do Radar", path: "radar/" + s.id })),
     ...db.members.map(m => ({ t: m.name, s: "Usuário · " + m.email, path: "usuarios" })),
   ].filter(r => (r.t + " " + r.s).toLowerCase().includes(q.toLowerCase())).slice(0, 8);
   return (

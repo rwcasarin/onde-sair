@@ -599,7 +599,7 @@ export const SEED_MENUS = {
   ],
   footer: [
     { id: "m7", label: "Sobre", type: "page", page: "pg1" },
-    { id: "m8", label: "Histórias", type: "site", target: "historias" },
+    { id: "m8", label: "Radar", type: "site", target: "historias" },
     { id: "m9", label: "Para parceiros", type: "page", page: "pg-parceiros" },
     { id: "m10", label: "Fale com a gente", type: "page", page: "pg2" },
     { id: "m11", label: "Trabalhe conosco", type: "page", page: "pg3" },

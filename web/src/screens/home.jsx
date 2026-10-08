@@ -61,13 +61,13 @@ export function Home() {
           </div>
         </section>
 
-        {/* ================= DICAS DE QUEM JÁ FOI ================= */}
-        <section className="h2-section">
+        {/* ================= RADAR (blog) ================= */}
+        <section className="h2-section" id="radar">
           <SectionHead
-            title="Dicas de quem já foi"
-            sub="Histórias, roteiros e recomendações reais para inspirar a sua próxima saída."
-            link="Ver todas as histórias"
-            to="/historias"
+            title="Radar"
+            sub="Novidades, listas e achados da cidade — o que está no radar de quem vive ela."
+            link="Ver todos os posts"
+            to="/radar"
           />
           <div className="stories-grid">
             {STORIES.map(s => (

@@ -653,3 +653,14 @@ span.a-label { margin: 6px 0 8px; }
 .a-rte-embed-prev figure { margin: 0; }
 .a-insta-status.err { background: #FDE7EC; color: #8A1538; }
 .a-insta-status small { opacity: .85; }
+.a-rte-area .rte-place-card { display: flex; align-items: center; gap: 8px; padding: 16px 18px; border: 1px solid var(--a-border-strong); border-left: 4px solid var(--c-magenta, #EE2A6E); border-radius: 8px; background: #fff; font-size: 14px; font-weight: 600; color: var(--heading); }
+.a-rte-area .rte-place-card::before { content: "📍"; }
+.a-place-pick { list-style: none; margin: 12px 0 0; padding: 0; max-height: 340px; overflow: auto; border: 1px solid var(--a-border); border-radius: 10px; }
+.a-place-pick li { display: grid; grid-template-columns: 1fr auto; padding: 10px 12px; border-bottom: 1px solid var(--a-border); cursor: pointer; }
+.a-place-pick li:last-child { border-bottom: 0; }
+.a-place-pick li:hover { background: #FBFAF7; }
+.a-place-pick li.on { background: var(--primary-soft); }
+.a-place-pick strong { font-size: 14px; color: var(--heading); }
+.a-place-pick em { grid-column: 1; font-style: normal; font-size: 12.5px; color: var(--a-muted, #6E6890); }
+.a-place-pick-tag { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 11.5px; padding: 2px 8px; border-radius: 999px; background: #FFF4DE; color: #7A5200; }
+.a-place-pick-empty { cursor: default !important; color: var(--a-muted, #6E6890); }

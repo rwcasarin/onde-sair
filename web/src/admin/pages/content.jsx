@@ -9,7 +9,7 @@ import { STATUS, can, relTime, fmtDate, setStatus, removeItems, duplicateItem, s
 export const COLL = {
   places:   { one: "lugar", many: "lugares", path: "lugares", title: (x) => x.name, siteScreen: "detalhe" },
   roteiros: { one: "roteiro", many: "roteiros", path: "roteiros", title: (x) => x.title, siteScreen: "roteiro" },
-  stories:  { one: "história", many: "histórias", path: "historias", title: (x) => x.title, siteScreen: "historia" },
+  stories:  { one: "post", many: "posts", path: "radar", title: (x) => x.title, siteScreen: "historia" },
   pages:    { one: "página", many: "páginas", path: "paginas", title: (x) => x.title, siteScreen: "pagina" },
 };
 

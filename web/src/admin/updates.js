@@ -77,10 +77,19 @@ function partnersPage(d, at) {
   return [pg.title];
 }
 
+// "Dicas de quem já foi"/Histórias vira o blog "Radar": links do menu com o nome antigo passam a se chamar Radar
+function renameBlog(d) {
+  if (!d.menus) return [];
+  d.menus = Object.fromEntries(Object.entries(d.menus).map(([k, items]) => [k, (items || []).map(it =>
+    it.type === "site" && it.target === "historias" && /^hist[oó]rias$/i.test(it.label.trim()) ? { ...it, label: "Radar" } : it)]));
+  return ["menus"];
+}
+
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
   { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
+  { id: "2026-10-blog-radar", label: "seção Radar (antigas Histórias)", apply: renameBlog },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

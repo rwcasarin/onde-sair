@@ -446,7 +446,7 @@ function log(user, action, target, type) {
 const TYPE_LABEL = { places: "lugar", roteiros: "roteiro", stories: "história", pages: "página" };
 const PREFIX = { places: "p", roteiros: "r", stories: "s", pages: "pg" };
 // endereços já usados pelo site: páginas de conteúdo (/{slug}) não podem usá-los
-export const RESERVED_SLUGS = ["lugares", "vibes", "roteiros", "historias", "guia", "entrar", "cadastro", "boas-vindas", "perfil", "favoritos",
+export const RESERVED_SLUGS = ["lugares", "vibes", "roteiros", "historias", "radar", "guia", "entrar", "cadastro", "boas-vindas", "perfil", "favoritos",
   "notificacoes", "cidade", "admin", "api", "assets", "images", "index", "404"];
 const titleOf = (item) => item.name || item.title || item.id;
 

@@ -33,14 +33,14 @@ function titleFor(screen, params) {
     }
     case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
     case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return r?.seo?.title || t(r ? r.title : "Roteiro"); }
-    case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return s?.seo?.title || t(s ? s.title : "História"); }
+    case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return s?.seo?.title || t(s ? `${s.title} · Radar` : "Radar"); }
     case "perfil": return t({ favoritos: "Lugares favoritos", favRoteiros: "Roteiros favoritos", meus: "Meus roteiros", conta: "Dados da conta" }[params.tab] || "Meu perfil");
     case "meuRoteiro": return t(findMyRoteiro(params.id)?.title || "Meu roteiro");
     case "meuRoteiroEditar": return t(params.id === "novo" ? "Novo roteiro" : "Editar roteiro");
     case "entrar": return t({ cadastro: "Criar conta", "boas-vindas": "Boas-vindas" }[params.mode] || "Entrar");
     case "pagina": { const pg = PAGES.find(x => x.id === params.id); return pg?.seo?.title || t(pg ? pg.title : "Página"); }
     case "404": return t("Página não encontrada");
-    default: return t({ roteiros: "Roteiros", historias: "Histórias", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
+    default: return t({ roteiros: "Roteiros", historias: "Radar · Novidades e listas", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
   }
 }
 
@@ -48,6 +48,7 @@ function titleFor(screen, params) {
 function metaFor(screen, params) {
   const item = { detalhe: PLACES, roteiro: ROTEIROS, historia: ALL_STORIES, pagina: PAGES }[screen]?.find(x => x.id === params.id);
   const desc = item?.seo?.desc || (screen === "pagina" && item ? item.excerpt || htmlToText(item.body).slice(0, 160) : "") ||
+    (screen === "historias" ? "Radar Onde Sair: novidades, atualizações e listas de lugares da cidade, por quem vive ela." : "") ||
     (screen === "detalhe" ? item?.tagline : screen === "historia" ? item?.desc : "") || SITE.seoDesc || "";
   return { desc, noindex: !!item?.seo?.noindex || screen === "404" || PRIVATE.has(screen) || screen === "entrar" };
 }
@@ -151,6 +152,8 @@ export default function App() {
     if (i?.back && !/^\/(entrar|cadastro|boas-vindas)/.test(i.back)) { go(i.back); window.scrollTo(0, 0); return; }
     nav(isNew ? "home" : "perfil");
   }
+  // endereço antigo do blog (/historias/…) passa a ser /radar/…
+  useEffect(() => { if (/^\/historias(\/|$|\?)/.test(path)) go(path.replace(/^\/historias/, "/radar"), { replace: true }); }, [path]);
   useEffect(() => {
     const title = titleFor(screen, params);
     document.title = title;

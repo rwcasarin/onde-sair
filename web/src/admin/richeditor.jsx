@@ -1,19 +1,24 @@
 // Editor de texto rico (páginas de conteúdo): negrito, itálico, títulos, listas, citação e links.
 // O HTML é sempre limpo por sanitizeHtml antes de ir para o rascunho.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AIcon, Btn, Modal, Input, Textarea, Segmented, Field, useAdmin, compressImage } from "./kit.jsx";
-import { sanitizeHtml, safeHref, safeImg, htmlToText, figureHtml, embedHtml } from "../richtext.js";
+import { sanitizeHtml, safeHref, safeImg, htmlToText, figureHtml, embedHtml, placeHtml, asHtml } from "../richtext.js";
 import { parseEmbed, mountEmbeds } from "../embeds.js";
 import { resolveMedia, setMedia } from "./store.js";
 
 // no editor, imagens e incorporados são blocos fechados (clique para editar)
 const embedLabel = (code) => { const e = parseEmbed(code); return e ? `${e.provider} · clique para editar` : "Código incorporado inválido · clique para editar"; };
-const EDITOR = { editor: true, resolveImg: resolveMedia, embedLabel };
+const plain = (t = "") => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const BLOCKS = [["p", "Parágrafo"], ["h2", "Título"], ["h3", "Subtítulo"], ["blockquote", "Citação"]];
 const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, placeholder = "Escreva o conteúdo da página…" }) {
+// places: lista de lugares que podem virar card no texto (posts do Radar). Sem ela, o botão "Lugar" não aparece.
+export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, placeholder = "Escreva o conteúdo da página…", places }) {
+  const EDITOR = useMemo(() => ({
+    editor: true, resolveImg: resolveMedia, embedLabel,
+    placeLabel: (id) => { const p = places?.find(x => x.id === id); return p ? `${p.name} · ${[p.sub, p.bairro].filter(Boolean).join(" · ")}` : "Lugar não encontrado (excluído ou não publicado) · clique para trocar"; },
+  }), [places]);
   const el = useRef(null);
   const last = useRef(null);          // último HTML emitido (evita reescrever o editor enquanto digita)
   const saved = useRef(null);         // seleção guardada ao abrir o campo de link
@@ -24,7 +29,7 @@ export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, 
 
   useEffect(() => {
     if (!el.current || value === last.current) return;
-    el.current.innerHTML = sanitizeHtml(value || "", EDITOR);
+    el.current.innerHTML = sanitizeHtml(asHtml(value || ""), EDITOR);
     last.current = value;
   }, [value]);
 
@@ -110,7 +115,9 @@ export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, 
     const fig = e.target.closest?.("figure");
     if (!fig || !el.current.contains(fig)) return;
     e.preventDefault();
-    if (fig.classList.contains("embed")) {
+    if (fig.classList.contains("place")) {
+      setDialog({ type: "place", fig, data: { id: fig.getAttribute("data-place") || "" } });
+    } else if (fig.classList.contains("embed")) {
       let code = ""; try { code = decodeURIComponent(fig.getAttribute("data-embed") || ""); } catch { /* inválido */ }
       setDialog({ type: "embed", fig, data: { code } });
     } else {
@@ -169,6 +176,8 @@ export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, 
             onClick={() => setDialog({ type: "img", data: { src: "", alt: "", caption: "", wide: false } })}><AIcon name="image" size={15} /> Imagem</button>
           <button type="button" title="Incorporar código (vídeo, mapa, post, formulário…)" aria-label="Incorporar código" onMouseDown={(e) => { e.preventDefault(); keepSelection(); }}
             onClick={() => setDialog({ type: "embed", data: { code: "" } })}>&lt;/&gt; Incorporar</button>
+          {places && <button type="button" title="Inserir um lugar cadastrado (card com link)" aria-label="Inserir lugar" onMouseDown={(e) => { e.preventDefault(); keepSelection(); }}
+            onClick={() => setDialog({ type: "place", data: { id: "" } })}><AIcon name="pin" size={15} /> Lugar</button>}
           <span className="a-md-sep" />
           <B cmd="removeFormat" title="Limpar formatação">T<sub>x</sub></B>
           <span className="a-md-sep" />
@@ -188,6 +197,9 @@ export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, 
           aria-labelledby="rte-label" data-placeholder={placeholder} onInput={emit} onBlur={emit} onPaste={onPaste} onKeyDown={onKeyDown} onClick={onAreaClick} />
       </div>
       {dialog?.type === "img" && <ImageDialog initial={dialog.data} editing={!!dialog.fig} onClose={closeDialog} onSave={saveDialog} onRemove={() => { replaceFigure(dialog.fig, null); setDialog(null); }} />}
+      {dialog?.type === "place" && <PlaceDialog places={places || []} initial={dialog.data} editing={!!dialog.fig}
+        inPost={[...(el.current?.querySelectorAll("figure.place") || [])].map(f => f.getAttribute("data-place"))}
+        onClose={closeDialog} onSave={saveDialog} onRemove={() => { replaceFigure(dialog.fig, null); setDialog(null); }} />}
       {dialog?.type === "embed" && <EmbedDialog initial={dialog.data} editing={!!dialog.fig} onClose={closeDialog} onSave={saveDialog} onRemove={() => { replaceFigure(dialog.fig, null); setDialog(null); }} />}
       {error ? <span className="a-error">{error}</span> : <span className="a-hint">{hint ? hint + " · " : ""}{words} palavra(s) · ~{Math.max(1, Math.round(words / 200))} min de leitura</span>}
     </div>
@@ -278,6 +290,35 @@ function EmbedDialog({ initial, editing, onClose, onSave, onRemove }) {
       <span className="a-label">Prévia</span>
       {!e && <p className="a-hint">A prévia aparece aqui.</p>}
       <div className="a-rte-embed-prev rich-text" ref={box} />
+    </Modal>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Janela de lugar: busca entre os lugares cadastrados e publicados
+// ---------------------------------------------------------------------
+function PlaceDialog({ places, initial, editing, inPost, onClose, onSave, onRemove }) {
+  const [q, setQ] = useState("");
+  const [sel, setSel] = useState(initial.id);
+  const list = places.filter(p => !q || plain(`${p.name} ${p.sub} ${p.bairro} ${p.cityName || ""} ${p.type || ""}`).includes(plain(q))).slice(0, 60);
+  const choose = (id) => onSave(placeHtml(id));
+  return (
+    <Modal title={editing ? "Trocar lugar" : "Inserir lugar"} onClose={onClose}
+      footer={<>{editing && <Btn kind="ghost" icon="trash" className="a-danger-text" onClick={onRemove}>Remover</Btn>}<span style={{ flex: 1 }} />
+        <Btn onClick={onClose}>Cancelar</Btn><Btn kind="primary" icon="check" disabled={!sel} onClick={() => choose(sel)}>{editing ? "Salvar" : "Inserir"}</Btn></>}>
+      <p className="a-hint">O lugar aparece no post como um card com foto, informações principais e link para a página dele.</p>
+      <Input value={q} onChange={setQ} placeholder="Buscar por nome, bairro, cidade ou tipo…" aria-label="Buscar lugar" autoFocus />
+      <ul className="a-place-pick" role="listbox" aria-label="Lugares">
+        {list.map(p => (
+          <li key={p.id} role="option" aria-selected={sel === p.id} className={sel === p.id ? "on" : ""}
+            onClick={() => setSel(p.id)} onDoubleClick={() => choose(p.id)}>
+            <strong>{p.name}</strong>
+            <em>{[p.sub, p.bairro, p.cityName].filter(Boolean).join(" · ")}</em>
+            {inPost.includes(p.id) && p.id !== initial.id && <span className="a-place-pick-tag">já no post</span>}
+          </li>
+        ))}
+        {!list.length && <li className="a-place-pick-empty">Nenhum lugar publicado encontrado.</li>}
+      </ul>
     </Modal>
   );
 }

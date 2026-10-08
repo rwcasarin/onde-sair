@@ -61,11 +61,11 @@ export function HomePage() {
       </Card>
 
       <div className="a-grid-2">
-        <Card title="Dicas de quem já foi" subtitle="Até 3 histórias publicadas, na ordem abaixo.">
-          <Repeater items={draft.storyIds.map(id => ({ id }))} max={3} addLabel="Adicionar história" newItem={() => ({ id: liveStories.find(s => !draft.storyIds.includes(s.id))?.id || liveStories[0]?.id })}
+        <Card title="Radar" subtitle="Até 3 posts publicados, na ordem abaixo.">
+          <Repeater items={draft.storyIds.map(id => ({ id }))} max={3} addLabel="Adicionar post" newItem={() => ({ id: liveStories.find(s => !draft.storyIds.includes(s.id))?.id || liveStories[0]?.id })}
             onChange={(items) => set({ storyIds: items.map(x => x.id) })}
             render={(s, upd) => (
-              <Select value={s.id} onChange={(id) => upd({ id })} options={db.stories.map(x => [x.id, x.title + (isLive(x) ? "" : " (não publicada)")])} aria-label="História" />
+              <Select value={s.id} onChange={(id) => upd({ id })} options={db.stories.map(x => [x.id, x.title + (isLive(x) ? "" : " (não publicada)")])} aria-label="Post" />
             )} />
         </Card>
         <Card title="Valores da marca" subtitle="Faixa “Lugares reais. Pessoas reais.”">
