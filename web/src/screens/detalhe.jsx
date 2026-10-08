@@ -8,6 +8,8 @@ import {
 import { useNav, useCity, useFaves } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
+import { InstaFeed } from "../components/instafeed.jsx";
+import { instaProfile, useInstaPosts } from "../insta.js";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -24,7 +26,7 @@ const directions = (p) => p.geo
 // O lugar no Google Maps (busca pelo nome + endereço; com placeId abre a ficha exata)
 const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.name}, ${fullAddress(p).replaceAll(" · ", ", ")}`)}${p.placeId ? "&query_place_id=" + p.placeId : ""}`;
 
-const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["dicas", "Dicas"], ["confira", "Confira também"]];
+const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["insta", "Instagram"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["dicas", "Dicas"], ["confira", "Confira também"]];
 
 export function Detalhe({ id }) {
   const nav = useNav();
@@ -33,7 +35,11 @@ export function Detalhe({ id }) {
   const p = PLACES.find(x => x.id === id) || PLACES[0];
   // avaliações em destaque deste lugar (as de exemplo, sem lugar, valem para todos)
   const tips = PLACE_TIPS.filter(t => !t.place || t.place === p.id).slice(0, 3);
-  const tabs = tips.length ? TABS : TABS.filter(([t]) => t !== "dicas");
+  // seções que o admin pode esconder (Instagram só aparece com posts)
+  const instaPosts = useInstaPosts(p);   // últimos posts do perfil público (some se privado/indisponível)
+  const showInsta = instaPosts.length > 0;
+  const showFotos = p.showGallery !== false;
+  const tabs = TABS.filter(([t]) => (t !== "dicas" || tips.length) && (t !== "insta" || showInsta) && (t !== "fotos" || showFotos));
   const [tab, setTab] = useState("visao");
   const [shift, setShift] = useState(0);
   const [shared, setShared] = useState(false);
@@ -146,8 +152,19 @@ export function Detalhe({ id }) {
           </div>
         </section>
 
-        {/* 3 · Fotos do lugar */}
-        <section className="place-row" id="sec-fotos">
+        {/* 3 · Instagram do lugar */}
+        {showInsta && <section className="place-row" id="sec-insta">
+          <div>
+            <div className="h2-head">
+              <h2>No Instagram</h2>
+              {instaProfile(p.insta) && <a className="h2-link" href={instaProfile(p.insta)} target="_blank" rel="noreferrer">Ver perfil {p.insta.startsWith("@") ? p.insta : "@" + p.insta} <Icon name="arrow" size={16} /></a>}
+            </div>
+            <InstaFeed posts={instaPosts} />
+          </div>
+        </section>}
+
+        {/* 4 · Fotos do lugar */}
+        {showFotos && <section className="place-row" id="sec-fotos">
           <div>
             <div className="h2-head">
               <h2>Fotos do lugar</h2>
@@ -166,9 +183,9 @@ export function Detalhe({ id }) {
               ))}
             </div>
           </div>
-        </section>
+        </section>}
 
-        {/* 4 · Onde fica (70%) + Informações úteis (30%) */}
+        {/* 5 · Onde fica (70%) + Informações úteis (30%) */}
         <section className="place-row split-70-30" id="sec-chegar">
           <div className="where-box">
             <div className="h2-head">
@@ -188,12 +205,12 @@ export function Detalhe({ id }) {
               <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{fullAddress(p)}{p.cep && <><br />CEP {p.cep}</>}</dd></div>
               <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{p.phone}</dd></div>
               <div><Icon name="link" size={20} /><dt>Site</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.site}</a></dd></div>
-              <div><Icon name="instagram" size={20} /><dt>Instagram</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.insta}</a></dd></div>
+              <div><Icon name="instagram" size={20} /><dt>Instagram</dt><dd>{instaProfile(p.insta) ? <a href={instaProfile(p.insta)} target="_blank" rel="noreferrer">{p.insta}</a> : p.insta}</dd></div>
             </dl>
           </div>
         </section>
 
-        {/* 5 · Dicas de quem já foi (só com avaliações deste lugar) */}
+        {/* 6 · Dicas de quem já foi (só com avaliações deste lugar) */}
         {tips.length > 0 && <section className="place-row" id="sec-dicas">
           <div>
             <div className="h2-head">
@@ -216,7 +233,7 @@ export function Detalhe({ id }) {
           </div>
         </section>}
 
-        {/* 6 · Confira também — 2 lugares + 2 roteiros */}
+        {/* 7 · Confira também — 2 lugares + 2 roteiros */}
         <section className="place-row" id="sec-confira">
           <div>
             <div className="h2-head">

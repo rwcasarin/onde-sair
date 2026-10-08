@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TYPES, PRICE_RANGE, MOMENTOS, AMBIENTES, placeImg, placeGallery } from "../../data.js";
 import { ListingCard, MapArt } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
@@ -8,6 +8,7 @@ import {
 } from "../kit.jsx";
 import { slugify, addCity, addBairro } from "../store.js";
 import { AddressAutocomplete, CreatableField, Pending, findCity, findBairro } from "./location.jsx";
+import { checkInstaProfile } from "../../insta.js";
 import { PlaceMap } from "../../components/placemap.jsx";
 import { loadGoogle, addressOf } from "../../maps.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
@@ -55,6 +56,7 @@ const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
   affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
   priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", site: "", insta: "", reserva: false, note: "",
+  showGallery: true, showInstagram: true,
   rating: 0, reviews: 0, map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
 
@@ -177,8 +179,14 @@ function PlaceForm({ initial, isNew }) {
           </Card>
         )}
 
-        {tab === "imagens" && (
-          <Card subtitle="Envie fotos horizontais com boa luz. Elas são comprimidas automaticamente.">
+        {tab === "imagens" && (<>
+          <Card title="Instagram" subtitle="Seção “No Instagram”, antes das fotos do lugar, com os 10 posts mais recentes do perfil — atualizada automaticamente.">
+            <Toggle label="Mostrar a seção Instagram na página" hint="Só aparece se o perfil for público e profissional (empresa ou criador)."
+              checked={draft.showInstagram !== false} onChange={(showInstagram) => set({ showInstagram })} />
+            <InstaStatus handle={draft.insta} />
+          </Card>
+          <Card title="Fotos do lugar" subtitle="Envie fotos horizontais com boa luz. Elas são comprimidas automaticamente.">
+            <Toggle label="Mostrar a seção Fotos do lugar na página" checked={draft.showGallery !== false} onChange={(showGallery) => set({ showGallery })} />
             <ImageField label="Foto principal (capa e cards)" path={placeImg(previewId)} hint="16:10 · mín. 1400 px" />
             {isNew && <p className="a-hint">Salve o lugar para liberar o envio da galeria.</p>}
             {!isNew && (
@@ -190,7 +198,7 @@ function PlaceForm({ initial, isNew }) {
               </>
             )}
           </Card>
-        )}
+        </>)}
 
         {tab === "mapa" && <LocationTab draft={draft} set={set} errors={errors} />}
 
@@ -380,3 +388,28 @@ export function IconPicker({ value, onChange, icons = REASON_ICONS }) {
 }
 
 export { Check };
+
+// Situação do perfil do Instagram (consulta o servidor ao mudar o perfil)
+const INSTA_MSG = {
+  ok: (d) => ["ok", `Perfil público${d.username ? " @" + d.username : ""}: os ${d.posts.length} posts mais recentes aparecem na página.`],
+  "sem-posts": () => ["warn", "O perfil é público, mas ainda não tem posts. A seção não aparece."],
+  indisponivel: () => ["warn", "Perfil privado, pessoal ou inexistente. A seção não aparece na página."],
+  "nao-configurado": () => ["warn", "A integração com o Instagram ainda não foi configurada no servidor. A seção não aparece."],
+  invalido: () => ["warn", "O Instagram em Detalhes práticos não parece um perfil válido."],
+  erro: () => ["warn", "Não foi possível consultar o Instagram agora. Tente de novo mais tarde."],
+};
+function InstaStatus({ handle }) {
+  const h = (handle || "").trim();
+  const [st, setSt] = useState(null);
+  useEffect(() => {
+    setSt(null);
+    if (!h) return;
+    let alive = true;
+    const t = setTimeout(() => checkInstaProfile(h).then(d => alive && setSt(d)).catch(() => alive && setSt({ status: "erro", posts: [] })), 500);
+    return () => { alive = false; clearTimeout(t); };
+  }, [h]);
+  if (!h) return <p className="a-hint">Preencha o Instagram do lugar em Detalhes práticos.</p>;
+  if (!st) return <p className="a-hint">Verificando o perfil {h}…</p>;
+  const [tone, text] = (INSTA_MSG[st.status] || INSTA_MSG.erro)(st);
+  return <p className={"a-insta-status " + tone} role="status">{text}</p>;
+}
