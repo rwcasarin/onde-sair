@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {
+import { PAGES,
   PLACES, VIBE_ORDER, HERO, TIPS_TODAY, STORIES,
   VIBE_ROTEIROS, VIBE_TO_ROTEIRO, BRAND_VALUES,
 } from "../data.js";
@@ -119,7 +119,7 @@ export function Home() {
             ))}
           </ul>
           <div className="brand-strip-cta">
-            <button className="btn-pill">Seja um parceiro</button>
+            {PAGES.some(pg => pg.id === "pg-parceiros") && <button className="btn-pill" onClick={() => nav("pagina", { id: "pg-parceiros" })}>Seja um parceiro</button>}
             <p>Vamos juntos por<br />uma cidade mais viva.</p>
           </div>
         </section>
