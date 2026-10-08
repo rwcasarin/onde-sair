@@ -396,7 +396,7 @@ const INSTA_MSG = {
   indisponivel: () => ["warn", "Perfil privado, pessoal ou inexistente. A seção não aparece na página."],
   "nao-configurado": () => ["warn", "A integração com o Instagram ainda não foi configurada no servidor. A seção não aparece."],
   invalido: () => ["warn", "O Instagram em Detalhes práticos não parece um perfil válido."],
-  erro: () => ["warn", "Não foi possível consultar o Instagram agora. Tente de novo mais tarde."],
+  erro: (d) => ["warn", d.detail || "Não foi possível consultar o Instagram agora. Tente de novo mais tarde."],
 };
 function InstaStatus({ handle }) {
   const h = (handle || "").trim();

@@ -10,6 +10,7 @@ import { json, fail, handle } from "./_lib/http.js";
 import { requireUser } from "./_lib/auth.js";
 import { isLive } from "../shared/roles.js";
 import { instagramCreds } from "./_lib/secrets.js";
+import { graph, explain, isUnavailable } from "./_lib/instagram.js";
 
 const LIMIT = 10;
 const TTL = 60 * 60 * 1000;   // 1 h em memória (além do cache da CDN)
@@ -25,27 +26,21 @@ async function fetchProfile(handle) {
   const hit = memo.get(handle);
   if (hit && hit.me !== me + token.slice(-6)) memo.delete(handle);
   if (memo.has(handle) && Date.now() - hit.at < TTL) return hit.data;
-  const base = process.env.INSTAGRAM_GRAPH_URL || "https://graph.facebook.com/v23.0";
   const fields = `business_discovery.username(${handle}){username,media_count,media.limit(${LIMIT}){permalink,media_type,timestamp}}`;
+  const r = await graph(me, fields, token);
   let data;
-  try {
-    const r = await fetch(`${base}/${me}?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(token)}`);
-    const j = await r.json().catch(() => ({}));
-    if (j.business_discovery) {
-      const posts = (j.business_discovery.media?.data || [])
-        .filter(m => /^https:\/\/www\.instagram\.com\/(p|reel|tv)\/[\w-]+\/?$/.test(m.permalink || ""))
-        .slice(0, LIMIT)
-        .map(m => ({ url: m.permalink, type: m.media_type, at: m.timestamp }));
-      data = { status: posts.length ? "ok" : "sem-posts", username: j.business_discovery.username, posts };
-    } else if (j.error && (j.error.error_subcode === 2207013 || j.error.code === 110 || /cannot find user|not.*business/i.test(j.error.message || ""))) {
-      data = { status: "indisponivel", posts: [] };   // privado, pessoal ou inexistente
-    } else {
-      console.error("instagram", j.error || r.status);
-      return { status: "erro", posts: [] };              // não guarda: tenta de novo na próxima
-    }
-  } catch (e) {
-    console.error("instagram", e);
-    return { status: "erro", posts: [] };
+  if (r.data?.business_discovery) {
+    const bd = r.data.business_discovery;
+    const posts = (bd.media?.data || [])
+      .filter(m => /^https:\/\/www\.instagram\.com\/(p|reel|tv)\/[\w-]+\/?$/.test(m.permalink || ""))
+      .slice(0, LIMIT)
+      .map(m => ({ url: m.permalink, type: m.media_type, at: m.timestamp }));
+    data = { status: posts.length ? "ok" : "sem-posts", username: bd.username, posts };
+  } else if (isUnavailable(r.error)) {
+    data = { status: "indisponivel", posts: [] };   // privado, pessoal ou inexistente
+  } else {
+    console.error("instagram", handle, r.error);
+    return { status: "erro", posts: [], detail: explain(r.error || {}) };   // não guarda: tenta de novo na próxima
   }
   memo.set(handle, { at: Date.now(), data, me: me + token.slice(-6) });
   return data;
@@ -59,7 +54,7 @@ export const GET = handle(async (request) => {
     const h = cleanHandle(q.get("u"));
     if (!validHandle(h)) return fail(400, "Perfil inválido");
     memo.delete(h);
-    return json(await fetchProfile(h));
+    return json(await fetchProfile(h));   // inclui o motivo do erro (só para o painel)
   }
   // site: só lugares publicados com a seção ligada
   const id = q.get("place") || "";
@@ -68,7 +63,7 @@ export const GET = handle(async (request) => {
   if (!p) return fail(404, "Lugar não encontrado");
   const h = cleanHandle(p.insta);
   if (p.showInstagram === false || !validHandle(h)) return json({ status: "desligado", posts: [] }, 200, { "cache-control": "public, s-maxage=60" });
-  const data = await fetchProfile(h);
+  const { detail, ...data } = await fetchProfile(h);   // o motivo técnico não vai para o site
   const cache = data.status === "erro" || data.status === "nao-configurado" ? "public, s-maxage=60" : "public, s-maxage=3600, stale-while-revalidate=86400";
   return json(data, 200, { "cache-control": cache });
 });

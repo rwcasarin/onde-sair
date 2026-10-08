@@ -651,3 +651,5 @@ span.a-label { margin: 6px 0 8px; }
 .a-rte-imgsrc .a-grow { flex: 1; margin: 0; }
 .a-rte-embed-prev { min-height: 60px; max-height: 460px; overflow: auto; padding: 8px; border: 1px solid var(--a-border); border-radius: 10px; background: #FBFAF7; }
 .a-rte-embed-prev figure { margin: 0; }
+.a-insta-status.err { background: #FDE7EC; color: #8A1538; }
+.a-insta-status small { opacity: .85; }
