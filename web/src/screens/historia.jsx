@@ -1,12 +1,13 @@
 // Radar (blog) — lista (/radar) e post (/radar/{slug}).
 // Posts de lista trazem lugares cadastrados como cards no meio do texto.
-import { Fragment, useEffect, useMemo, useRef } from "react";
-import { ALL_STORIES, PLACES, PRICE_RANGE, placeImg } from "../data.js";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { ALL_STORIES, PLACES, PRICE_RANGE, RADAR_CATEGORIES, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, PriceDots, Rating, FaveButton } from "../components/site.jsx";
 import { useNav } from "../nav.js";
-import { href, storyPath, placePath } from "../router.js";
+import { href, storyPath, placePath, currentPath, HASH_MODE } from "../router.js";
+import { slugify } from "../admin/store.js";
 import { sanitizeHtml, asHtml } from "../richtext.js";
 import { resolveMedia } from "../admin/store.js";
 import { mountEmbeds } from "../embeds.js";
@@ -29,13 +30,37 @@ function StoryCard({ s }) {
 }
 
 export function Historias() {
+  // categorias com posts publicados, na ordem do painel (as que não estão no painel vêm no fim)
+  const cats = useMemo(() => {
+    const used = [...new Set(ALL_STORIES.map(s => s.tag).filter(Boolean))];
+    const ordered = RADAR_CATEGORIES.filter(c => used.includes(c.label));
+    return [...ordered, ...used.filter(t => !ordered.some(c => c.label === t)).map(t => ({ label: t, tone: ALL_STORIES.find(s => s.tag === t)?.tone }))];
+  }, []);
+  const initial = new URLSearchParams(currentPath().split("?")[1] || "").get("categoria");
+  const [cat, setCat] = useState(() => cats.find(c => slugify(c.label) === initial)?.label || null);
+  function pick(label) {
+    const next = label === cat ? null : label;
+    setCat(next);
+    const url = "/radar" + (next ? "?categoria=" + slugify(next) : "");
+    history.replaceState(null, "", HASH_MODE ? "#" + url : url);
+  }
+  const list = cat ? ALL_STORIES.filter(s => s.tag === cat) : ALL_STORIES;
   return (
     <main className="home2">
       <div className="shell">
         <PageHead crumbs={[["Início", "home"], ["Radar"]]} title="Radar"
-          lede="Novidades, atualizações e listas de lugares: o que está no radar de quem vive a cidade." />
+          lede="Novidades, atualizações e listas de lugares: o que está no radar de quem vive a cidade.">
+          {cats.length > 1 && (
+            <div className="radar-filters" role="group" aria-label="Filtrar por categoria">
+              <button type="button" className={"radar-chip" + (!cat ? " on" : "")} aria-pressed={!cat} onClick={() => pick(null)}>Todos</button>
+              {cats.map(c => (
+                <button key={c.label} type="button" className={"radar-chip" + (cat === c.label ? " on" : "")} aria-pressed={cat === c.label} onClick={() => pick(c.label)}>{c.label}</button>
+              ))}
+            </div>
+          )}
+        </PageHead>
         <div className="stories-grid stories-all">
-          {ALL_STORIES.map(s => <StoryCard key={s.id} s={s} />)}
+          {list.map(s => <StoryCard key={s.id} s={s} />)}
         </div>
       </div>
       <Footer />

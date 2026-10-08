@@ -8,6 +8,7 @@ import { Dashboard, ActivityPage } from "./pages/Dashboard.jsx";
 import { PlacesList, PlaceEditor } from "./pages/Places.jsx";
 import { RoteirosList, RoteiroEditor } from "./pages/Roteiros.jsx";
 import { StoriesList, StoryEditor } from "./pages/Stories.jsx";
+import { RadarCategoriesPage } from "./pages/RadarCategories.jsx";
 import { PagesList, PageEditor } from "./pages/Pages.jsx";
 import { MenusPage } from "./pages/Menus.jsx";
 import { VibesPage } from "./pages/Vibes.jsx";
@@ -32,7 +33,7 @@ const NAV = [
   ["Conteúdo", [
     { path: "lugares", label: "Lugares", icon: "pin", perm: "content.edit", badge: (db) => db.places.filter(p => p.status === "revisao").length },
     { path: "roteiros", label: "Roteiros", icon: "route", perm: "content.edit", badge: (db) => db.roteiros.filter(p => p.status === "revisao").length },
-    { path: "radar", label: "Radar (blog)", icon: "file", perm: "content.edit", badge: (db) => db.stories.filter(p => p.status === "revisao").length },
+    { path: "radar", label: "Radar", icon: "file", perm: "content.edit", badge: (db) => db.stories.filter(p => p.status === "revisao").length },
     { path: "paginas", label: "Páginas", icon: "page", perm: "content.edit", badge: (db) => (db.pages || []).filter(p => p.status === "revisao").length },
     { path: "home", label: "Home", icon: "layout", perm: "home.edit" },
     { path: "menus", label: "Menus", icon: "menu", perm: "home.edit" },
@@ -118,7 +119,7 @@ export default function AdminApp() {
     atividade: <ActivityPage />,
     lugares: id ? <PlaceEditor key={id} id={id} /> : <PlacesList />,
     roteiros: id ? <RoteiroEditor key={id} id={id} /> : <RoteirosList />,
-    radar: id ? <StoryEditor key={id} id={id} /> : <StoriesList />,
+    radar: id === "categorias" ? <RadarCategoriesPage /> : id ? <StoryEditor key={id} id={id} /> : <StoriesList />,
     historias: id ? <StoryEditor key={id} id={id} /> : <StoriesList />,   // endereço antigo
     paginas: id ? <PageEditor key={id} id={id} /> : <PagesList />,
     menus: <MenusPage />,

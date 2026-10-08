@@ -5,21 +5,23 @@ import {
 } from "../kit.jsx";
 import { RichEditor } from "../richeditor.jsx";
 import { htmlToText, asHtml } from "../../richtext.js";
-import { slugify } from "../store.js";
+import { slugify, can } from "../store.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 
-const TONES = [["purple", "Roxo"], ["green", "Verde"], ["orange", "Laranja"]];
 const SHAPES = [["teal", "Teal"], ["purple", "Roxo"], ["lavender", "Lavanda"]];
-const CATEGORIES = ["Novidades", "Listas", "Comer bem", "Vida noturna", "Ao ar livre", "Agenda", "Cultura", "Guia do bairro"];
+
+// categorias do Radar (gerenciadas em Radar › Categorias)
+const catsOf = (db) => db.radarCategories || [];
 
 export function StoriesList() {
-  const { db } = useAdmin();
+  const { db, go, user } = useAdmin();
   return (
     <ContentList
       coll="stories" title="Radar" newLabel="Novo post"
       subtitle="O blog do Onde Sair: novidades, atualizações e listas de lugares (seção “Radar” da home e /radar)."
       searchText={(s) => `${s.title} ${s.tag} ${s.author}`}
-      filters={[{ key: "tag", label: "Categoria", options: [...new Set(db.stories.map(s => s.tag))], test: (s, v) => s.tag === v }]}
+      actions={can(user, "content.publish") && <Btn icon="list" onClick={() => go("radar/categorias")}>Categorias</Btn>}
+      filters={[{ key: "tag", label: "Categoria", options: [...new Set([...catsOf(db).map(c => c.label), ...db.stories.map(s => s.tag)])], test: (s, v) => s.tag === v }]}
       columns={[
         { key: "title", label: "Post", render: (s) => (
           <span className="a-cell-main">
@@ -49,7 +51,8 @@ export function StoryEditor({ id }) {
   const isNew = id === "novo";
   const found = db.stories.find(s => s.id === id);
   if (!isNew && !found) return <NotFoundItem what="Post" path="radar" />;
-  return <StoryForm initial={isNew ? { ...BLANK, author: user.name } : { ...BLANK, ...found, seo: { ...BLANK.seo, ...(found.seo || {}) } }} isNew={isNew} />;
+  const first = catsOf(db)[0];
+  return <StoryForm initial={isNew ? { ...BLANK, author: user.name, ...(first ? { tag: first.label, tone: first.tone } : {}) } : { ...BLANK, ...found, seo: { ...BLANK.seo, ...(found.seo || {}) } }} isNew={isNew} />;
 }
 
 function StoryForm({ initial, isNew }) {
@@ -103,8 +106,9 @@ function StoryForm({ initial, isNew }) {
       side={<>
         <PublishPanel coll="stories" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
         <Card title="Apresentação">
-          <Select label="Categoria" value={draft.tag} onChange={(tag) => set({ tag })} options={[...new Set([...CATEGORIES, draft.tag])]} />
-          <Field label="Cor da etiqueta"><Segmented label="Cor da etiqueta" value={draft.tone} onChange={(tone) => set({ tone })} options={TONES} /></Field>
+          <Select label="Categoria" value={draft.tag} options={[...new Set([...catsOf(db).map(c => c.label), draft.tag].filter(Boolean))]}
+            onChange={(tag) => set({ tag, tone: catsOf(db).find(c => c.label === tag)?.tone || draft.tone })}
+            hint={<>A cor da etiqueta vem da categoria. <a href="#" onClick={(e) => { e.preventDefault(); go("radar/categorias"); }}>Gerenciar categorias</a></>} />
           <Field label="Forma sobre a foto"><Segmented label="Forma" value={draft.shape} onChange={(shape) => set({ shape })} options={SHAPES} /></Field>
           <Input label="Autor" value={draft.author} onChange={(author) => set({ author })} />
           <ImageField label="Capa" path={img} hint="3:4" ratio="3 / 4" />

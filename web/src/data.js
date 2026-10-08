@@ -571,6 +571,8 @@ export const ROTEIRO_TAGS = {
 // ---------- Páginas de conteúdo e menus (editáveis no painel) ----------
 // PAGES/MENUS são preenchidos pelo painel (syncPublic) com o que está publicado.
 export const PAGES = [];
+// Categorias do Radar (blog), na ordem definida no painel: { id, label, tone }
+export const RADAR_CATEGORIES = [];
 export const MENUS = { header: [], footer: [], legal: [] };
 
 // Páginas iniciais (rascunhos para a equipe completar e publicar)

@@ -1008,3 +1008,7 @@ a.btn-pill { text-decoration: none; }
 .post-place-open { display: inline-flex; align-items: center; gap: 4px; }
 .rich-text .post-place-cta { align-self: flex-start; margin-top: auto; text-decoration: none; color: #fff; }
 @media (max-width: 720px) { .post-place { grid-template-columns: 1fr; } .post-place-head h3 { font-size: 21px; } }
+.radar-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.radar-chip { padding: 7px 14px; border: 1px solid transparent; border-radius: 999px; background: #fff; color: var(--heading); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(30,21,80,.15); }
+.radar-chip:hover { box-shadow: inset 0 0 0 1px var(--heading); }
+.radar-chip.on, .radar-chip.on:hover { background: var(--heading); color: #fff; box-shadow: none; }

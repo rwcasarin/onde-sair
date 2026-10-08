@@ -11,7 +11,7 @@
 import {
   CITIES, AFFINITIES, ROTEIROS, PLACES, NOTIFICATIONS, TAGLINES,
   VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
-  VIBE_TO_ROTEIRO, BRAND_VALUES, PLACE_TIPS, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS,
+  VIBE_TO_ROTEIRO, BRAND_VALUES, PLACE_TIPS, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS, RADAR_CATEGORIES,
 } from "../data.js";
 import { applyUpdates } from "./updates.js";
 
@@ -365,10 +365,13 @@ export function syncPublic() {
   stripLegacy(db);
   replace(PLACES, db.places.filter(isLive));
   replace(ROTEIROS, db.roteiros.filter(isLive).map(r => ({ ...r, paradas: r.steps.length })));
-  replace(ALL_STORIES, db.stories.filter(isLive).map(s => ({ ...s, img: s.img || `images/historias/${s.id}.jpg` })));
+  // a cor da etiqueta vem sempre da categoria (gerenciada no painel)
+  const catTone = (s) => (db.radarCategories || []).find(c => c.label === s.tag)?.tone || s.tone;
+  replace(ALL_STORIES, db.stories.filter(isLive).map(s => ({ ...s, tone: catTone(s), img: s.img || `images/historias/${s.id}.jpg` })));
   replace(PAGES, (db.pages || []).filter(isLive));
+  replace(RADAR_CATEGORIES, clone(db.radarCategories || []));
   Object.assign(MENUS, clone(db.menus || SEED_MENUS));
-  replace(STORIES, db.home.storyIds.map(id => db.stories.find(s => s.id === id)).filter(s => s && isLive(s)).map(s => ({ ...s, img: s.img || `images/historias/${s.id}.jpg` })));
+  replace(STORIES, db.home.storyIds.map(id => db.stories.find(s => s.id === id)).filter(s => s && isLive(s)).map(s => ({ ...s, tone: catTone(s), img: s.img || `images/historias/${s.id}.jpg` })));
 
   const vibes = db.vibes.filter(v => v.active);
   replace(AFFINITIES, vibes.map(v => ({ id: v.id, label: v.label, sub: v.sub, slug: v.slug, tint: v.tint, count: db.places.filter(p => isLive(p) && p.affs.includes(v.id)).length })));
@@ -512,6 +515,20 @@ export function duplicateItem(coll, id, user) {
 // ---------------------------------------------------------------------
 export function saveVibes(vibes, user) { db.vibes = vibes; log(user, "atualizou", "vibes", "vibes"); commit(); }
 export function saveHome(home, user) { db.home = home; log(user, "atualizou", "home", "home"); commit(); }
+// Categorias do Radar: renomear ou trocar a cor atualiza os posts; excluídas movem os posts (moves: { idExcluída: idDestino })
+export function saveRadarCategories(cats, user, moves = {}) {
+  const prev = db.radarCategories || [];
+  const byId = Object.fromEntries(cats.map(c => [c.id, c]));
+  db.stories = db.stories.map(st => {
+    const old = prev.find(c => c.label === st.tag);
+    if (!old) return st;
+    const cat = byId[old.id] || byId[moves[old.id]];
+    if (!cat || (cat.label === st.tag && cat.tone === st.tone)) return st;
+    return { ...st, tag: cat.label, tone: cat.tone };
+  });
+  db.radarCategories = cats;
+  log(user, "atualizou", "categorias do Radar", "radar"); commit();
+}
 export function saveMenus(menus, user) { db.menus = menus; log(user, "atualizou", "menus", "menus"); commit(); }
 export function saveSettings(settings, user) { db.settings = settings; log(user, "atualizou", "configurações", "config"); commit(); }
 // Cadastro rápido a partir do editor de lugar (sem duplicidade: ignora acentos e maiúsculas)
