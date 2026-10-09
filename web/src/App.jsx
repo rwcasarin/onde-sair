@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useContext } from "react";
-import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, cityName } from "./data.js";
+import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, cityName } from "./data.js";
 import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
 import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
@@ -7,6 +7,7 @@ import { TopNav } from "./components/ui.jsx";
 import { Onboarding } from "./screens/onboarding.jsx";
 import { Home } from "./screens/home.jsx";
 import { Lista } from "./screens/lista.jsx";
+import { VibesView } from "./screens/vibesview.jsx";
 import { Detalhe } from "./screens/detalhe.jsx";
 import { Roteiro, Roteiros, MeuRoteiro } from "./screens/roteiro.jsx";
 import { MeuRoteiroEditor } from "./screens/meuroteiro.jsx";
@@ -46,6 +47,7 @@ function titleFor(screen, params) {
       const tp = TYPES.find(x => x.slug === params.tipo);
       return t(params.q ? `Busca: ${params.q}` : v ? v.label : tp ? tp.label : "Lugares");
     }
+    case "vibes": { const v = AFFINITIES.find(a => a.id === params.aff); return t(v ? `${v.label} · Vibes` : "Vibes · Lugares e roteiros por clima"); }
     case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
     case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return r?.seo?.title || t(r ? r.title : "Roteiro"); }
     case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return s?.seo?.title || t(s ? `${s.title} · Radar` : "Radar"); }
@@ -63,6 +65,7 @@ function titleFor(screen, params) {
 function metaFor(screen, params) {
   const item = { detalhe: PLACES, roteiro: ROTEIROS, historia: ALL_STORIES, pagina: PAGES }[screen]?.find(x => x.id === params.id);
   const desc = item?.seo?.desc || (screen === "pagina" && item ? item.excerpt || htmlToText(item.body).slice(0, 160) : "") ||
+    (screen === "vibes" ? (VIBE_PAGE[params.aff]?.lede || "Lugares e roteiros reunidos pela vibe do rolê: dates, impressionar, relaxar, turistar, economizar e programas com criança.") : "") ||
     (screen === "historias" ? "Radar Onde Sair: novidades, atualizações e listas de lugares da cidade, por quem vive ela." : "") ||
     (screen === "detalhe" ? item?.tagline : screen === "historia" ? item?.desc : "") || SITE.seoDesc || "";
   return { desc, noindex: !!item?.seo?.noindex || screen === "404" || PRIVATE.has(screen) || screen === "entrar" };
@@ -210,6 +213,7 @@ export default function App() {
         {rotPaused && SITE.roteirosBar && <div className="site-announce tone-yellow roteiros-paused-bar" role="status">{SITE.roteirosMessage}</div>}
         <TopNav current={screen} params={params} unread={unread} user={paused ? null : user} paused={paused} />
         {screen === "home"         && <Home />}
+        {screen === "vibes"        && <VibesView key={key} aff={params.aff} q={params.q} />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
         {rotOff && <PausedScreen message={SITE.roteirosMessage} />}

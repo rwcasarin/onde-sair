@@ -14,9 +14,9 @@ import { PlaceMap } from "../components/placemap.jsx";
 
 const SORTS = [["relevancia", "Mais relevantes"], ["preco", "Menor preço"]];
 
-function toggleIn(set, v) { const n = new Set(set); n.has(v) ? n.delete(v) : n.add(v); return n; }
+export function toggleIn(set, v) { const n = new Set(set); n.has(v) ? n.delete(v) : n.add(v); return n; }
 
-function CheckRow({ checked, onChange, children, count, boxed }) {
+export function CheckRow({ checked, onChange, children, count, boxed }) {
   return (
     <label className={"check-row" + (boxed ? " boxed" : "")}>
       <input type="checkbox" checked={checked} onChange={onChange} />
@@ -109,7 +109,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
             </ul>
           ) : (
             <div className="hero2-vibes">
-              {VIBE_ORDER.map(id => <VibePill key={id} aff={id} onClick={() => setVibe(id)} />)}
+              {VIBE_ORDER.map(id => <VibePill key={id} aff={id} onClick={() => nav("vibes", { aff: id })} />)}
             </div>
           )}
         </div>

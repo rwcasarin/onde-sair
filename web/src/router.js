@@ -72,6 +72,7 @@ const STATIC = {
 
 export function toPath(screen, params = {}) {
   switch (screen) {
+    case "vibes": return params.aff ? vibePath(params.aff) : "/vibes";
     case "lista": {
       const base = params.aff ? vibePath(params.aff) : "/lugares";
       const qs = new URLSearchParams();
@@ -130,9 +131,10 @@ export function fromPath(full) {
       return p ? { screen: "detalhe", params: { id: p.id } } : notFound;
     }
     case "vibes": {
-      const v = b && bySlug(AFFINITIES, b);
+      if (!b) return { screen: "vibes", params: {} };
+      const v = bySlug(AFFINITIES, b);
       if (!v) return notFound;
-      return { screen: "lista", params: { aff: v.id, ...(q.get("busca") ? { q: q.get("busca") } : {}) } };
+      return { screen: "vibes", params: { aff: v.id, ...(q.get("busca") ? { q: q.get("busca") } : {}) } };
     }
     case "roteiros": {
       if (!b) return { screen: "roteiros", params: {} };

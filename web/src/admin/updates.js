@@ -138,6 +138,18 @@ function headerRadar(d) {
   return ["menu principal"];
 }
 
+// Página de Vibes (lugares e roteiros juntos) entra no menu principal, logo depois do Radar
+function headerVibes(d) {
+  const h = d.menus?.header;
+  if (!h) return [];
+  const old = h.filter(it => it.type === "site" && it.target === "home#vibes");
+  old.forEach(it => { it.target = "vibes"; });                       // link antigo para a seção da home
+  if (old.length || h.some(it => it.type === "site" && it.target === "vibes")) return old.length ? ["menu principal"] : [];
+  const i = h.findIndex(it => it.type === "site" && it.target === "historias");
+  h.splice(i >= 0 ? i + 1 : 1, 0, { id: "m-vibes", label: "Vibes", type: "site", target: "vibes" });
+  return ["menu principal"];
+}
+
 // Tipos de lugar passam a ser cadastrados no painel (nome, cor e ícone)
 const TYPE_DEFAULTS = [
   ["restaurantes", "Restaurantes", "restaurantes", "vibe-orange", "utensils"], ["bares", "Bares", "bares", "vibe-pink", "cheers"],
@@ -168,6 +180,7 @@ const UPDATES = [
   { id: "2026-10-tipos-de-lugar", label: "tipos de lugar", apply: placeTypes },
   { id: "2026-10-sem-reserva", label: "remoção do “Aceita reserva”", apply: dropReservations },
   { id: "2026-10-menu-radar", label: "Radar no menu principal no lugar de Vibes", apply: headerRadar },
+  { id: "2026-10-menu-vibes", label: "página de Vibes no menu principal", apply: headerVibes },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.
