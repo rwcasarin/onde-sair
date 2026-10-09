@@ -134,7 +134,7 @@ export function Historia({ id }) {
   const when = s.publishAt || s.updatedAt;
   return (
     <main className="home2">
-      <article className="shell story-article">
+      <article className="shell narrow story-article">
         <PageHead crumbs={[["Início", "home"], ["Radar", "historias"], [s.title]]} title={s.title} lede={s.desc}>
           <span className={"story-tag tone-" + s.tone}>{s.tag}</span>
         </PageHead>

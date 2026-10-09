@@ -3,7 +3,7 @@ import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, placeGallery, ro
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, PriceDots, Tag, MapArt, MiniPlaceCard, FaveButton, Footer, affById,
+  HeroMedia, Crumbs, VibePill, PriceDots, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, affById,
 } from "../components/site.jsx";
 import { useNav, useCity, useFaves } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
@@ -238,21 +238,3 @@ export function Detalhe({ id }) {
   );
 }
 
-// Card de roteiro no mesmo formato do card compacto de lugar
-function RoteiroCard({ r }) {
-  const nav = useNav();
-  return (
-    <article className="tip-card" onClick={() => nav("roteiro", { id: r.id })}>
-      <ImageSlot className="tip-img" src={roteiroImg(r.id)} alt="" hint="5:4" />
-      <div className="tip-body">
-        <div className="tip-vibes">{roteiroVibes(r).slice(0, 2).map(a => <VibePill key={a} aff={a} size="sm" />)}</div>
-        <div className="tip-title">
-          <h3>{r.title}</h3>
-          <FaveButton id={r.id} />
-        </div>
-        <span className="tip-where"><Icon name="clock" size={13} /> {r.stats.tempo} · {r.paradas} paradas</span>
-        <p>{r.desc.split(".")[0]}.</p>
-      </div>
-    </article>
-  );
-}

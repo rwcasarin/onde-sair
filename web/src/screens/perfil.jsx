@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PLACES, ROTEIROS, VIBE_ORDER, CITIES, cityName } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, VibePill, MiniPlaceCard, RoteiroMini, ListingCard, SectionHead, Footer } from "../components/site.jsx";
+import { PageHead, VibePill, MiniPlaceCard, RoteiroCard, ListingCard, SectionHead, Footer } from "../components/site.jsx";
 import { useNav, useFaves } from "../nav.js";
 import { href, toPath } from "../router.js";
 import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword, deleteMyRoteiro } from "../account.js";
@@ -75,7 +75,7 @@ export function Perfil({ user, tab = "favoritos" }) {
           {tab === "favRoteiros" && (
             <Filtered items={favRoteiros} vibesOf={roteiroVibes} empty={
               <Empty icon="heart" text="Nenhum roteiro favorito por enquanto." sub="Salve roteiros da curadoria para ter sempre à mão." cta="Ver roteiros" onClick={() => nav("roteiros")} />}>
-              {(list) => <div className="rot-mini-grid">{list.map(r => <RoteiroMini key={r.id} r={r} />)}</div>}
+              {(list) => <div className="rot-index">{list.map(r => <RoteiroCard key={r.id} r={r} />)}</div>}
             </Filtered>
           )}
 
@@ -147,7 +147,7 @@ function MyRoteiros({ list }) {
       </div>
       <Filtered items={list} vibesOf={roteiroVibes} empty={null}>
         {(items) => (
-          <div className="my-rot-grid">
+          <div className="rot-index">
             {items.map(r => (
               <MyRoteiroCard key={r.id} r={r} actions={del === r.id
                 ? <span className="inline-confirm">Excluir?

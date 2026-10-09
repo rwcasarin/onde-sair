@@ -3,7 +3,7 @@ import { ROTEIROS, roteiroImg, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroMini, SectionHead, PageHead, FaveButton, Footer, placeById, affById,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, affById,
 } from "../components/site.jsx";
 import { roteiroVibes } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
@@ -147,7 +147,6 @@ function RoteiroView({ r, mine = false }) {
                 <div className="step-body">
                   <h3>{s.title}</h3>
                   <span className="step-sub">{s.sub}</span>
-                  {s.tags?.length > 0 && <div className="step-tags">{s.tags.map(([l, c]) => <Tag key={l} cls={c}>{l}</Tag>)}</div>}
                   <p>{s.desc}</p>
                   {s.place
                     ? <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("detalhe", { id: s.place }); }}>Ver mais <Icon name="arrow" size={16} /></a>
@@ -213,7 +212,7 @@ function RoteiroView({ r, mine = false }) {
           {mine && myRoteiros().length > 1 && (
             <>
               <SectionHead title="Seus outros roteiros" link="Ver todos" onLink={() => nav("perfil", { tab: "meus" })} />
-              <div className="my-rot-grid">{myRoteiros().filter(x => x.id !== r.id).slice(0, 3).map(x => <MyRoteiroCard key={x.id} r={x} />)}</div>
+              <div className="rot-index">{myRoteiros().filter(x => x.id !== r.id).slice(0, 3).map(x => <MyRoteiroCard key={x.id} r={x} />)}</div>
             </>
           )}
           <SectionHead
@@ -221,8 +220,8 @@ function RoteiroView({ r, mine = false }) {
             sub={`Mais roteiros para viver ${city} por outras perspectivas.`}
             link="Ver todos os roteiros" onLink={() => nav("roteiros")}
           />
-          <div className="rot-mini-grid">
-            {others.map(o => <RoteiroMini key={o.id} r={o} />)}
+          <div className="rot-index">
+            {others.map(o => <RoteiroCard key={o.id} r={o} />)}
           </div>
         </section>
       </div>
@@ -245,23 +244,7 @@ export function Roteiros() {
           lede={`Curadorias prontas para viver ${city} do seu jeito. Cada roteiro tem propósito, ordem e dicas de quem já foi.`}
         />
         <div className="rot-index">
-          {ROTEIROS.map(r => (
-            <article key={r.id} className="rot-index-card" onClick={() => nav("roteiro", { id: r.id })}>
-              <ImageSlot className="rot-index-img" src={roteiroImg(r.id)} alt="" hint="16:10">
-                <FaveButton id={r.id} className="fave fave-float" />
-              </ImageSlot>
-              <div className="rot-index-body">
-                <div className="tip-vibes">{roteiroVibes(r).slice(0, 2).map(a => <VibePill key={a} aff={a} size="sm" />)}</div>
-                <h3>{r.title}</h3>
-                <p>{r.desc}</p>
-                <ul className="rot-index-meta">
-                  <li><Icon name="clock" size={14} /> {r.stats.tempo}</li>
-                  <li><Icon name="pin" size={14} /> {r.paradas} paradas</li>
-                  <li><Icon name="coins" size={14} /> {r.stats.investLabel}</li>
-                </ul>
-              </div>
-            </article>
-          ))}
+          {ROTEIROS.map(r => <RoteiroCard key={r.id} r={r} />)}
         </div>
       </div>
       <Footer />
@@ -269,22 +252,5 @@ export function Roteiros() {
   );
 }
 
-// Card de um roteiro meu (perfil e página do roteiro)
-export function MyRoteiroCard({ r, actions }) {
-  const nav = useNav();
-  const places = r.steps.filter(s => s.place);
-  const thumb = places[0]?.place;
-  return (
-    <article className="my-rot-card" onClick={() => nav("meuRoteiro", { id: r.id })}>
-      <ImageSlot className="my-rot-img" src={thumb ? placeImg(thumb) : undefined} hint={thumb ? "16:10" : "Sem foto"} compact />
-      <div className="my-rot-body">
-        {roteiroVibes(r).length > 0 && <div className="tip-vibes">{roteiroVibes(r).slice(0, 2).map(a => <VibePill key={a} aff={a} size="sm" />)}</div>}
-        <h3>{r.title || "Sem nome"}</h3>
-        <p className="my-rot-meta">{r.steps.length} parada{r.steps.length === 1 ? "" : "s"}{r.stats.tempo ? " · " + r.stats.tempo : ""}</p>
-        <p className="my-rot-stops">{r.steps.map(s => s.title).filter(Boolean).join(" → ") || "Sem paradas ainda"}</p>
-        {r.from && <span className="my-rot-from">Baseado em “{r.from.title}”</span>}
-        {actions && <div className="my-rot-actions" onClick={(e) => e.stopPropagation()}>{actions}</div>}
-      </div>
-    </article>
-  );
-}
+// Card de um roteiro meu (perfil e página do roteiro): mesmo card dos roteiros do site
+export const MyRoteiroCard = ({ r, actions }) => <RoteiroCard r={r} mine actions={actions} />;

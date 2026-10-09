@@ -1,5 +1,6 @@
 // Componentes compartilhados do site (v3)
-import { AFFINITIES, CITIES, PLACES, VIBE_STYLE, PRICE_RANGE, placeImg, roteiroImg, ROTEIRO_TAGS } from "../data.js";
+import { AFFINITIES, CITIES, PLACES, VIBE_STYLE, PRICE_RANGE, placeImg, roteiroImg } from "../data.js";
+import { INVEST_LABELS } from "../../shared/myroteiros.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
@@ -196,17 +197,32 @@ export function MiniPlaceCard({ p, showDesc = true }) {
   );
 }
 
-// Card de roteiro ("Continue explorando")
-export function RoteiroMini({ r }) {
+// Card de roteiro — o mesmo em todo o site (lista de roteiros, página do lugar, "Continue explorando", perfil).
+// mine: roteiro criado pelo visitante (foto da 1ª parada, abre o roteiro dele); actions: botões extras no rodapé.
+export function RoteiroCard({ r, mine = false, actions }) {
   const nav = useNav();
+  const vibes = [...new Set([r.aff, ...(r.vibes || [])].filter(Boolean))].slice(0, 2);
+  const thumb = mine ? r.steps.find(s => s.place)?.place : null;
+  const paradas = r.paradas ?? r.steps?.length ?? 0;
+  const invest = r.stats?.investLabel || INVEST_LABELS[r.stats?.invest] || "";
+  const open = () => nav(mine ? "meuRoteiro" : "roteiro", { id: r.id });
   return (
-    <article className="rot-mini" onClick={() => nav("roteiro", { id: r.id })}>
-      <ImageSlot className="rot-mini-img" src={roteiroImg(r.id)} alt="" hint="2:1" />
-      <div className="rot-mini-body">
-        <h3>{r.title}</h3>
-        <div className="rot-mini-tags">
-          {(ROTEIRO_TAGS[r.id] || []).map(([t, c]) => <Tag key={t} cls={c}>{t}</Tag>)}
-        </div>
+    <article className="rot-index-card" onClick={open}>
+      <ImageSlot className="rot-index-img" src={mine ? (thumb ? placeImg(thumb) : undefined) : roteiroImg(r.id)} alt="" hint={mine && !thumb ? "Sem foto" : "16:10"} compact={mine}>
+        {!mine && <FaveButton id={r.id} className="fave fave-float" />}
+        {mine && <span className="rot-index-badge">Meu roteiro</span>}
+      </ImageSlot>
+      <div className="rot-index-body">
+        {vibes.length > 0 && <div className="rot-index-vibes">{vibes.map(a => <VibePill key={a} aff={a} size="sm" />)}</div>}
+        <h3>{r.title || "Sem nome"}</h3>
+        {r.desc && <p>{r.desc}</p>}
+        <ul className="rot-index-meta">
+          {r.stats?.tempo && <li><Icon name="clock" size={14} /> {r.stats.tempo}</li>}
+          <li><Icon name="pin" size={14} /> {paradas} parada{paradas === 1 ? "" : "s"}</li>
+          {invest && <li><Icon name="coins" size={14} /> {invest}</li>}
+        </ul>
+        {mine && r.from && <span className="my-rot-from">Baseado em “{r.from.title}”</span>}
+        {actions && <div className="my-rot-actions" onClick={(e) => e.stopPropagation()}>{actions}</div>}
       </div>
     </article>
   );

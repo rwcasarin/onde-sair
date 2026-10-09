@@ -17,7 +17,7 @@ export function Pagina({ id }) {
   if (!pg) return <NotFound />;
   return (
     <main className="home2 page-content">
-      <div className="shell">
+      <div className="shell narrow">
         <PageHead crumbs={[["Início", "home"], [pg.title]]} title={pg.title} lede={pg.excerpt} />
         <article ref={body} className="rich-text" dangerouslySetInnerHTML={{ __html: html }} />
       </div>

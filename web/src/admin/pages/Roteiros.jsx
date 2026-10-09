@@ -40,7 +40,7 @@ export function RoteirosList() {
 const BLANK = {
   title: "", slug: "", vibes: [], vibesAuto: true, desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
   stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "", vibe: "" },
-  steps: [{ time: "", title: "", sub: "", place: "", optional: false, tags: [], desc: "" }],
+  steps: [{ time: "", title: "", sub: "", place: "", optional: false, desc: "" }],
   tips: { dica: "", horario: "", epoca: "", comoChegar: "", lembrete: "" }, tags: [], status: "rascunho",
 };
 const RULES = [
@@ -127,7 +127,7 @@ function RoteiroForm({ initial, isNew }) {
             {errors.steps && <p className="a-error" role="alert">{errors.steps}</p>}
             <Repeater
               items={draft.steps} min={1} addLabel="Adicionar parada"
-              newItem={() => ({ time: "", title: "", sub: "", place: "", optional: false, tags: [], desc: "" })}
+              newItem={() => ({ time: "", title: "", sub: "", place: "", optional: false, desc: "" })}
               onChange={(steps) => set({ steps })}
               render={(s, upd) => (
                 <div className="a-step-edit">
@@ -143,7 +143,6 @@ function RoteiroForm({ initial, isNew }) {
                     <Input label="Subtítulo" value={s.sub} onChange={(sub) => upd({ sub })} placeholder="Café da manhã sem pressa" />
                   </div>
                   <Textarea label="Descrição" value={s.desc} onChange={(desc) => upd({ desc })} rows={2} maxCount={200} />
-                  <ChipInput label="Tags" value={s.tags.map(t => t[0])} onChange={(l) => upd({ tags: toTags(l) })} />
                 </div>
               )}
             />

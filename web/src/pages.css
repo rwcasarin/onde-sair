@@ -719,7 +719,7 @@
 .stories-all { margin-top: 8px; }
 .story-article .story-byline { color: var(--ink-3); font-size: 14px; margin: 0 0 20px; }
 .story-hero { aspect-ratio: 16 / 9; max-height: 520px; width: 100%; border-radius: var(--radius); }
-.story-text { max-width: 68ch; margin: 36px 0 8px; font-size: 18px; line-height: 1.7; color: var(--ink-2); }
+.story-text { max-width: none; margin: 36px 0 8px; font-size: 18px; line-height: 1.7; color: var(--ink-2); }
 .story-text p { margin: 0 0 1.1em; white-space: pre-line; }
 .notfound { padding: 96px 0 120px; max-width: 640px; }
 .notfound-code { font-family: var(--serif); font-size: 96px; line-height: 1; color: var(--c-magenta); font-weight: 700; }
@@ -947,7 +947,7 @@ a.btn-pill { text-decoration: none; }
 
 
 /* Páginas de conteúdo (texto rico do painel) */
-.page-content .rich-text { max-width: 760px; margin: 8px 0 64px; }
+.page-content .rich-text { max-width: none; margin: 8px 0 64px; }
 .rich-text { font-size: 17px; line-height: 1.7; color: var(--ink-2); overflow-wrap: anywhere; }
 .rich-text > :first-child { margin-top: 0; }
 .rich-text p { margin: 0 0 1em; }
@@ -970,7 +970,7 @@ a.btn-pill { text-decoration: none; }
 
 /* Radar (blog): card de lugar dentro do post */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.story-text.rich-text { max-width: 760px; }
+.story-text.rich-text { max-width: none; }
 .post-place { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 22px; margin: 1.6em 0; padding: 14px; border-radius: 16px; background: #fff; box-shadow: 0 10px 30px -18px rgba(30,21,80,.35); font-size: 15px; line-height: 1.5; }
 .post-place-img { position: relative; display: block; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; }
 .post-place-img .post-place-photo { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -1028,3 +1028,13 @@ a.btn-pill { text-decoration: none; }
 .rot-hint { margin: 2px 0 6px; font-size: 13px; color: var(--ink-3); }
 .rot-hint .link-btn { font-size: 13px; font-weight: 600; color: var(--primary); cursor: pointer; }
 .about-text .place-tags { margin: 14px 0 0; }
+/* Card único de roteiro */
+.rot-index-vibes { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; margin: -12px 0 8px; }
+.rot-index-body .rot-index-vibes .vibe-pill { margin: 0; }
+.rot-index-body { display: flex; flex-direction: column; }
+.rot-index-card { display: flex; flex-direction: column; }
+.rot-index-card .rot-index-body { flex: 1; }
+.rot-index-body:not(:has(.rot-index-vibes)) { padding-top: 16px; }
+.rot-index-badge { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 999px; background: var(--heading); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+.rot-index-card .my-rot-from { margin-top: 10px; }
+.rot-index-card .my-rot-actions { margin-top: auto; padding-top: 14px; }

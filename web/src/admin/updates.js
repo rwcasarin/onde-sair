@@ -114,6 +114,7 @@ function dropMainVibe(d) {
     delete r.aff;
   });
   if (d.home?.tips) d.home.tips = d.home.tips.map(({ aff, ...t }) => t);
+  (d.roteiros || []).forEach(r => (r.steps || []).forEach(s => { delete s.tags; }));   // paradas sem tags
   return ["roteiros e dicas da home"];
 }
 
