@@ -100,23 +100,14 @@ export function VibesView({ aff = null, q = "" }) {
           <Crumbs items={[["Início", "home"], ...(a ? [["Vibes", "vibes"], [a.label]] : [["Vibes"]])]} />
           <h1 className="page-title">{title}</h1>
           <p className="hero2-lede">{lede}</p>
-          {page && (
-            <ul className="feature-row">
-              {page.features.map(([icon, label]) => <li key={label}><Icon name={icon} size={26} /> {label}</li>)}
-            </ul>
-          )}
+          {/* menu de vibes, como na lista de lugares: a vibe da página fica marcada; tocar nela de novo volta para todas */}
+          <nav className="hero2-vibes vibes-menu" aria-label="Vibes">
+            {VIBE_ORDER.map(id => (
+              <VibePill key={id} aff={id} active={aff === id} onClick={() => nav("vibes", aff === id ? {} : { aff: id })} />
+            ))}
+          </nav>
         </div>
       </section>
-
-      {/* menu de vibes: a vibe da página fica marcada; tocar nela de novo volta para todas */}
-      <nav className="shell vibes-menu" aria-label="Vibes">
-        <button type="button" className={"vibe-all" + (!aff ? " active" : "")} aria-current={!aff ? "page" : undefined} onClick={() => nav("vibes")}>Todas</button>
-        {VIBE_ORDER.map(id => (
-          <span key={id} aria-current={aff === id ? "page" : undefined}>
-            <VibePill aff={id} active={aff === id} onClick={() => nav("vibes", aff === id ? {} : { aff: id })} />
-          </span>
-        ))}
-      </nav>
 
       <div className="shell listing-layout">
         <aside className={"filters" + (filtersOpen ? " open" : "")}>
