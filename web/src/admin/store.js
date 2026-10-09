@@ -11,7 +11,7 @@
 import {
   CITIES, AFFINITIES, ROTEIROS, PLACES, NOTIFICATIONS, TAGLINES,
   VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
-  VIBE_TO_ROTEIRO, BRAND_VALUES, PLACE_TIPS, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS, RADAR_CATEGORIES,
+  VIBE_TO_ROTEIRO, BRAND_VALUES, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS, RADAR_CATEGORIES,
 } from "../data.js";
 import { applyUpdates } from "./updates.js";
 
@@ -64,14 +64,14 @@ function seed() {
     ...clone(places[0]), id: "p16", name: "Empório Lume", slug: "emporio-lume", type: "Restaurantes", bairro: "Vila Nova",
     sub: "Empório e café", cuisine: "Café e empório", tagline: "Café coado, pão de queijo e prateleiras de achados mineiros.",
     desc: "Empório com café nos fundos e produtos de pequenos produtores.", dica: "Peça o pão de queijo recheado com doce de leite.",
-    affs: ["relax", "eco"], tags: ["Café", "Empório"], status: "revisao", rating: 0, reviews: 0,
+    affs: ["relax", "eco"], tags: ["Café", "Empório"], status: "revisao",
     note: "", map: { x: 30, y: 44, label: "EL" }, createdAt: daysAgo(2), updatedAt: daysAgo(1, 16), updatedBy: "Carlos M.",
     seo: { title: "", desc: "" },
   });
   places.push({
     ...clone(places[4]), id: "p17", name: "Terraço Aurora", slug: "terraco-aurora", bairro: "Boa Vista", sub: "Bar de cobertura",
     tagline: "Drinks no alto com DJ ao pôr do sol.", desc: "Cobertura com DJ e drinks clássicos.", dica: "",
-    status: "rascunho", rating: 0, reviews: 0, reasons: [["eye", "Vista do alto"]], tags: ["Drinks"],
+    status: "rascunho", reasons: [["eye", "Vista do alto"]], tags: ["Drinks"],
     createdAt: daysAgo(0, 9), updatedAt: daysAgo(0, 11), updatedBy: "Rafael S.", seo: { title: "", desc: "" },
   });
 
@@ -105,27 +105,12 @@ function seed() {
     brandValues: clone(BRAND_VALUES),
   };
 
-  const placeNames = places.map(p => p.id);
-  const reviewTexts = [
-    "Fui num sábado e foi perfeito, atendimento muito atencioso.", "Achei caro para o que entrega, mas o lugar é lindo.",
-    "A dica do balcão funcionou demais! Voltarei com certeza.", "Música alta demais pra conversar, fora isso tudo ótimo.",
-    "Melhor pôr do sol da cidade, ponto.", "Fila enorme, mas valeu a pena. Chegue cedo.",
-    "Levei meus pais e eles amaram. Ótimo pra família.", "Comida veio fria e demorou bastante.",
-    "Drinks excelentes, equipe simpática.", "Lugar escondido incrível, não conhecia!",
-    "Visita rápida, achei ok.", "Recomendo a sobremesa da casa, sensacional.",
-  ];
-  const statuses = ["pendente", "pendente", "pendente", "aprovada", "aprovada", "pendente", "aprovada", "rejeitada", "aprovada", "pendente", "aprovada", "aprovada"];
-  const reviews = reviewTexts.map((text, i) => ({
-    id: "rv" + (i + 1), place: placeNames[i % 15], author: `${FIRST[i]} ${LAST[i % LAST.length]}`, rating: [5, 3, 5, 4, 5, 4, 5, 2, 5, 5, 3, 5][i],
-    text, status: statuses[i], featured: i === 0 || i === 4 || i === 8, createdAt: daysAgo(i % 6, 8 + i), reports: i === 7 ? 2 : 0,
-  }));
-
   const members = Array.from({ length: 28 }, (_, i) => ({
     id: "u" + (i + 1), name: `${FIRST[i % FIRST.length]} ${LAST[(i * 3) % LAST.length]}`,
     email: `${slugify(FIRST[i % FIRST.length])}.${slugify(LAST[(i * 3) % LAST.length])}${i}@email.com`,
     city: ["sorocaba", "sp", "rio", "bh", "cwb", "poa", "rec"][i % 7],
     status: i === 5 ? "bloqueado" : i % 9 === 0 ? "pendente" : "ativo",
-    saves: (i * 7) % 40, reviews: i % 6, joined: daysAgo(10 + i * 9), lastSeen: daysAgo(i % 12),
+    saves: (i * 7) % 40, joined: daysAgo(10 + i * 9), lastSeen: daysAgo(i % 12),
   }));
 
   const team = [
@@ -148,7 +133,7 @@ function seed() {
     contactEmail: "contato@ondesair.com.br", instagram: "@ondesair", tiktok: "@ondesair", youtube: "/ondesair", spotify: "Onde Sair",
     seoTitle: "Onde Sair · O lugar certo pra cada vibe", seoDesc: "Curadoria por afinidade: lugares, roteiros e experiências escolhidos por quem vive a cidade.",
     defaultCity: "sorocaba", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
-    newsletter: true, maintenance: false, reviewsRequireApproval: true,
+    newsletter: true, maintenance: false,
   };
 
   const activity = [
@@ -165,7 +150,7 @@ function seed() {
   }));
   const menus = clone(SEED_MENUS);
 
-  return { version: 1, places, roteiros, stories, pages, menus, vibes, home, reviews, members, team, cities, campaigns, settings, activity, media: {} };
+  return { version: 1, places, roteiros, stories, pages, menus, vibes, home, members, team, cities, campaigns, settings, activity, media: {} };
 }
 
 // ---------------------------------------------------------------------
@@ -390,12 +375,6 @@ export function syncPublic() {
   replace(CITIES, db.cities.filter(c => c.active));
   replace(NOTIFICATIONS, db.campaigns.filter(c => c.status === "enviada").map(c => ({ ...c })));
 
-  const featured = db.reviews.filter(r => r.status === "aprovada" && r.featured);
-  if (featured.length) {
-    replace(PLACE_TIPS, featured.map(r => ({
-      place: r.place, name: r.author, when: relTime(r.createdAt), text: r.text, tags: [["Avaliação " + r.rating + "★", "vibe-yellow"]],
-    })));
-  }
   Object.assign(TAGLINES, { sub: db.settings.tagline, campaign: db.settings.campaign });
   SITE.announcement = db.settings.announcement;
   SITE.maintenance = db.settings.maintenance;
@@ -560,13 +539,6 @@ export function addBairro(cityId, name, user) {
 }
 export function saveCities(cities, user) { db.cities = cities; log(user, "atualizou", "cidades e bairros", "config"); commit(); }
 
-export function moderate(ids, patch, user) {
-  db.reviews = db.reviews.map(r => ids.includes(r.id) ? { ...r, ...patch } : r);
-  const what = patch.status ? { aprovada: "aprovou", rejeitada: "rejeitou", pendente: "reabriu" }[patch.status] : patch.featured ? "destacou" : "removeu destaque de";
-  log(user, what, `${ids.length} avaliação(ões)`, "avaliação");
-  commit();
-}
-export function removeReviews(ids, user) { db.reviews = db.reviews.filter(r => !ids.includes(r.id)); log(user, "excluiu", `${ids.length} avaliação(ões)`, "avaliação"); commit(); }
 
 export async function updateMembers(ids, patch, user) {
   if (REMOTE) {

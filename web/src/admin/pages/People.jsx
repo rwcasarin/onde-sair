@@ -18,13 +18,13 @@ export function MembersPage() {
     && (!q || `${m.name} ${m.email}`.toLowerCase().includes(q.toLowerCase())));
 
   async function block(ids, v) {
-    if (v && !(await confirm({ title: `Bloquear ${ids.length} usuário(s)?`, text: "Eles não conseguirão entrar nem publicar avaliações.", ok: "Bloquear", danger: true }))) return;
+    if (v && !(await confirm({ title: `Bloquear ${ids.length} usuário(s)?`, text: "Eles não conseguirão entrar no site.", ok: "Bloquear", danger: true }))) return;
     try { await updateMembers(ids, { status: v ? "bloqueado" : "ativo" }, user); toast(v ? "Bloqueado(s)." : "Desbloqueado(s).", "success"); }
     catch (e) { toast(e.message, "error"); }
   }
   function exportCsv() {
-    const head = ["nome", "email", "cidade", "status", "salvos", "avaliacoes", "entrou"];
-    const lines = rows.map(m => [m.name, m.email, cityName(m.city), m.status, m.saves, m.reviews, m.joined.slice(0, 10)].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
+    const head = ["nome", "email", "cidade", "status", "salvos", "entrou"];
+    const lines = rows.map(m => [m.name, m.email, cityName(m.city), m.status, m.saves, m.joined.slice(0, 10)].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
     const blob = new Blob(["﻿" + [head.join(","), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "usuarios-onde-sair.csv"; a.click();
     URL.revokeObjectURL(a.href);
@@ -57,7 +57,6 @@ export function MembersPage() {
             { key: "name", label: "Pessoa", render: (x) => <span className="a-cell-main"><span className="a-avatar sm">{x.name.split(" ").map(s => s[0]).join("")}</span><span><strong>{x.name}</strong><em>{x.email}</em></span></span> },
             { key: "city", label: "Cidade", width: 140, render: (x) => cityName(x.city) },
             { key: "saves", label: "Salvos", width: 80, align: "right" },
-            { key: "reviews", label: "Avaliações", width: 100, align: "right" },
             { key: "joined", label: "Entrou", width: 110, render: (x) => <span className="a-muted-cell">{fmtDate(x.joined, false)}</span> },
             { key: "status", label: "Status", width: 110, render: (x) => <Badge tone={MTONE[x.status]}>{x.status[0].toUpperCase() + x.status.slice(1)}</Badge> },
           ]} />
@@ -78,7 +77,6 @@ export function MembersPage() {
             <div><dt>Entrou em</dt><dd>{fmtDate(m.joined, false)}</dd></div>
             <div><dt>Último acesso</dt><dd>{relTime(m.lastSeen)}</dd></div>
             <div><dt>Lugares salvos</dt><dd>{m.saves}</dd></div>
-            <div><dt>Avaliações</dt><dd>{m.reviews}</dd></div>
             {m.vibes?.length > 0 && <div><dt>Vibes</dt><dd>{m.vibes.map(v => db.vibes.find(x => x.id === v)?.label || v).join(", ")}</dd></div>}
           </dl>
           <p className="a-hint">Por privacidade (LGPD), o painel mostra só os dados necessários. Pedidos de exclusão de conta são atendidos em Configurações › Dados.</p>

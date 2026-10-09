@@ -7,7 +7,7 @@ import { SITE } from "../admin/store.js";
 import { loadGoogle, knownCoords, geocodePlace, cityCenter, radiusArea, MAP_STYLE } from "../maps.js";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
-import { MapArt, Rating, FaveButton } from "./site.jsx";
+import { MapArt, FaveButton } from "./site.jsx";
 import { useNav } from "../nav.js";
 
 const ASTERISK = '<svg viewBox="0 0 398.34 398.97" aria-hidden="true"><polygon fill="currentColor" points="398.34 221.13 398.29 175.29 228.4 186.22 358.1 72.65 325.35 40.16 210.85 171.11 222.71 0 176.23 .05 187.15 170.21 73.33 40.75 40.89 72.87 170.75 186.63 0 175.14 .23 221.3 171.38 209.75 40.3 324.3 72.95 356.87 187.73 225.39 176.07 398.97 222.75 398.9 211.36 226.95 325.73 356.56 358.06 323.92 227.39 209.64 398.34 221.13"/></svg>';
@@ -23,7 +23,6 @@ export function MapCard({ place, isMain, onClose }) {
       <div>
         <h3>{place.name}</h3>
         <span className="listing-sub">{place.sub} • {place.bairro}</span>
-        <Rating p={place} />
       </div>
       <FaveButton id={place.id} />
       {isMain

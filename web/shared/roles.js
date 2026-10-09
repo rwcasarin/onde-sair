@@ -9,7 +9,6 @@ export const PERMISSIONS = [
   ["content.publish", "Publicar e despublicar"],
   ["content.delete",  "Excluir conteúdo"],
   ["home.edit",       "Editar a home e as vibes"],
-  ["reviews.moderate","Moderar avaliações"],
   ["media.manage",    "Gerenciar mídia"],
   ["members.manage",  "Gerenciar usuários do site"],
   ["notify.send",     "Enviar notificações"],
@@ -18,7 +17,7 @@ export const PERMISSIONS = [
 ];
 export const ROLE_PERMS = {
   admin:   PERMISSIONS.map(p => p[0]),
-  editor:  ["content.edit", "content.publish", "content.delete", "home.edit", "reviews.moderate", "media.manage", "members.manage", "notify.send"],
+  editor:  ["content.edit", "content.publish", "content.delete", "home.edit", "media.manage", "members.manage", "notify.send"],
   curador: ["content.edit", "media.manage"],
 };
 export const can = (user, perm) => !!user && (ROLE_PERMS[user.role] || []).includes(perm);
@@ -40,7 +39,6 @@ export function publicView(db) {
     home: db.home,
     cities: db.cities || [],
     campaigns: (db.campaigns || []).filter(c => c.status === "enviada"),
-    reviews: (db.reviews || []).filter(r => r.status === "aprovada" && r.featured).map(({ id, author, rating, text, createdAt, status, featured, place }) => ({ id, author, rating, text, createdAt, status, featured, place })),
     settings: db.settings,   // inclui a chave do Google Maps (chave de navegador: protegida pela restrição de domínio)
     updates: db.updates || [],   // atualizações de conteúdo já aplicadas (ver src/admin/updates.js)
     members: [], team: [], activity: [],
