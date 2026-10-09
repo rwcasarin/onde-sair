@@ -5,22 +5,27 @@ import {
 } from "../kit.jsx";
 import { RichEditor } from "../richeditor.jsx";
 import { htmlToText, asHtml } from "../../richtext.js";
-import { slugify, can } from "../store.js";
+import { slugify } from "../store.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 
 const SHAPES = [["teal", "Teal"], ["purple", "Roxo"], ["lavender", "Lavanda"]];
 
 // categorias do Radar (gerenciadas em Radar › Categorias)
 const catsOf = (db) => db.radarCategories || [];
+// menu interno da área Radar (o mesmo nas duas telas)
+export const radarNav = (db) => [
+  { path: "radar", label: "Posts", badge: db.stories.length },
+  { path: "radar/categorias", label: "Categorias", badge: catsOf(db).length, perm: "content.publish" },
+];
 
 export function StoriesList() {
-  const { db, go, user } = useAdmin();
+  const { db } = useAdmin();
   return (
     <ContentList
       coll="stories" title="Radar" newLabel="Novo post"
       subtitle="O blog do Onde Sair: novidades, atualizações e listas de lugares (seção “Radar” da home e /radar)."
       searchText={(s) => `${s.title} ${s.tag} ${s.author}`}
-      actions={can(user, "content.publish") && <Btn icon="list" onClick={() => go("radar/categorias")}>Categorias</Btn>}
+      nav={radarNav(db)}
       filters={[{ key: "tag", label: "Categoria", options: [...new Set([...catsOf(db).map(c => c.label), ...db.stories.map(s => s.tag)])], test: (s, v) => s.tag === v }]}
       columns={[
         { key: "title", label: "Post", render: (s) => (
