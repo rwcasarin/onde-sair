@@ -8,8 +8,9 @@ import { Onboarding } from "./screens/onboarding.jsx";
 import { Home } from "./screens/home.jsx";
 import { Lista } from "./screens/lista.jsx";
 import { VibesView } from "./screens/vibesview.jsx";
+import { RoteirosLista } from "./screens/roteiroslista.jsx";
 import { Detalhe } from "./screens/detalhe.jsx";
-import { Roteiro, Roteiros, MeuRoteiro } from "./screens/roteiro.jsx";
+import { Roteiro, MeuRoteiro } from "./screens/roteiro.jsx";
 import { MeuRoteiroEditor } from "./screens/meuroteiro.jsx";
 import { Historia, Historias } from "./screens/historia.jsx";
 import { Mapa } from "./screens/mapa.jsx";
@@ -217,7 +218,7 @@ export default function App() {
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
         {rotOff && <PausedScreen message={SITE.roteirosMessage} />}
-        {screen === "roteiros"     && !rotOff && <Roteiros />}
+        {screen === "roteiros"     && !rotOff && <RoteirosLista />}
         {screen === "roteiro"      && !rotOff && <Roteiro key={key} id={params.id} />}
         {screen === "historias"    && <Historias />}
         {screen === "historia"     && <Historia key={key} id={params.id} />}
