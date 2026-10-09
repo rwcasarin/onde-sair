@@ -21,8 +21,14 @@ if (typeof window !== "undefined") {
   if (!HASH_MODE) window.addEventListener("hashchange", () => { if (location.hash.startsWith("#/")) { migrateLegacyHash(); emit(); } });
 }
 
+// quantas telas o visitante abriu dentro do site (para o "Voltar" saber se há página anterior)
+let depth = 0;
+if (typeof window !== "undefined") window.addEventListener("popstate", () => { if (depth > 0) depth--; });
+export const canGoBack = () => depth > 0;
+
 export function go(path, { replace = false } = {}) {
   if (path === currentPath()) { emit(); return; }
+  if (!replace) depth++;
   if (HASH_MODE) {
     if (replace) history.replaceState(null, "", "#" + path); else location.hash = path;
   } else {

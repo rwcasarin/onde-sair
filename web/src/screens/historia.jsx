@@ -6,7 +6,7 @@ import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, PriceDots, FaveButton } from "../components/site.jsx";
 import { useNav } from "../nav.js";
-import { href, storyPath, placePath, currentPath, HASH_MODE } from "../router.js";
+import { href, storyPath, placePath, currentPath, HASH_MODE, canGoBack } from "../router.js";
 import { slugify } from "../admin/store.js";
 import { sanitizeHtml, asHtml } from "../richtext.js";
 import { resolveMedia } from "../admin/store.js";
@@ -60,9 +60,7 @@ export function Historias() {
             <div className="radar-filters" role="group" aria-label="Filtrar por categoria">
               <button type="button" className={"radar-chip" + (!cat ? " on" : "")} aria-pressed={!cat} onClick={() => pick(null)}>Todos</button>
               {cats.map(c => (
-                <button key={c.label} type="button" className={"radar-chip" + (cat === c.label ? " on" : "")} aria-pressed={cat === c.label} onClick={() => pick(c.label)} title={c.label}>
-                  <span className={"radar-dot tone-" + (c.tone || "purple")} aria-hidden="true"></span>{c.label}
-                </button>
+                <button key={c.label} type="button" className={"radar-chip tone-" + (c.tone || "purple") + (cat === c.label ? " on" : "")} aria-pressed={cat === c.label} onClick={() => pick(c.label)}>{c.label}</button>
               ))}
             </div>
           )}
@@ -143,6 +141,9 @@ export function Historia({ id }) {
   return (
     <main className="home2">
       <article className="shell narrow story-article">
+        <button type="button" className="back-btn" onClick={() => canGoBack() ? history.back() : nav("historias")}>
+          <Icon name="left" size={16} /> Voltar
+        </button>
         <PageHead crumbs={[["Início", "home"], ["Radar", "historias"], [s.title]]} title={s.title} lede={s.desc}>
           <span className={"story-tag tone-" + s.tone}>{s.tag}</span>
         </PageHead>
