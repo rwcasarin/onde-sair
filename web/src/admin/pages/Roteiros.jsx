@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { roteiroVibes, vibesFromPlaces } from "../../vibes.js";
 import { roteiroImg, placeImg } from "../../data.js";
 import { PlaceMap } from "../../components/placemap.jsx";
+import { RoteiroCard } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
   Card, Input, Textarea, Select, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Toggle, PageHeader, useAdmin, useDraft,
@@ -38,7 +39,7 @@ export function RoteirosList() {
 }
 
 const BLANK = {
-  title: "", slug: "", vibes: [], vibesAuto: true, desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
+  title: "", slug: "", vibes: [], vibesAuto: true, seo: { title: "", desc: "" }, desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
   stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "", vibe: "" },
   steps: [{ time: "", title: "", sub: "", place: "", optional: false, desc: "" }],
   tips: { dica: "", horario: "", epoca: "", comoChegar: "", lembrete: "" }, tags: [], status: "rascunho",
@@ -58,7 +59,7 @@ export function RoteiroEditor({ id }) {
   if (isNew) return <RoteiroForm initial={BLANK} isNew />;
   // sem "vibe principal": a antiga (aff) vira a primeira da lista
   const { aff, ...rest } = found;
-  return <RoteiroForm initial={{ ...BLANK, ...rest, vibes: roteiroVibes(found), vibesAuto: found.vibesAuto === true, tips: { ...BLANK.tips, ...found.tips }, stats: { ...BLANK.stats, ...found.stats } }} isNew={false} />;
+  return <RoteiroForm initial={{ ...BLANK, ...rest, vibes: roteiroVibes(found), vibesAuto: found.vibesAuto === true, seo: { ...BLANK.seo, ...(found.seo || {}) }, tips: { ...BLANK.tips, ...found.tips }, stats: { ...BLANK.stats, ...found.stats } }} isNew={false} />;
 }
 
 function RoteiroForm({ initial, isNew }) {
@@ -86,39 +87,55 @@ function RoteiroForm({ initial, isNew }) {
         subtitle={`/roteiros/${draft.slug || slugify(draft.title) || "…"}`} />}
       main={<>
         <Tabs value={tab} onChange={setTab} tabs={[
-          ["conteudo", "Conteúdo", ["title", "vibes", "desc"].some(k => errors[k]) ? "!" : null],
+          ["conteudo", "Conteúdo", ["title", "desc"].some(k => errors[k]) ? "!" : null],
+          ["detalhes", "Detalhes práticos"],
+          ["vibes", "Vibes e tags", errors.vibes ? "!" : null],
           ["paradas", `Paradas (${draft.steps.length})`, errors.steps ? "!" : null],
-          ["dicas", "Dicas e resumo"],
           ["imagens", "Imagens"],
+          ["seo", "SEO"],
         ]} />
 
         {tab === "conteudo" && (
           <Card>
             <Input label="Título" required value={draft.title} onChange={(v) => set({ title: v })} error={errors.title} maxCount={80} />
-            <div className="a-form-grid">
-              <Input label="Slug" value={draft.slug} placeholder={slugify(draft.title)} onChange={(v) => set({ slug: slugify(v) })} prefix="/roteiros/" />
-              <Input label="Bairros" value={draft.bairros} onChange={(v) => set({ bairros: v })} placeholder="Centro · Boa Vista" />
-            </div>
             <Textarea label="Resumo" required value={draft.desc} onChange={(v) => set({ desc: v })} error={errors.desc} rows={2} maxCount={180} hint="Linha fina do topo e texto dos cards." />
             <Textarea label="Sobre este roteiro" value={draft.about} onChange={(v) => set({ about: v })} rows={5} />
             <div className="a-form-grid">
               <Input label="Citação em destaque" value={draft.quote} onChange={(v) => set({ quote: v })} maxCount={90} />
               <Input label="Frase manuscrita da foto" value={draft.note} onChange={(v) => set({ note: v })} maxCount={60} />
             </div>
-            <OrderedPicker label="Vibes" error={errors.vibes} hint="A ordem aqui é a ordem em que as vibes aparecem no roteiro e nos cards."
-              value={draft.vibes} onChange={(vibes) => set({ vibes, vibesAuto: false })} options={db.vibes.map(v => [v.id, v.label, v.cls])}
-              auto={{ on: draft.vibesAuto, label: "Automáticas: vibes dos lugares das paradas, da mais presente para a menos presente.",
-                onReset: suggested.length ? () => set({ vibes: suggested, vibesAuto: true }) : null, resetLabel: "Usar as vibes das paradas" }} />
-            <ChipInput label="Tags dos cards" value={draft.tags.map(t => t[0])} onChange={(l) => set({ tags: toTags(l) })} hint="Aparecem na página do roteiro, abaixo de “Sobre este roteiro”." />
-            <div className="a-form-grid a-form-grid-3">
+          </Card>
+        )}
+
+        {tab === "detalhes" && (
+          <Card>
+            <div className="a-form-grid">
               <Input label="Tempo total" value={draft.stats.tempo} onChange={(v) => setStat("tempo", v)} placeholder="6 a 8 horas" />
               <Input label="Ideal para" value={draft.stats.ideal} onChange={(v) => setStat("ideal", v)} placeholder="Casais, amigos" />
+              <Input label="Bairros" value={draft.bairros} onChange={(v) => set({ bairros: v })} placeholder="Centro · Boa Vista" />
               <Input label="Vibe em palavras" value={draft.stats.vibe} onChange={(v) => setStat("vibe", v)} placeholder="Natureza e bem-estar" />
             </div>
             <Field label="Investimento">
               <Segmented label="Investimento" value={draft.stats.invest} onChange={(v) => set({ stats: { ...draft.stats, invest: v, investLabel: ["Grátis", "Econômico", "Moderado", "Especial"][v] } })}
                 options={[[0, "Grátis"], [1, "$ Econômico"], [2, "$$ Moderado"], [3, "$$$ Especial"]]} />
             </Field>
+            <div className="a-form-grid a-form-grid-3">
+              <Input label="Melhor horário" value={draft.tips.horario} onChange={(v) => setTip("horario", v)} />
+              <Input label="Melhor época" value={draft.tips.epoca} onChange={(v) => setTip("epoca", v)} />
+              <Input label="Como chegar" value={draft.tips.comoChegar} onChange={(v) => setTip("comoChegar", v)} />
+            </div>
+            <Textarea label="Dica do time" value={draft.tips.dica} onChange={(v) => setTip("dica", v)} rows={3} maxCount={200} />
+            <Textarea label="Não esqueça" value={draft.tips.lembrete} onChange={(v) => setTip("lembrete", v)} rows={2} maxCount={160} />
+          </Card>
+        )}
+
+        {tab === "vibes" && (
+          <Card>
+            <OrderedPicker label="Vibes" error={errors.vibes} hint="A ordem aqui é a ordem em que as vibes aparecem no roteiro e nos cards."
+              value={draft.vibes} onChange={(vibes) => set({ vibes, vibesAuto: false })} options={db.vibes.map(v => [v.id, v.label, v.cls])}
+              auto={{ on: draft.vibesAuto, label: "Automáticas: vibes dos lugares das paradas, da mais presente para a menos presente.",
+                onReset: suggested.length ? () => set({ vibes: suggested, vibesAuto: true }) : null, resetLabel: "Usar as vibes das paradas" }} />
+            <ChipInput label="Tags" value={draft.tags.map(t => t[0])} onChange={(l) => set({ tags: toTags(l) })} hint="Aparecem na página do roteiro, abaixo de “Sobre este roteiro”." />
           </Card>
         )}
 
@@ -152,18 +169,6 @@ function RoteiroForm({ initial, isNew }) {
           </Card>
         )}
 
-        {tab === "dicas" && (
-          <Card subtitle="Cards de apoio no fim da página do roteiro.">
-            <Textarea label="Dica do time" value={draft.tips.dica} onChange={(v) => setTip("dica", v)} rows={3} maxCount={200} />
-            <div className="a-form-grid a-form-grid-3">
-              <Input label="Melhor horário" value={draft.tips.horario} onChange={(v) => setTip("horario", v)} />
-              <Input label="Melhor época" value={draft.tips.epoca} onChange={(v) => setTip("epoca", v)} />
-              <Input label="Como chegar" value={draft.tips.comoChegar} onChange={(v) => setTip("comoChegar", v)} />
-            </div>
-            <Textarea label="Não esqueça" value={draft.tips.lembrete} onChange={(v) => setTip("lembrete", v)} rows={2} maxCount={160} />
-          </Card>
-        )}
-
         {tab === "imagens" && (
           <Card>
             <ImageField label="Foto do topo e dos cards" path={roteiroImg(pid)} hint="16:10 · mín. 1400 px" />
@@ -178,10 +183,29 @@ function RoteiroForm({ initial, isNew }) {
             )}
           </Card>
         )}
+        {tab === "seo" && (
+          <Card subtitle="Como o roteiro aparece no Google e nas redes.">
+            <Input label="Endereço (URL)" value={draft.slug} placeholder={slugify(draft.title)} onChange={(v) => set({ slug: slugify(v) })} prefix="/roteiros/" />
+            <Input label="Título da página" value={draft.seo.title} placeholder={`${draft.title || "Título do roteiro"} | Onde Sair`}
+              onChange={(v) => set({ seo: { ...draft.seo, title: v } })} maxCount={60} />
+            <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={draft.desc} rows={3}
+              onChange={(v) => set({ seo: { ...draft.seo, desc: v } })} maxCount={160} />
+            <div className="a-serp" aria-label="Prévia no Google">
+              <span className="a-serp-url">ondesair.com.br › roteiros › {draft.slug || slugify(draft.title) || "roteiro"}</span>
+              <strong>{draft.seo.title || `${draft.title || "Título do roteiro"} | Onde Sair`}</strong>
+              <p>{(draft.seo.desc || draft.desc || "A descrição aparece aqui.").slice(0, 160)}</p>
+            </div>
+          </Card>
+        )}
       </>}
       side={<>
         <PublishPanel coll="roteiros" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
-        <Card title="Resumo">
+        <Card title="Prévia do card">
+          <div className="a-preview" aria-hidden="true">
+            <RoteiroCard r={{ ...draft, id: pid, title: draft.title || "Título do roteiro", desc: draft.desc || "Resumo do roteiro.", paradas: draft.steps.length }} />
+          </div>
+        </Card>
+        <Card title="Paradas">
           <ol className="a-steps-mini">
             {draft.steps.map((s, i) => {
               const pl = db.places.find(p => p.id === s.place);

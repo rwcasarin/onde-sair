@@ -1,5 +1,5 @@
 // Componentes compartilhados do site (v3)
-import { AFFINITIES, CITIES, PLACES, VIBE_STYLE, PRICE_RANGE, placeImg, roteiroImg } from "../data.js";
+import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, PRICE_RANGE, placeImg, roteiroImg } from "../data.js";
 import { INVEST_LABELS } from "../../shared/myroteiros.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
@@ -154,6 +154,13 @@ export function PageHead({ crumbs, title, lede, children }) {
 
 // ---------- Cards ----------
 // Card de lugar da listagem (3 por linha)
+// Etiqueta do tipo de lugar (mesmo estilo das vibes nos cards de roteiro)
+export function TypePill({ type }) {
+  const t = TYPES.find(x => x.label === type);
+  if (!type) return null;
+  return <span className={"vibe-pill vibe-pill-sm " + (t?.cls || "vibe-lavender")}><span className="vibe-pill-icon"><Icon name={t?.icon || "pin"} size={12} /></span>{type}</span>;
+}
+
 // Card de lugar — o mesmo em todo o site e no formato do card de roteiro:
 // foto 16:10 com favoritar, título, descrição e bairro (alinhado no rodapé do card)
 export function PlaceCard({ p }) {
@@ -165,6 +172,7 @@ export function PlaceCard({ p }) {
         <FaveButton id={p.id} className="fave fave-float" />
       </ImageSlot>
       <div className="rot-index-body">
+        {p.type && <div className="rot-index-vibes"><TypePill type={p.type} /></div>}
         <h3>{p.name}</h3>
         {desc && <p>{desc}</p>}
         <ul className="rot-index-meta">

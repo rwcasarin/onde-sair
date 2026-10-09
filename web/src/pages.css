@@ -1046,7 +1046,6 @@ a.btn-pill { text-decoration: none; }
 /* Cards de lugar e roteiro: últimas informações sempre no rodapé do card */
 .rot-index-card .rot-index-body p { margin: 8px 0 14px; }
 .rot-index-card .rot-index-meta { margin-top: auto; }
-.place-card .rot-index-body { padding-top: 16px; }
 /* grades com o card único de lugar */
 .tips-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .story-article .tips-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
@@ -1055,3 +1054,5 @@ a.btn-pill { text-decoration: none; }
 @media (max-width: 560px) { .tips-grid { grid-template-columns: 1fr; } }
 .hero2-roteiro .page-title.page-title-sm { font-size: clamp(32px, 3.4vw, 48px); line-height: 1.02; }
 .hero2-roteiro .page-title.page-title-md { font-size: clamp(38px, 4.4vw, 60px); }
+.rot-side-preview { pointer-events: none; margin: 10px 0 20px; }
+.rot-side-card > .h2t + .rot-side-steps { margin-top: 8px; }

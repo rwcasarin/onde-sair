@@ -11,7 +11,7 @@
 import {
   CITIES, AFFINITIES, ROTEIROS, PLACES, NOTIFICATIONS, TAGLINES,
   VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
-  VIBE_TO_ROTEIRO, BRAND_VALUES, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS, RADAR_CATEGORIES,
+  VIBE_TO_ROTEIRO, BRAND_VALUES, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS, RADAR_CATEGORIES, TYPES, SEED_TYPES,
 } from "../data.js";
 import { applyUpdates } from "./updates.js";
 
@@ -355,6 +355,7 @@ export function syncPublic() {
   replace(ALL_STORIES, db.stories.filter(isLive).map(s => ({ ...s, tone: catTone(s), img: s.img || `images/historias/${s.id}.jpg` })));
   replace(PAGES, (db.pages || []).filter(isLive));
   replace(RADAR_CATEGORIES, clone(db.radarCategories || []));
+  replace(TYPES, clone(db.types?.length ? db.types : SEED_TYPES));
   Object.assign(MENUS, clone(db.menus || SEED_MENUS));
   replace(STORIES, db.home.storyIds.map(id => db.stories.find(s => s.id === id)).filter(s => s && isLive(s)).map(s => ({ ...s, tone: catTone(s), img: s.img || `images/historias/${s.id}.jpg` })));
 
@@ -507,6 +508,19 @@ export function saveRadarCategories(cats, user, moves = {}) {
   });
   db.radarCategories = cats;
   log(user, "atualizou", "categorias do Radar", "radar"); commit();
+}
+// Tipos de lugar: renomear atualiza os lugares; excluídos movem os lugares (moves: { idExcluído: idDestino })
+export function saveTypes(types, user, moves = {}) {
+  const prev = db.types?.length ? db.types : clone(SEED_TYPES);
+  const byId = Object.fromEntries(types.map(t => [t.id, t]));
+  db.places = db.places.map(p => {
+    const old = prev.find(t => t.label === p.type);
+    if (!old) return p;
+    const t = byId[old.id] || byId[moves[old.id]];
+    return t && t.label !== p.type ? { ...p, type: t.label } : p;
+  });
+  db.types = types;
+  log(user, "atualizou", "tipos de lugar", "lugar"); commit();
 }
 export function saveMenus(menus, user) { db.menus = menus; log(user, "atualizou", "menus", "menus"); commit(); }
 export function saveSettings(settings, user) { db.settings = settings; log(user, "atualizou", "configurações", "config"); commit(); }

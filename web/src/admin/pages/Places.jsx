@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { TYPES, PRICE_RANGE, MOMENTOS, AMBIENTES, placeImg, placeGallery } from "../../data.js";
+import { SEED_TYPES, PRICE_RANGE, MOMENTOS, AMBIENTES, placeImg, placeGallery } from "../../data.js";
+import { placesNav } from "./Types.jsx";
+const typesOf = (db) => db.types?.length ? db.types : SEED_TYPES;
 import { ListingCard, MapArt } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
@@ -23,11 +25,11 @@ export function PlacesList() {
   const bairros = [...new Set(db.places.map(p => p.bairro))].sort();
   return (
     <ContentList
-      coll="places" title="Lugares" newLabel="Novo lugar"
+      coll="places" title="Lugares" newLabel="Novo lugar" nav={placesNav(db)}
       subtitle="Todos os endereços da curadoria. Só os publicados aparecem no site."
       searchText={(p) => `${p.name} ${p.bairro} ${p.type} ${p.sub} ${(p.tags || []).join(" ")}`}
       filters={[
-        { key: "type", label: "Tipo", options: TYPES.map(t => t.label), test: (p, v) => p.type === v },
+        { key: "type", label: "Tipo", options: typesOf(db).map(t => t.label), test: (p, v) => p.type === v },
         { key: "vibe", label: "Vibe", options: vibes.map(v => [v.id, v.label]), test: (p, v) => p.affs.includes(v) },
         { key: "bairro", label: "Bairro", options: bairros, test: (p, v) => p.bairro === v },
       ]}
@@ -150,7 +152,7 @@ function PlaceForm({ initial, isNew }) {
         {tab === "detalhes" && (
           <Card>
             <div className="a-form-grid">
-              <Select label="Tipo" required value={draft.type} onChange={(v) => set({ type: v })} options={TYPES.map(t => t.label)} error={errors.type} />
+              <Select label="Tipo" required value={draft.type} onChange={(v) => set({ type: v })} options={[...new Set([...typesOf(db).map(t => t.label), draft.type].filter(Boolean))]} error={errors.type} />
               <Input label="Funcionamento" value={draft.open} onChange={(v) => set({ open: v })} placeholder="Ter–Dom · 12h – 23h" />
               <Input label="Telefone" value={draft.phone} onChange={(v) => set({ phone: v })} type="tel" placeholder="(00) 0000-0000" />
               <Input label="Site" value={draft.site} onChange={(v) => set({ site: v.replace(/^https?:\/\//, "") })} prefix="https://" />

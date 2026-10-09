@@ -118,6 +118,25 @@ function dropMainVibe(d) {
   return ["roteiros e dicas da home"];
 }
 
+// Tipos de lugar passam a ser cadastrados no painel (nome, cor e ícone)
+const TYPE_DEFAULTS = [
+  ["restaurantes", "Restaurantes", "restaurantes", "vibe-orange", "utensils"], ["bares", "Bares", "bares", "vibe-pink", "cheers"],
+  ["parques", "Parques", "parques", "vibe-mint", "tree"], ["shows-baladas", "Shows e baladas", "shows-e-baladas", "vibe-lavender", "music"],
+  ["eventos", "Eventos", "eventos", "vibe-sky", "calendar"],
+];
+function placeTypes(d) {
+  if (d.types?.length) return [];
+  const types = TYPE_DEFAULTS.map(([id, label, slug, cls, icon]) => ({ id, label, slug, cls, icon }));
+  (d.places || []).forEach(p => {                      // tipos usados nos lugares que não estão na lista
+    if (p.type && !types.some(t => norm(t.label) === norm(p.type))) {
+      const slug = norm(p.type).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      types.push({ id: "t-" + slug, label: p.type, slug, cls: "vibe-lavender", icon: "pin" });
+    }
+  });
+  d.types = types;
+  return types.map(t => t.label);
+}
+
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
@@ -126,6 +145,7 @@ const UPDATES = [
   { id: "2026-10-radar-categorias", label: "categorias do Radar", apply: radarCategories },
   { id: "2026-10-sem-avaliacoes", label: "remoção das avaliações", apply: dropReviews },
   { id: "2026-10-sem-vibe-principal", label: "fim da vibe principal", apply: dropMainVibe },
+  { id: "2026-10-tipos-de-lugar", label: "tipos de lugar", apply: placeTypes },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

@@ -25,13 +25,15 @@ const AFFINITIES = [
 ];
 
 // Camada 2 — Tipo (chips outline · FILTRO)
-const TYPES = [
-  { id: "restaurantes",   label: "Restaurantes",     slug: "restaurantes" },
-  { id: "bares",          label: "Bares",            slug: "bares" },
-  { id: "parques",        label: "Parques",          slug: "parques" },
-  { id: "shows-baladas",  label: "Shows e baladas",  slug: "shows-e-baladas" },
-  { id: "eventos",        label: "Eventos",          slug: "eventos" },
+// Tipos de lugar (gerenciados no painel em Lugares › Tipos; aqui ficam os iniciais)
+export const SEED_TYPES = [
+  { id: "restaurantes",   label: "Restaurantes",     slug: "restaurantes",    cls: "vibe-orange",   icon: "utensils" },
+  { id: "bares",          label: "Bares",            slug: "bares",           cls: "vibe-pink",     icon: "cheers" },
+  { id: "parques",        label: "Parques",          slug: "parques",         cls: "vibe-mint",     icon: "tree" },
+  { id: "shows-baladas",  label: "Shows e baladas",  slug: "shows-e-baladas", cls: "vibe-lavender", icon: "music" },
+  { id: "eventos",        label: "Eventos",          slug: "eventos",         cls: "vibe-sky",      icon: "calendar" },
 ];
+const TYPES = SEED_TYPES.map(t => ({ ...t }));
 
 const ROTEIROS = [
   {

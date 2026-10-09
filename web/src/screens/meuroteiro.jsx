@@ -4,7 +4,7 @@ import { vibesFromPlaces } from "../vibes.js";
 import { PLACES, ROTEIROS, AFFINITIES, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { Crumbs, VibePill, MapArt, Footer } from "../components/site.jsx";
+import { Crumbs, VibePill, MapArt, Footer, RoteiroCard } from "../components/site.jsx";
 import { useNav, useFaves } from "../nav.js";
 import { findMyRoteiro, saveMyRoteiro, copyOf } from "../account.js";
 import { bySlug } from "../router.js";
@@ -113,7 +113,7 @@ function Editor({ start, isNew }) {
   async function save() {
     const e = roteiroErrors(d);
     setErrors(e);
-    if (Object.keys(e).length) { setTab(e.title || e.vibes ? "info" : "paradas"); return; }
+    if (Object.keys(e).length) { setTab(e.title ? "info" : e.vibes ? "vibes" : "paradas"); return; }
     setBusy(true); setMsg("");
     try {
       const saved = await saveMyRoteiro(d);
@@ -151,7 +151,7 @@ function Editor({ start, isNew }) {
         <div className="rot-editor-grid">
           <div>
             <div className="underline-tabs" role="tablist">
-              {[["info", "Informações", errors.title || errors.vibes], ["paradas", `Paradas (${d.steps.length})`, errors.steps], ["dicas", "Dicas e anotações"]].map(([k, l, err]) => (
+              {[["info", "Conteúdo", errors.title], ["detalhes", "Detalhes práticos"], ["vibes", "Vibes", errors.vibes], ["paradas", `Paradas (${d.steps.length})`, errors.steps]].map(([k, l, err]) => (
                 <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}{err && <span className="tab-err" aria-label="com erro">!</span>}</button>
               ))}
             </div>
@@ -164,12 +164,14 @@ function Editor({ start, isNew }) {
                 <F label="Resumo" hint="Uma ou duas frases sobre o clima do roteiro.">
                   {(id) => <textarea id={id} rows={2} maxLength={240} value={d.desc} onChange={(e) => set({ desc: e.target.value })} />}
                 </F>
-                <VibeOrder value={d.vibes} auto={d.vibesAuto} error={errors.vibes}
-                  onChange={(vibes) => set({ vibes, vibesAuto: false })}
-                  onAuto={() => set({ vibes: suggested, vibesAuto: true })} canAuto={suggested.length > 0} />
                 <F label="Sobre este roteiro" hint="Opcional. Conte o que torna esse dia especial.">
                   {(id) => <textarea id={id} rows={4} maxLength={1500} value={d.about} onChange={(e) => set({ about: e.target.value })} />}
                 </F>
+              </section>
+            )}
+
+            {tab === "detalhes" && (
+              <section className="rot-form">
                 <div className="rot-form-2">
                   <F label="Tempo total">{(id) => <input id={id} value={d.stats.tempo} maxLength={40} onChange={(e) => setStats({ tempo: e.target.value })} placeholder="4 a 6 horas" />}</F>
                   <F label="Ideal para">{(id) => <input id={id} value={d.stats.ideal} maxLength={60} onChange={(e) => setStats({ ideal: e.target.value })} placeholder="Casal, amigos, família…" />}</F>
@@ -180,6 +182,20 @@ function Editor({ start, isNew }) {
                     {INVEST_LABELS.map((l, i) => <button key={l} type="button" role="radio" aria-checked={d.stats.invest === i} className={d.stats.invest === i ? "on" : ""} onClick={() => setStats({ invest: i })}>{i ? "$".repeat(i) + " " : ""}{l}</button>)}
                   </div>
                 </div>
+                <div className="rot-form-2">
+                  <F label="Melhor horário">{(id) => <input id={id} value={d.tips.horario} maxLength={60} onChange={(e) => setTips({ horario: e.target.value })} placeholder="Sábado de manhã" />}</F>
+                  <F label="Como chegar">{(id) => <input id={id} value={d.tips.comoChegar} maxLength={120} onChange={(e) => setTips({ comoChegar: e.target.value })} placeholder="Metrô até a primeira parada, depois a pé" />}</F>
+                </div>
+                <F label="Minhas anotações" hint="Aparece em destaque na página do roteiro.">{(id) => <textarea id={id} rows={3} maxLength={300} value={d.tips.dica} onChange={(e) => setTips({ dica: e.target.value })} />}</F>
+                <F label="Não esqueça">{(id) => <textarea id={id} rows={2} maxLength={200} value={d.tips.lembrete} onChange={(e) => setTips({ lembrete: e.target.value })} placeholder="Protetor solar, canga, dinheiro para a feira…" />}</F>
+              </section>
+            )}
+
+            {tab === "vibes" && (
+              <section className="rot-form">
+                <VibeOrder value={d.vibes} auto={d.vibesAuto} error={errors.vibes}
+                  onChange={(vibes) => set({ vibes, vibesAuto: false })}
+                  onAuto={() => set({ vibes: suggested, vibesAuto: true })} canAuto={suggested.length > 0} />
               </section>
             )}
 
@@ -229,21 +245,15 @@ function Editor({ start, isNew }) {
               </section>
             )}
 
-            {tab === "dicas" && (
-              <section className="rot-form">
-                <F label="Minhas anotações" hint="Aparece em destaque na página do roteiro.">{(id) => <textarea id={id} rows={3} maxLength={300} value={d.tips.dica} onChange={(e) => setTips({ dica: e.target.value })} />}</F>
-                <div className="rot-form-2">
-                  <F label="Melhor horário">{(id) => <input id={id} value={d.tips.horario} maxLength={60} onChange={(e) => setTips({ horario: e.target.value })} placeholder="Sábado de manhã" />}</F>
-                  <F label="Como chegar">{(id) => <input id={id} value={d.tips.comoChegar} maxLength={120} onChange={(e) => setTips({ comoChegar: e.target.value })} placeholder="Metrô até a primeira parada, depois a pé" />}</F>
-                </div>
-                <F label="Não esqueça">{(id) => <textarea id={id} rows={2} maxLength={200} value={d.tips.lembrete} onChange={(e) => setTips({ lembrete: e.target.value })} placeholder="Protetor solar, canga, dinheiro para a feira…" />}</F>
-              </section>
-            )}
           </div>
 
           <aside className="rot-editor-side">
             <div className="rot-side-card">
-              <h2 className="h2t">Resumo</h2>
+              <h2 className="h2t">Prévia do card</h2>
+              <div className="rot-side-preview" aria-hidden="true">
+                <RoteiroCard r={{ ...d, title: d.title || "Nome do roteiro" }} mine />
+              </div>
+              <h2 className="h2t">Paradas</h2>
               <ol className="rot-side-steps">
                 {d.steps.map((s, i) => (
                   <li key={i}><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>

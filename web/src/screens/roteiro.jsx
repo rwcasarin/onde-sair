@@ -102,17 +102,16 @@ function RoteiroView({ r, mine = false }) {
                       <button className="btn-outline" onClick={() => setConfirmDel(false)}>Cancelar</button></span>
                   : <button className="act-btn act-sm" onClick={() => setConfirmDel(true)} aria-label="Excluir"><Icon name="x" size={17} /><span className="act-label">Excluir</span></button>}
               </div>
-            </> : <>
-              <div className="act-row act-main">
-                <button className="act-cta" onClick={copy}><Icon name="list" size={18} /> Copiar e adaptar</button>
-              </div>
+            </> : (
+              // favoritar, copiar e adaptar, compartilhar: mesmo estilo (só ícone, texto no hover)
               <div className="act-row act-sub">
                 <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
                   <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
                 </button>
+                <button className="act-btn act-sm" onClick={copy} aria-label="Copiar e adaptar"><Icon name="copy" size={17} /><span className="act-label">Copiar e adaptar</span></button>
                 <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
               </div>
-            </>}
+            )}
           </div>
         </div>
       </section>

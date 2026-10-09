@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  PLACES, VIBE_ORDER, VIBE_PAGE, PRICE_BUCKETS, MOMENTOS, AMBIENTES, TESTIMONIALS, vibeImg,
+  PLACES, VIBE_ORDER, VIBE_PAGE, PRICE_BUCKETS, MOMENTOS, AMBIENTES, vibeImg,
 } from "../data.js";
 import { CITIES, TYPES } from "../data.js";
 import { Icon } from "../components/icons.jsx";
@@ -229,24 +229,6 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
               items={results.map(p => ({ id: p.id, place: p }))} />
           )}
 
-          {/* Seleção de quem já foi */}
-          <div className="selection-strip">
-            <div className="selection-intro">
-              <h2>Seleção de quem já foi</h2>
-              <span className="rule" />
-              <p>Lugares que realmente impressionam, segundo a nossa comunidade.</p>
-            </div>
-            {TESTIMONIALS.map(t => (
-              <figure key={t.name} className="testimonial">
-                <ImageSlot className="avatar-slot" src={`images/pessoas/${t.name.split(" ")[0].toLowerCase()}.jpg`} compact />
-                <div>
-                  <blockquote>“{t.text}”</blockquote>
-                  <figcaption><strong>{t.name}</strong><span>{t.when}</span></figcaption>
-                </div>
-              </figure>
-            ))}
-            <GeoCard className="selection-geo" />
-          </div>
         </section>
       </div>
 
