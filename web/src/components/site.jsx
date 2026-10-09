@@ -138,11 +138,12 @@ export function GeoStrip() {
 }
 
 // Cabeçalho das telas internas (favoritos, perfil, notificações…)
-export function PageHead({ crumbs, title, lede, children }) {
+export function PageHead({ crumbs, eyebrow, title, lede, children }) {
   return (
     <section className="page-head">
       <div className="page-head-copy">
         {crumbs && <Crumbs items={crumbs} />}
+        {eyebrow && <div className="page-head-eyebrow">{eyebrow}</div>}
         <h1>{title}</h1>
         {lede && <p className="page-head-lede">{lede}</p>}
         {children}

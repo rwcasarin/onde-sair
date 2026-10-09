@@ -37,7 +37,6 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   const [prices, setPrices] = useState(new Set());
   const [momentos, setMomentos] = useState(new Set());
   const [ambientes, setAmbientes] = useState(new Set());
-  const [reserva, setReserva] = useState(new Set());
   const [sort, setSort] = useState("relevancia");
   const [view, setView] = useState("lista");
   const [activePin, setActivePin] = useState(null);
@@ -73,16 +72,15 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
     if (prices.size && !prices.has(p.priceLevel)) return false;
     if (momentos.size && !p.momento.some(m => momentos.has(m))) return false;
     if (ambientes.size && !p.ambiente.some(m => ambientes.has(m))) return false;
-    if (reserva.size && !reserva.has(p.reserva ? "sim" : "nao")) return false;
     return true;
   });
   if (sort === "preco") results = [...results].sort((x, y) => x.priceLevel - y.priceLevel);
 
   const count = (fn) => base.filter(fn).length;
-  const filterCount = (bairroSel ? 1 : 0) + bairros.size + prices.size + momentos.size + ambientes.size + reserva.size;
+  const filterCount = (bairroSel ? 1 : 0) + bairros.size + prices.size + momentos.size + ambientes.size;
   function clearAll() {
     setBairroSel(""); setBairros(new Set()); setPrices(new Set());
-    setMomentos(new Set()); setAmbientes(new Set()); setReserva(new Set());
+    setMomentos(new Set()); setAmbientes(new Set());
   }
 
   const title = a ? a.label : query ? "Resultados da busca" : typeF || "Lugares";
@@ -168,12 +166,6 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
             {AMBIENTES.map(m => (
               <CheckRow key={m} checked={ambientes.has(m)} onChange={() => setAmbientes(toggleIn(ambientes, m))} count={count(p => p.ambiente.includes(m))}>{m}</CheckRow>
             ))}
-          </div>
-
-          <div className="filter-block">
-            <h3>Reserva</h3>
-            <CheckRow checked={reserva.has("sim")} onChange={() => setReserva(toggleIn(reserva, "sim"))} count={count(p => p.reserva)}>Aceita reserva</CheckRow>
-            <CheckRow checked={reserva.has("nao")} onChange={() => setReserva(toggleIn(reserva, "nao"))} count={count(p => !p.reserva)}>Sem necessidade</CheckRow>
           </div>
 
           <button

@@ -141,12 +141,11 @@ export function Historia({ id }) {
   return (
     <main className="home2">
       <article className="shell narrow story-article">
-        <button type="button" className="back-btn" onClick={() => canGoBack() ? history.back() : nav("historias")}>
+        <a href={href("/radar")} className="back-link" onClick={(e) => { e.preventDefault(); canGoBack() ? history.back() : nav("historias"); }}>
           <Icon name="left" size={16} /> Voltar
-        </button>
-        <PageHead crumbs={[["Início", "home"], ["Radar", "historias"], [s.title]]} title={s.title} lede={s.desc}>
-          <span className={"story-tag tone-" + s.tone}>{s.tag}</span>
-        </PageHead>
+        </a>
+        <PageHead crumbs={[["Início", "home"], ["Radar", "historias"], [s.title]]} title={s.title} lede={s.desc}
+          eyebrow={s.tag && <span className={"story-tag tone-" + s.tone}>{s.tag}</span>} />
         {(s.author || when) && <p className="story-byline">{s.author && <>Por <strong>{s.author}</strong></>}{s.author && when && " · "}{when && fmt(when)}</p>}
         <ImageSlot className="story-hero" src={s.img} alt="" hint="Foto de capa · 16:9" />
         <PostBody s={s} />

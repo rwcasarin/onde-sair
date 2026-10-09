@@ -996,8 +996,8 @@ a.btn-pill { text-decoration: none; }
 .radar-chip:not([class*="tone-"]).on { background: var(--heading); color: #fff; }
 .radar-filters:has(.radar-chip.on[class*="tone-"]) .radar-chip:not(.on) { opacity: .55; }
 .radar-filters:has(.radar-chip.on[class*="tone-"]) .radar-chip:not(.on):hover { opacity: 1; }
-.back-btn { display: inline-flex; align-items: center; gap: 6px; margin: 22px 0 -8px; padding: 7px 14px 7px 10px; border: 0; border-radius: 999px; background: #fff; color: var(--heading); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(30,21,80,.15); }
-.back-btn:hover { box-shadow: inset 0 0 0 1.5px var(--heading); }
+.back-link { display: inline-flex; align-items: center; gap: 4px; margin: 22px 0 -8px; color: var(--heading); font-size: 14px; font-weight: 600; text-decoration: none; }
+.back-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- Topo do lugar: vibes pequenas, tags e ações em dois níveis ---------- */
 .hero2-place .place-vibes-sm { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
@@ -1010,6 +1010,9 @@ a.btn-pill { text-decoration: none; }
 .act-cta:hover { box-shadow: 0 10px 24px -12px rgba(42,28,94,.7); transform: translateY(-1px); }
 .act-cta:focus-visible { outline: 3px solid var(--c-teal); outline-offset: 2px; }
 .act-btn.act-round { width: 48px; height: 48px; padding: 0; justify-content: center; text-decoration: none; }
+/* Instagram e WhatsApp: hover preenchido na cor da marca */
+.act-btn.act-insta:hover, .act-btn.act-insta:focus-visible { background: radial-gradient(circle at 30% 107%, #FDF497 0%, #FDF497 5%, #FD5949 45%, #D6249F 60%, #285AEB 90%); border-color: transparent; color: #fff; }
+.act-btn.act-whats:hover, .act-btn.act-whats:focus-visible { background: #25D366; border-color: #25D366; color: #fff; }
 /* 2ª linha: ações do visitante, menores e mais leves */
 .act-sub { gap: 8px; }
 .act-btn.act-sm { height: 40px; min-width: 40px; padding: 0 11px; border-width: 1px; border-color: var(--line-strong); color: var(--heading); }
@@ -1099,3 +1102,5 @@ a.btn-pill { text-decoration: none; }
 .tips-grid.tips-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @media (max-width: 900px) { .tips-grid.tips-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .tips-grid.tips-4 { grid-template-columns: 1fr; } }
+.page-head-eyebrow { margin: 14px 0 12px; }
+.page-head-eyebrow .story-tag { font-size: 10px; padding: 4px 12px; }

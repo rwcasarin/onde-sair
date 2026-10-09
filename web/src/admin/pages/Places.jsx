@@ -56,7 +56,7 @@ export function PlacesList() {
 const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
   affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
-  priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", reserva: false, note: "",
+  priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", note: "",
   showGallery: true,
   map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
@@ -167,9 +167,6 @@ function PlaceForm({ initial, isNew }) {
             <div className="a-form-grid">
               <PillPicker label="Momento" value={draft.momento} onChange={(momento) => set({ momento })} options={MOMENTOS.map(m => [m, m])} />
               <PillPicker label="Ambiente" value={draft.ambiente} onChange={(ambiente) => set({ ambiente })} options={AMBIENTES.map(m => [m, m])} />
-            </div>
-            <div className="a-toggles">
-              <Toggle label="Aceita reserva" checked={draft.reserva} onChange={(reserva) => set({ reserva })} />
             </div>
           </Card>
         )}
