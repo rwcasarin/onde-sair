@@ -146,7 +146,7 @@ export default function App() {
 
   // ação que exige conta: guarda a intenção, leva ao login e volta para onde estava
   const ask = useCallback((intent) => {
-    if (SITE.accountsPaused || (SITE.roteirosPaused && (intent.type === "roteiro" || intent.type === "copiar" || intent.type === "criar"))) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
+    if (SITE.accountsPaused || (SITE.roteirosPaused && (intent.type === "roteiro" || intent.type === "copiar"))) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
 
   const toggleFave = useCallback((id) => {
     if (SITE.accountsPaused) return;
@@ -174,7 +174,6 @@ export default function App() {
       setFaves(f); updateAccount({ faves: [...f] }).catch(() => {});
     }
     if (i?.type === "copiar") return nav("meuRoteiroEditar", { id: "novo", copiar: i.id });
-    if (i?.type === "criar") return nav("meuRoteiroEditar", { id: "novo" });
     if (i?.back && !/^\/(entrar|cadastro|boas-vindas)/.test(i.back)) { go(i.back); window.scrollTo(0, 0); return; }
     nav(isNew ? "home" : "perfil");
   }

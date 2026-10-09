@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { ROTEIROS, VIBE_ORDER, CITIES, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { HeroMedia, Crumbs, VibePill, RoteiroCard, Footer, affById, placeById } from "../components/site.jsx";
-import { useNav, useCity, useAccount } from "../nav.js";
+import { useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { roteiroVibes } from "../vibes.js";
 import { slugify } from "../admin/store.js";
@@ -23,9 +23,7 @@ function facts(r) {
 }
 
 export function RoteirosLista() {
-  const nav = useNav();
   const { id: globalCity, name: city, set: setGlobalCity } = useCity();
-  const { user, ask, paused, roteirosPaused } = useAccount();
   const all = useMemo(() => ROTEIROS.map(facts), []);
   // vibe pela URL (/roteiros?vibe=para-dates); cidade: a do site, se tiver roteiros nela
   const [vibe, setVibe] = useState(() => {
@@ -67,7 +65,6 @@ export function RoteirosLista() {
   const filterCount = bairros.size + invest.size + stops.size;
   function clearAll() { setBairros(new Set()); setInvest(new Set()); setStops(new Set()); }
   const a = vibe ? affById(vibe) : null;
-  const create = () => user ? nav("meuRoteiroEditar", { id: "novo" }) : ask({ type: "criar" });
 
   return (
     <main className="home2">
@@ -81,7 +78,6 @@ export function RoteirosLista() {
           <nav className="hero2-vibes vibes-menu" aria-label="Filtrar por vibe">
             {VIBE_ORDER.map(id => <VibePill key={id} aff={id} active={vibe === id} onClick={() => pickVibe(id)} />)}
           </nav>
-          {!paused && !roteirosPaused && <button className="btn-outline rot-create" onClick={create}><Icon name="pin" size={16} /> Monte o seu roteiro</button>}
         </div>
       </section>
 
