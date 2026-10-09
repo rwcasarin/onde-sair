@@ -1,7 +1,7 @@
 // GET /api/admin/db — banco completo para o painel
 // PUT /api/admin/db { db, etag, force? } — grava, validando permissões do perfil (force: só admin)
 import { requireUser, loadTeam, publicMember } from "../_lib/auth.js";
-import { readJSON, writeJSON, Conflict } from "../_lib/storage.js";
+import { readJSON, writeJSON, deleteJSON, Conflict } from "../_lib/storage.js";
 import { json, fail, body, handle, isCmsCall } from "../_lib/http.js";
 import { can } from "../../shared/roles.js";
 import { loadUsers, updateUsers } from "../_lib/users.js";
@@ -17,6 +17,8 @@ export const GET = handle(async (request) => {
   const user = await requireUser(request);
   const [content, media, team, users] = await Promise.all([readJSON("content"), readJSON("media"), loadTeam(), loadUsers()]);
   const members = can(user, "members.manage") ? users.data.map(asMember) : [];
+  // a integração com o Instagram foi removida: apaga o token que tenha ficado guardado
+  if (can(user, "settings.edit")) await deleteJSON("secrets").catch(() => {});
   return json({
     user, etag: content?.etag || null,
     db: content ? { ...content.data, members, media: media?.data || {}, team: team.data.map(publicMember) } : null,

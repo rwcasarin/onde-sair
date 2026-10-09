@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, useAdmin, useDraft } from "../kit.jsx";
-import { saveSettings, getDB, resetDemo, importDB, REMOTE, api } from "../store.js";
+import { saveSettings, getDB, resetDemo, importDB, REMOTE } from "../store.js";
 
 export function SettingsPage() {
   const { db, user, toast, saved, confirm, setDirty } = useAdmin();
@@ -99,7 +99,6 @@ export function SettingsPage() {
             <li>Cole a chave aqui e salve. O campo de endereço passa a sugerir endereços na hora.</li>
           </ol>
         </Card>
-        <InstagramCard />
       </>)}
 
       {tab === "avancado" && (
@@ -130,66 +129,5 @@ export function SettingsPage() {
         </div>
       )}
     </>
-  );
-}
-
-// Instagram (posts dos lugares): credenciais guardadas no servidor, fora do conteúdo do site
-function InstagramCard() {
-  const { toast, confirm } = useAdmin();
-  const [st, setSt] = useState(null);          // situação no servidor
-  const [businessId, setBusinessId] = useState("");
-  const [token, setToken] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  useEffect(() => {
-    if (!REMOTE) return;
-    api("admin/integrations").then(d => { setSt(d.instagram); setBusinessId(d.instagram.businessId || ""); }).catch(e => setErr(e.message));
-  }, []);
-
-  async function save() {
-    setBusy(true); setErr("");
-    try {
-      const d = await api("admin/integrations", { method: "POST", body: { instagram: { businessId, token } } });
-      setSt(d.instagram); setToken(""); setBusinessId(d.instagram.businessId || businessId);
-      toast(`Instagram conectado${d.instagram.username ? " como @" + d.instagram.username : ""}.` + (d.instagram.fixedFrom ? " O ID era da Página do Facebook: usamos o da conta do Instagram." : ""), "success");
-    } catch (e) { setErr(e.message); }
-    setBusy(false);
-  }
-  async function remove() {
-    if (!(await confirm({ title: "Remover as credenciais do Instagram?", text: "A seção Instagram some das páginas dos lugares até você conectar de novo.", ok: "Remover", danger: true }))) return;
-    setBusy(true); setErr("");
-    try { const d = await api("admin/integrations", { method: "POST", body: { instagram: { remove: true } } }); setSt(d.instagram); setBusinessId(d.instagram.businessId || ""); setToken(""); toast("Credenciais removidas.", "success"); }
-    catch (e) { setErr(e.message); }
-    setBusy(false);
-  }
-
-  return (
-    <Card title="Instagram" subtitle="Mostra os 10 posts mais recentes de cada lugar com perfil público profissional.">
-      {!REMOTE ? <p className="a-hint">Disponível quando o painel está publicado (precisa do servidor).</p> : <>
-        {st && (!st.configured
-          ? <p className="a-insta-status warn" role="status">Ainda não conectado. A seção Instagram não aparece nos lugares.</p>
-          : st.health && !st.health.ok
-            ? <p className="a-insta-status err" role="alert"><strong>Conectado, mas com erro.</strong> {st.health.error}<br /><small>Conta {st.businessId} · token {st.tokenHint}{st.source === "vercel" ? " · variáveis da Vercel" : ""}</small></p>
-            : <p className="a-insta-status ok" role="status">Conectado{st.health?.username ? ` como @${st.health.username}` : ""}{st.source === "vercel" ? " pelas variáveis da Vercel" : ""} · conta {st.businessId} · token {st.tokenHint}{st.updatedBy ? ` · por ${st.updatedBy}` : ""}{st.health?.warn ? <><br /><small>{st.health.warn}</small></> : null}</p>)}
-        <div className="a-form-grid">
-          <Input label="ID da conta do Instagram" value={businessId} onChange={(v) => setBusinessId(v.trim())} placeholder="1784…" inputMode="numeric" autoComplete="off"
-            hint="O instagram_business_account da conta do Onde Sair." />
-          <Input label="Token de acesso" type="password" value={token} onChange={setToken} autoComplete="new-password" spellCheck={false}
-            placeholder={st?.configured && st.source === "painel" ? "Deixe em branco para manter o atual" : "EAAG…"}
-            hint="Fica só no servidor: depois de salvo, não aparece mais aqui." />
-        </div>
-        {err && <p className="a-error" role="alert">{err}</p>}
-        <div className="a-row-actions">
-          <Btn kind="primary" icon="check" onClick={save} disabled={busy || !businessId || (!token && !(st?.configured && st.source === "painel"))}>{busy ? "Testando…" : "Salvar e testar"}</Btn>
-          {st?.source === "painel" && <Btn kind="ghost" icon="trash" onClick={remove} disabled={busy}>Remover</Btn>}
-        </div>
-        <ol className="a-steps">
-          <li>Crie o app na Meta (tipo <em>Empresa</em>, produto <em>Instagram com login do Facebook</em>).</li>
-          <li>No portfólio empresarial, gere o token de um <em>usuário do sistema</em> com expiração <strong>Nunca</strong> e as permissões <code>instagram_basic</code>, <code>pages_show_list</code>, <code>pages_read_engagement</code> e <code>business_management</code>.</li>
-          <li>No Graph API Explorer, consulte <code>me/accounts?fields=instagram_business_account</code> para achar o ID da conta.</li>
-          <li>Cole aqui e clique em <strong>Salvar e testar</strong>: o painel confere com o Instagram antes de guardar.</li>
-        </ol>
-      </>}
-    </Card>
   );
 }
