@@ -98,7 +98,7 @@ export function PostPlaceCard({ p, n }) {
           <span title={price || ""}><PriceDots level={p.priceLevel} /></span>
           {p.open && <span className="post-place-open"><Icon name="clock" size={13} /> {p.open.split(" · ").slice(0, 2).join(" · ")}</span>}
         </div>
-        <a className="btn-pill post-place-cta" href={href(placePath(p))} onClick={go}>Ver lugar <Icon name="arrow" size={14} /></a>
+        <a className="btn-pill post-place-cta" href={href(placePath(p))} onClick={go}>Saiba mais <Icon name="arrow" size={14} /></a>
       </div>
     </article>
   );

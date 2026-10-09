@@ -3,7 +3,7 @@ import { ROTEIROS, roteiroImg, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, TypePill,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, TypePill, CardMore,
 } from "../components/site.jsx";
 import { roteiroVibes } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
@@ -178,10 +178,11 @@ function RoteiroView({ r, mine = false }) {
                     <div className="rot-index-body">
                       {p?.type && <div className="rot-index-vibes"><TypePill type={p.type} /></div>}
                       <h3>{s.title}</h3>
-                      {s.desc && <p>{s.desc}</p>}
-                      <ul className="rot-index-meta">
+                      <ul className="rot-index-meta card-sub">
                         {p ? <li><Icon name="pin" size={14} /> {p.bairro}</li> : <li className="step-free">Parada livre</li>}
                       </ul>
+                      {s.desc && <p>{s.desc}</p>}
+                      {p && <div className="card-foot"><CardMore screen="detalhe" params={{ id: p.id }} /></div>}
                     </div>
                   </article>
                 );
