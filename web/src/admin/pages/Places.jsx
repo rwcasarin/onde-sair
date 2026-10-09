@@ -60,7 +60,7 @@ const BLANK = {
 };
 
 const RULES = [
-  ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{2}9\d{8}$/.test(d.whatsapp.replace(/\D/g, "")), "Use um celular com DDD, como (15) 99999-9999."],
+  ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
   ["name", (d) => d.name.trim().length >= 2, "Dê um nome ao lugar."],
   ["type", (d) => !!d.type, "Escolha o tipo.", true],
   ["city", (d) => !!d.city, "Escolha a cidade.", true],
@@ -156,7 +156,7 @@ function PlaceForm({ initial, isNew }) {
               <Input label="Site" value={draft.site} onChange={(v) => set({ site: v.replace(/^https?:\/\//, "") })} prefix="https://" />
               <Input label="Instagram" value={draft.insta} onChange={(v) => set({ insta: v.startsWith("@") || !v ? v : "@" + v })} />
               <Input label="WhatsApp" value={draft.whatsapp || ""} onChange={(v) => set({ whatsapp: v })} type="tel" placeholder="(15) 99999-9999"
-                error={errors.whatsapp} hint="Celular com DDD. Vira o botão de WhatsApp na página do lugar." />
+                error={errors.whatsapp} hint="Número com DDD (celular ou fixo do WhatsApp Business). Vira o botão de WhatsApp na página do lugar." />
             </div>
             <Field label="Faixa de preço por pessoa">
               <Segmented label="Faixa de preço" value={draft.priceLevel} onChange={(v) => set({ priceLevel: v })}

@@ -154,48 +154,29 @@ export function PageHead({ crumbs, title, lede, children }) {
 
 // ---------- Cards ----------
 // Card de lugar da listagem (3 por linha)
-export function ListingCard({ p, badge }) {
+// Card de lugar — o mesmo em todo o site e no formato do card de roteiro:
+// foto 16:10 com favoritar, título, descrição e bairro (alinhado no rodapé do card)
+export function PlaceCard({ p }) {
   const nav = useNav();
+  const desc = p.tagline || (p.desc ? p.desc.split(".")[0] + "." : "");
   return (
-    <article className="listing-card" onClick={() => nav("detalhe", { id: p.id })}>
-      <ImageSlot className="listing-img" src={placeImg(p.id)} alt={p.name} hint="16:10">
-        {badge && <span className="listing-badge"><Icon name="cheers" size={13} /> {badge}</span>}
+    <article className="rot-index-card place-card" onClick={() => nav("detalhe", { id: p.id })}>
+      <ImageSlot className="rot-index-img" src={placeImg(p.id)} alt={p.name} hint="16:10">
         <FaveButton id={p.id} className="fave fave-float" />
       </ImageSlot>
-      <div className="listing-body">
-        <div className="listing-title">
-          <h3>{p.name}</h3>
-        </div>
-        <span className="listing-sub">{p.sub} <i>•</i> {p.bairro}</span>
-        <p>{p.desc.split(".")[0]}.</p>
-        <div className="listing-tags">{p.tags.map(t => <Tag key={t}>{t}</Tag>)}</div>
-        <div className="listing-foot">
-          <strong>{PRICE_RANGE[p.priceLevel]}</strong>
-          <PriceDots level={p.priceLevel} />
-          <span className="listing-where"><Icon name="pin" size={14} /> {p.bairro}</span>
-        </div>
+      <div className="rot-index-body">
+        <h3>{p.name}</h3>
+        {desc && <p>{desc}</p>}
+        <ul className="rot-index-meta">
+          <li><Icon name="pin" size={14} /> {p.bairro}</li>
+        </ul>
       </div>
     </article>
   );
 }
-
-// Card compacto de lugar (home "Dicas para hoje" e "Lugares parecidos")
-export function MiniPlaceCard({ p, showDesc = true }) {
-  const nav = useNav();
-  return (
-    <article className="tip-card" onClick={() => nav("detalhe", { id: p.id })}>
-      <ImageSlot className="tip-img" src={placeImg(p.id)} alt={p.name} hint="5:4" />
-      <div className="tip-body">
-        <div className="tip-title">
-          <h3>{p.name}</h3>
-          <FaveButton id={p.id} />
-        </div>
-        <span className="tip-where"><Icon name="pin" size={13} /> {p.bairro}</span>
-        {showDesc && <p>{p.desc.split(".")[0]}.</p>}
-      </div>
-    </article>
-  );
-}
+// nomes antigos (listagem e cards compactos) usam o mesmo card
+export const ListingCard = ({ p }) => <PlaceCard p={p} />;
+export const MiniPlaceCard = ({ p }) => <PlaceCard p={p} />;
 
 // Card de roteiro — o mesmo em todo o site (lista de roteiros, página do lugar, "Continue explorando", perfil).
 // mine: roteiro criado pelo visitante (foto da 1ª parada, abre o roteiro dele); actions: botões extras no rodapé.

@@ -129,7 +129,7 @@ export function Historia({ id }) {
   const s = ALL_STORIES.find(x => x.id === id);
   if (!s) return null;
   const inline = [...String(s.body || "").matchAll(/data-place="([\w-]+)"/g)].map(m => m[1]);
-  const places = (s.places || []).filter(pid => !inline.includes(pid)).map(pid => PLACES.find(p => p.id === pid)).filter(Boolean);
+  const places = (s.places || []).filter(pid => !inline.includes(pid)).map(pid => PLACES.find(p => p.id === pid)).filter(Boolean).slice(0, 4);   // no máximo 4
   const more = ALL_STORIES.filter(x => x.id !== s.id).slice(0, 3);
   const when = s.publishAt || s.updatedAt;
   return (
