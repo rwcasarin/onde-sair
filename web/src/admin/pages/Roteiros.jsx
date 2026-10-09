@@ -38,10 +38,14 @@ export function RoteirosList() {
   );
 }
 
+// chave estável da foto de uma parada livre (não muda ao reordenar)
+const stepImgKey = () => "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const newStep = () => ({ time: "", title: "", place: "", optional: false, desc: "", img: stepImgKey() });
+
 const BLANK = {
   title: "", slug: "", vibes: [], vibesAuto: true, seo: { title: "", desc: "" }, desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
   stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "" },
-  steps: [{ time: "", title: "", place: "", optional: false, desc: "" }],
+  steps: [newStep()],
   tips: { dica: "", horario: "", epoca: "", comoChegar: "", lembrete: "" }, tags: [], status: "rascunho",
 };
 const RULES = [
@@ -56,10 +60,12 @@ export function RoteiroEditor({ id }) {
   const isNew = id === "novo";
   const found = db.roteiros.find(r => r.id === id);
   if (!isNew && !found) return <NotFoundItem what="Roteiro" path="roteiros" />;
-  if (isNew) return <RoteiroForm initial={BLANK} isNew />;
+  if (isNew) return <RoteiroForm initial={{ ...BLANK, steps: [newStep()] }} isNew />;
   // sem "vibe principal": a antiga (aff) vira a primeira da lista
   const { aff, ...rest } = found;
-  return <RoteiroForm initial={{ ...BLANK, ...rest, vibes: roteiroVibes(found), vibesAuto: found.vibesAuto === true, seo: { ...BLANK.seo, ...(found.seo || {}) }, tips: { ...BLANK.tips, ...found.tips }, stats: { ...BLANK.stats, ...found.stats } }} isNew={false} />;
+  return <RoteiroForm initial={{ ...BLANK, ...rest, vibes: roteiroVibes(found), vibesAuto: found.vibesAuto === true, seo: { ...BLANK.seo, ...(found.seo || {}) }, tips: { ...BLANK.tips, ...found.tips }, stats: { ...BLANK.stats, ...found.stats },
+    // paradas antigas sem chave mantêm a foto já enviada pela posição (roteiro-N)
+    steps: found.steps.map((s, i) => s.img ? s : { ...s, img: String(i + 1) }) }} isNew={false} />;
 }
 
 function RoteiroForm({ initial, isNew }) {
@@ -124,7 +130,11 @@ function RoteiroForm({ initial, isNew }) {
               <Input label="Como chegar" value={draft.tips.comoChegar} onChange={(v) => setTip("comoChegar", v)} />
             </div>
             <Textarea label="Dica do time" value={draft.tips.dica} onChange={(v) => setTip("dica", v)} rows={3} maxCount={200} />
-            <Textarea label="Não esqueça" value={draft.tips.lembrete} onChange={(v) => setTip("lembrete", v)} rows={2} maxCount={160} />
+            <div className="a-with-img">
+              <Textarea label="Não esqueça" value={draft.tips.lembrete} onChange={(v) => setTip("lembrete", v)} rows={4} maxCount={160} />
+              {isNew ? <p className="a-hint">Salve o roteiro para enviar a imagem do card “Não esqueça”.</p>
+                : <ImageField label="Imagem do card" path={roteiroImg(pid, "lembrete")} hint="2:1" ratio="2 / 1" compact />}
+            </div>
           </Card>
         )}
 
@@ -143,16 +153,28 @@ function RoteiroForm({ initial, isNew }) {
             {errors.steps && <p className="a-error" role="alert">{errors.steps}</p>}
             <Repeater
               items={draft.steps} min={1} addLabel="Adicionar parada"
-              newItem={() => ({ time: "", title: "", place: "", optional: false, desc: "" })}
+              newItem={newStep}
               onChange={(steps) => set({ steps })}
               render={(s, upd) => (
                 <div className="a-step-edit">
-                  <div className="a-form-grid a-form-grid-3">
-                    <Input label="Horário" value={s.time} onChange={(time) => upd({ time })} placeholder="09h – 11h" />
-                    <Select label="Lugar vinculado" value={s.place} placeholder="Nenhum (parada livre)"
-                      onChange={(place) => { const p = db.places.find(x => x.id === place); upd({ place, title: s.title || p?.name || "" }); }}
-                      options={db.places.map(p => [p.id, `${p.name} · ${p.bairro}`])} />
-                    <Toggle label="Opcional" checked={s.optional} onChange={(optional) => upd({ optional })} />
+                  <div className="a-step-top">
+                    <div className="a-step-media">
+                      {s.place
+                        ? <div className="a-imgfield compact"><span className="a-label">Foto do lugar</span>
+                            <div className="a-img-drop" style={{ aspectRatio: "16 / 10" }}><ImageSlot src={placeImg(s.place)} alt={s.title} hint="Sem foto no lugar" compact /></div>
+                            <p className="a-hint">Vem do cadastro do lugar.</p></div>
+                        : isNew ? <><span className="a-label">Foto da parada</span><p className="a-hint">Parada livre: salve o roteiro para enviar uma foto.</p></>
+                          : <ImageField label="Foto da parada" path={roteiroImg(pid, s.img)} hint="16:10" compact />}
+                    </div>
+                    <div>
+                      <Select label="Lugar vinculado" value={s.place} placeholder="Nenhum (parada livre)"
+                        onChange={(place) => { const p = db.places.find(x => x.id === place); upd({ place, title: s.title || p?.name || "" }); }}
+                        options={db.places.map(p => [p.id, `${p.name} · ${p.bairro}`])} />
+                      <div className="a-step-row">
+                        <Input label="Horário" value={s.time} onChange={(time) => upd({ time })} placeholder="09h – 11h" />
+                        <Toggle label="Opcional" checked={s.optional} onChange={(optional) => upd({ optional })} />
+                      </div>
+                    </div>
                   </div>
                   <Input label="Título da parada" value={s.title} onChange={(title) => upd({ title })} />
                   <Textarea label="Descrição" value={s.desc} onChange={(desc) => upd({ desc })} rows={2} maxCount={200} />
@@ -168,18 +190,7 @@ function RoteiroForm({ initial, isNew }) {
         {tab === "imagens" && (
           <Card>
             <ImageField label="Foto do topo e dos cards" path={roteiroImg(pid)} hint="16:10 · mín. 1400 px" />
-            <span className="a-label">Fotos das paradas</span>
-            <p className="a-hint">Cada parada usa a foto já cadastrada no lugar vinculado. Para trocar, edite a foto do lugar.</p>
-            <div className="a-gallery-grid">
-              {draft.steps.map((s, i) => (
-                <figure key={i} className="a-step-photo">
-                  <ImageSlot src={s.place ? placeImg(s.place) : undefined} alt={s.title} hint={s.place ? "Sem foto no lugar" : "Parada livre"} compact />
-                  <figcaption>{i + 1}. {s.title || "Parada"}</figcaption>
-                </figure>
-              ))}
-            </div>
-            {isNew ? <p className="a-hint">Salve o roteiro para enviar a foto do card “Não esqueça”.</p>
-              : <ImageField label="Card “Não esqueça”" path={roteiroImg(pid, "lembrete")} hint="2:1" ratio="2 / 1" compact />}
+            <p className="a-hint">As fotos das paradas ficam na aba Paradas e a do card “Não esqueça”, em Detalhes práticos.</p>
           </Card>
         )}
         {tab === "seo" && (

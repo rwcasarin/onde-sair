@@ -39,8 +39,8 @@ function RoteiroView({ r, mine = false }) {
   const others = ROTEIROS.filter(x => x.id !== r.id).slice(0, 5);
   const firstPlace = r.steps.find(s => s.place)?.place;
   const heroImg = mine ? (firstPlace ? placeImg(firstPlace) : undefined) : roteiroImg(r.id);
-  // a foto da parada é a do lugar vinculado; parada livre fica sem foto
-  const stepImg = (s) => s.place ? placeImg(s.place) : undefined;
+  // parada com lugar usa a foto do lugar; parada livre usa a foto enviada no painel
+  const stepImg = (s, i) => s.place ? placeImg(s.place) : mine ? undefined : roteiroImg(r.id, s.img || i + 1);
   const vibes = roteiroVibes(r);
   const investLabel = r.stats.investLabel || INVEST_LABELS[r.stats.invest] || "";
   const copy = () => user ? nav("meuRoteiroEditar", { id: "novo", copiar: r.id }) : ask({ type: "copiar", id: r.id });
@@ -168,7 +168,7 @@ function RoteiroView({ r, mine = false }) {
                 const open = p ? () => nav("detalhe", { id: p.id }) : undefined;
                 return (
                   <article key={i} className={"rot-index-card step-card" + (p ? "" : " is-free")} onClick={open}>
-                    <ImageSlot className="rot-index-img" src={stepImg(s)} alt={s.title} hint={p ? "16:10" : "Parada livre"}>
+                    <ImageSlot className="rot-index-img" src={stepImg(s, i)} alt={s.title} hint={p ? "16:10" : "Parada livre"}>
                       <span className="step-time"><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>{s.time}</span>
                       {s.optional && <span className="step-optional">Opcional</span>}
                       {p && <FaveButton id={p.id} className="fave fave-float" />}
