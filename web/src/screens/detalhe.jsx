@@ -7,6 +7,7 @@ import {
 } from "../components/site.jsx";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
+import { SITE } from "../admin/store.js";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
 import { roteiroVibes } from "../vibes.js";
@@ -61,7 +62,7 @@ export function Detalhe({ id }) {
     .sort((m, n) => n.score - m.score)
     .slice(0, 2).map(s => s.x);
 
-  const rots = ROTEIROS
+  const rots = SITE.roteirosHidden ? [] : ROTEIROS
     .map(r => ({ r, score: (r.steps.some(st => st.place === p.id) ? 10 : 0) + roteiroVibes(r).filter(a => p.affs.includes(a)).length }))
     .sort((m, n) => n.score - m.score)
     .slice(0, 2).map(s => s.r);
@@ -213,7 +214,7 @@ export function Detalhe({ id }) {
           <div>
             <div className="h2-head">
               <h2>Confira também</h2>
-              <p>Lugares e roteiros com a mesma vibe em {city}.</p>
+              <p>{rots.length ? "Lugares e roteiros" : "Lugares"} com a mesma vibe em {city}.</p>
               <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("lista", { tipo: TYPES.find(t => t.label === p.type)?.slug }); }}>Ver mais <Icon name="arrow" size={16} /></a>
             </div>
             <div className="related-grid">

@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, useAdmin, useDraft } from "../kit.jsx";
-import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT } from "../store.js";
+import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT, ROTEIROS_PAUSED_TEXT } from "../store.js";
 
-const TABS = [["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["contas", "Contas e interações"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["avancado", "Avançado"], ["dados", "Dados"]];
+const TABS = [["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["pausas", "Pausas"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["avancado", "Avançado"], ["dados", "Dados"]];
 
 export function SettingsPage({ initialTab }) {
   const { db, user, toast, saved, confirm, setDirty } = useAdmin();
   const { draft, set, dirty, commit } = useDraft(db.settings);
-  const [tab, setTab] = useState(TABS.some(([k]) => k === initialTab) ? initialTab : "geral");
+  const wanted = initialTab === "contas" || initialTab === "roteiros" ? "pausas" : initialTab;   // endereços antigos/atalhos
+  const [tab, setTab] = useState(TABS.some(([k]) => k === wanted) ? wanted : "geral");
   const file = useRef(null);
   useEffect(() => { setDirty(dirty); return () => setDirty(false); }, [dirty, setDirty]);
   const ann = draft.announcement;
   const acc = { paused: false, showBar: true, message: "", ...(draft.accounts || {}) };
   const setAcc = (patch) => set({ accounts: { ...acc, ...patch } });
+  const rot = { paused: false, hideCatalog: true, showBar: true, message: "", ...(draft.roteirosPause || {}) };
+  const setRot = (patch) => set({ roteirosPause: { ...rot, ...patch } });
 
   function save() {
     if (!draft.siteName.trim()) return toast("O nome do site não pode ficar vazio.", "error");
@@ -80,33 +83,30 @@ export function SettingsPage({ initialTab }) {
         </Card>
       )}
 
-      {tab === "contas" && (
-        <Card title="Pausar contas e interações" subtitle="Para manutenções e instabilidades. O site continua no ar para quem só quer navegar.">
-          <div className={"a-alert" + (acc.paused ? " tone-warn" : "")}>
-            <AIcon name="alert" size={16} />
-            <div>
-              <Toggle label="Pausar contas e interações" checked={acc.paused} onChange={(paused) => setAcc({ paused })}
-                hint={acc.paused ? "Ligado: vale para todo o site assim que você salvar as configurações." : "Desligado: tudo funciona normalmente."} />
-            </div>
-          </div>
-          <span className="a-label">Enquanto estiver pausado</span>
-          <ul className="a-checklist-plain">
-            <li>Login e cadastro ficam indisponíveis (o servidor também recusa).</li>
-            <li>Quem já está conectado navega como visitante; a sessão volta quando a pausa acabar.</li>
-            <li>Somem do site: Entrar, favoritar, favoritos, notificações, criar, copiar e editar roteiros e “Adicionar a um roteiro”.</li>
-            <li>Perfil, favoritos, meus roteiros, notificações, entrar e cadastro mostram uma tela de pausa com o aviso abaixo.</li>
-            <li>O painel continua funcionando normalmente.</li>
-          </ul>
-          <Textarea label="Aviso no site" value={acc.message} placeholder={ACCOUNTS_PAUSED_TEXT} onChange={(message) => setAcc({ message })} rows={3} maxCount={200}
-            hint="Usado na tela de pausa e, se ligada, na faixa amarela. Em branco, usa o texto padrão." />
-          <Toggle label="Mostrar a faixa amarela no topo do site" checked={acc.showBar} onChange={(showBar) => setAcc({ showBar })}
-            hint={acc.showBar ? "A faixa com o aviso aparece em todas as páginas enquanto a pausa estiver ligada." : "Sem faixa: o aviso aparece só na tela de pausa das áreas de conta."} />
-          {acc.showBar && <>
-            <span className="a-label">Prévia da faixa</span>
-            <div className={"site-announce tone-yellow" + (acc.paused ? "" : " off")}>{acc.message || ACCOUNTS_PAUSED_TEXT}</div>
-          </>}
-        </Card>
-      )}
+      {tab === "pausas" && (<>
+        <PauseCard title="Pausar contas e interações" label="Pausar contas e interações" value={acc} onChange={setAcc} defaultText={ACCOUNTS_PAUSED_TEXT}
+          noBarHint="Sem faixa: o aviso aparece só na tela de pausa das áreas de conta."
+          effects={[
+            "Login e cadastro ficam indisponíveis (o servidor também recusa).",
+            "Quem já está conectado navega como visitante; a sessão volta quando a pausa acabar.",
+            "Somem do site: Entrar, favoritar, favoritos, notificações, criar, copiar e editar roteiros e “Adicionar a um roteiro”.",
+            "Perfil, favoritos, meus roteiros, notificações, entrar e cadastro mostram uma tela de pausa com o aviso.",
+            "O painel continua funcionando normalmente.",
+          ]} />
+        <PauseCard title="Pausar roteiros" label="Pausar roteiros" value={rot} onChange={setRot} defaultText={ROTEIROS_PAUSED_TEXT}
+          noBarHint="Sem faixa: o aviso aparece só na tela de pausa das páginas de roteiro."
+          effects={[
+            "Criar, editar, copiar e excluir roteiros e “Adicionar a um roteiro” ficam indisponíveis (o servidor também recusa).",
+            "“Meus roteiros” e o editor de roteiros mostram uma tela de pausa com o aviso; os roteiros já salvos pelos usuários são mantidos.",
+            rot.hideCatalog
+              ? "Os roteiros da curadoria também saem do site: menu, home, página de roteiros, “Confira também” e roteiros favoritos. Os endereços de roteiro mostram a tela de pausa."
+              : "Os roteiros da curadoria continuam visíveis para leitura.",
+            "O painel continua funcionando normalmente, inclusive o cadastro de roteiros.",
+          ]}>
+          <Toggle label="Esconder também os roteiros da curadoria" checked={rot.hideCatalog} onChange={(hideCatalog) => setRot({ hideCatalog })}
+            hint={rot.hideCatalog ? "Ligado: nenhum roteiro aparece no site durante a pausa." : "Desligado: só os roteiros dos usuários ficam pausados."} />
+        </PauseCard>
+      </>)}
 
       {tab === "redes" && (
         <Card>
@@ -160,5 +160,31 @@ export function SettingsPage({ initialTab }) {
         </div>
       )}
     </>
+  );
+}
+
+// Pausa temporária (manutenções e instabilidades): liga/desliga, efeitos, aviso e faixa amarela
+function PauseCard({ title, label, value, onChange, defaultText, effects, noBarHint, children }) {
+  return (
+    <Card title={title} subtitle="Para manutenções e instabilidades. O resto do site continua no ar.">
+      <div className={"a-alert" + (value.paused ? " tone-warn" : "")}>
+        <AIcon name="alert" size={16} />
+        <div>
+          <Toggle label={label} checked={value.paused} onChange={(paused) => onChange({ paused })}
+            hint={value.paused ? "Ligado: vale para todo o site assim que você salvar as configurações." : "Desligado: tudo funciona normalmente."} />
+        </div>
+      </div>
+      {children}
+      <span className="a-label">Enquanto estiver pausado</span>
+      <ul className="a-checklist-plain">{effects.map((e, i) => <li key={i}>{e}</li>)}</ul>
+      <Textarea label="Aviso no site" value={value.message} placeholder={defaultText} onChange={(message) => onChange({ message })} rows={3} maxCount={200}
+        hint="Usado na tela de pausa e, se ligada, na faixa amarela. Em branco, usa o texto padrão." />
+      <Toggle label="Mostrar a faixa amarela no topo do site" checked={value.showBar} onChange={(showBar) => onChange({ showBar })}
+        hint={value.showBar ? "A faixa com o aviso aparece em todas as páginas enquanto a pausa estiver ligada." : noBarHint} />
+      {value.showBar && <>
+        <span className="a-label">Prévia da faixa</span>
+        <div className={"site-announce tone-yellow" + (value.paused ? "" : " off")}>{value.message || defaultText}</div>
+      </>}
+    </Card>
   );
 }

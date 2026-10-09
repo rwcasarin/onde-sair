@@ -22,13 +22,13 @@ import { account, loadAccount, subscribeAccount, updateAccount, setIntent, takeI
 
 const NO_FAVES = new Set();
 
-// tela das áreas de conta enquanto contas e interações estão pausadas
-function AccountsPaused() {
+// tela das áreas pausadas (contas ou roteiros) durante manutenções
+function PausedScreen({ message }) {
   const nav = useContext(NavContext);
   return (
     <main className="accounts-paused">
       <h1>Pausa rápida.</h1>
-      <p>{SITE.accountsMessage}</p>
+      <p>{message}</p>
       <button className="btn-pill" onClick={() => nav("home")}>Voltar para o início</button>
     </main>
   );
@@ -142,7 +142,7 @@ export default function App() {
 
   // ação que exige conta: guarda a intenção, leva ao login e volta para onde estava
   const ask = useCallback((intent) => {
-    if (SITE.accountsPaused) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
+    if (SITE.accountsPaused || (SITE.roteirosPaused && (intent.type === "roteiro" || intent.type === "copiar"))) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
 
   const toggleFave = useCallback((id) => {
     if (SITE.accountsPaused) return;
@@ -156,6 +156,8 @@ export default function App() {
   // páginas da conta exigem login; quem já entrou não vê /entrar
   // pausa de contas (manutenção): o site segue navegável, sem sessão, favoritos nem roteiros próprios
   const paused = !!SITE.accountsPaused;
+  const rotPaused = !!SITE.roteirosPaused, rotHidden = !!SITE.roteirosHidden;
+  const rotOff = rotPaused && ((!paused && (screen === "meuRoteiro" || screen === "meuRoteiroEditar")) || (rotHidden && (screen === "roteiros" || screen === "roteiro")));
   const blocked = !paused && ready && !user && PRIVATE.has(screen);
   useEffect(() => { if (blocked) { setIntent({ type: "voltar", back: path }); go("/entrar", { replace: true }); } }, [blocked]); // eslint-disable-line
 
@@ -199,25 +201,27 @@ export default function App() {
     <NavContext.Provider value={nav}>
     <CityContext.Provider value={{ id: city, name: cityName(city), set: changeCity, onCityClick: () => nav("onboarding") }}>
     <FavContext.Provider value={{ faves: paused ? NO_FAVES : faves, toggle: toggleFave }}>
-    <AccountContext.Provider value={{ user: paused ? null : user, ask, paused }}>
+    <AccountContext.Provider value={{ user: paused ? null : user, ask, paused, roteirosPaused: rotPaused, roteirosHidden: rotHidden }}>
       <div className="app">
         {SITE.announcement?.enabled && SITE.announcement.text && (
           <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
         )}
         {paused && SITE.accountsBar && <div className="site-announce tone-yellow accounts-paused-bar" role="status">{SITE.accountsMessage}</div>}
+        {rotPaused && SITE.roteirosBar && <div className="site-announce tone-yellow roteiros-paused-bar" role="status">{SITE.roteirosMessage}</div>}
         <TopNav current={screen} params={params} unread={unread} user={paused ? null : user} paused={paused} />
         {screen === "home"         && <Home />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
-        {screen === "roteiros"     && <Roteiros />}
-        {screen === "roteiro"      && <Roteiro key={key} id={params.id} />}
+        {rotOff && <PausedScreen message={SITE.roteirosMessage} />}
+        {screen === "roteiros"     && !rotOff && <Roteiros />}
+        {screen === "roteiro"      && !rotOff && <Roteiro key={key} id={params.id} />}
         {screen === "historias"    && <Historias />}
         {screen === "historia"     && <Historia key={key} id={params.id} />}
         {screen === "mapa"         && <Mapa key={key} id={params.id} />}
-        {paused && (PRIVATE.has(screen) || screen === "entrar") && <AccountsPaused />}
+        {paused && (PRIVATE.has(screen) || screen === "entrar") && <PausedScreen message={SITE.accountsMessage} />}
         {screen === "perfil"       && !paused && user && <Perfil key={params.tab} user={user} tab={params.tab} />}
-        {screen === "meuRoteiro"   && !paused && user && <MeuRoteiro key={key} id={params.id} />}
-        {screen === "meuRoteiroEditar" && !paused && user && <MeuRoteiroEditor key={key} id={params.id} lugar={params.lugar} copiar={params.copiar} />}
+        {screen === "meuRoteiro"   && !paused && !rotOff && user && <MeuRoteiro key={key} id={params.id} />}
+        {screen === "meuRoteiroEditar" && !paused && !rotOff && user && <MeuRoteiroEditor key={key} id={params.id} lugar={params.lugar} copiar={params.copiar} />}
         {screen === "notificacoes" && !paused && user && <Notificacoes onMarkAllRead={() => setUnread(0)} />}
         {screen === "entrar"       && !paused && <Entrar key={key} mode={params.mode} onDone={afterLogin} />}
         {screen === "pagina"       && <Pagina key={key} id={params.id} />}

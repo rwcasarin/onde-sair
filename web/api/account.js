@@ -17,11 +17,14 @@ const attempts = new Map();
 const action = (request) => new URL(request.url).searchParams.get("action");
 const clean = (s, max = 80) => String(s || "").trim().slice(0, max);
 // pausa de contas e interações (Configurações › Contas e interações): só sair continua liberado
-async function accountsPaused() {
+async function siteSettings() {
   const c = await readJSON("content").catch(() => null);
-  return !!c?.data?.settings?.accounts?.paused;
+  return c?.data?.settings || {};
 }
+const accountsPaused = async () => !!(await siteSettings()).accounts?.paused;
 const pausedFail = () => fail(503, "paused", { message: "Contas e interações estão pausadas por alguns instantes." });
+// pausa de roteiros (Configurações › Pausas): criar, editar e excluir roteiros fica bloqueado
+const roteirosPausedFail = () => fail(503, "roteiros-paused", { message: "Os roteiros estão pausados por alguns instantes." });
 
 export const GET = handle(async (request) => {
   if (action(request) !== "me") return fail(404, "Ação desconhecida");
@@ -91,10 +94,12 @@ export const POST = handle(async (request) => {
 
 export const PATCH = handle(async (request) => {
   if (!isCmsCall(request) || action(request) !== "update") return fail(403, "Requisição inválida");
-  if (await accountsPaused()) return pausedFail();
+  const settings = await siteSettings();
+  if (settings.accounts?.paused) return pausedFail();
   const me = await currentUser(request);
   if (!me) return fail(401, "Entre na sua conta.");
   const p = await body(request);
+  if (p.roteiros !== undefined && settings.roteirosPause?.paused) return roteirosPausedFail();
   const u = await updateUsers(users => {
     const x = users.find(y => y.id === me.id);
     if (p.name !== undefined && clean(p.name).length >= 2) x.name = clean(p.name);

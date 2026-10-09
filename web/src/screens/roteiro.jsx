@@ -30,7 +30,7 @@ function RoteiroView({ r, mine = false }) {
   const nav = useNav();
   const { name: city } = useCity();
   const { faves, toggle } = useFaves();
-  const { ask, user, paused } = useAccount();
+  const { ask, user, paused, roteirosPaused } = useAccount();
   const [confirmDel, setConfirmDel] = useState(false);
   const [mapSel, setMapSel] = useState(null);
   const [tab, setTab] = useState("visao");
@@ -109,7 +109,7 @@ function RoteiroView({ r, mine = false }) {
                   <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
                     <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
                   </button>
-                  <button className="act-btn act-sm" onClick={copy} aria-label="Copiar e adaptar"><Icon name="copy" size={17} /><span className="act-label">Copiar e adaptar</span></button>
+                  {!roteirosPaused && <button className="act-btn act-sm" onClick={copy} aria-label="Copiar e adaptar"><Icon name="copy" size={17} /><span className="act-label">Copiar e adaptar</span></button>}
                 </>}
                 <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
               </div>

@@ -183,8 +183,12 @@ export default function AdminApp() {
             <span className="a-top-mark" aria-hidden="true"><OSIcon /></span>
             <QuickSearch db={db} go={go} />
             <div className="a-top-right">
+              {db.settings.roteirosPause?.paused && (
+                <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
+                  title="Roteiros dos usuários pausados no site"><i /> Roteiros pausados</a>
+              )}
               {db.settings.accounts?.paused && (
-                <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/contas")} onClick={(e) => { e.preventDefault(); go("configuracoes/contas"); }}
+                <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
                   title="Login, cadastro e interações dos usuários estão pausados"><i /> Contas pausadas</a>
               )}
               <SyncPill />

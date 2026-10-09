@@ -134,6 +134,7 @@ function seed() {
     seoTitle: "Onde Sair · O lugar certo pra cada vibe", seoDesc: "Curadoria por afinidade: lugares, roteiros e experiências escolhidos por quem vive a cidade.",
     defaultCity: "sorocaba", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
     newsletter: true, maintenance: false, accounts: { paused: false, showBar: true, message: "" },
+    roteirosPause: { paused: false, hideCatalog: true, showBar: true, message: "" },
   };
 
   const activity = [
@@ -382,6 +383,11 @@ export function syncPublic() {
   SITE.accountsPaused = !!db.settings.accounts?.paused;
   SITE.accountsBar = db.settings.accounts?.showBar !== false;
   SITE.accountsMessage = db.settings.accounts?.message || ACCOUNTS_PAUSED_TEXT;
+  const rp = db.settings.roteirosPause || {};
+  SITE.roteirosPaused = !!rp.paused;
+  SITE.roteirosHidden = !!rp.paused && rp.hideCatalog !== false;
+  SITE.roteirosBar = rp.showBar !== false;
+  SITE.roteirosMessage = rp.message || ROTEIROS_PAUSED_TEXT;
   SITE.mapsKey = db.settings.mapsKey || "";
   SITE.seoTitle = db.settings.seoTitle || "";
   SITE.seoDesc = db.settings.seoDesc || "";
@@ -390,7 +396,8 @@ export function syncPublic() {
 // Configurações lidas pelo site público (faixa de aviso, manutenção)
 // pausa de contas e interações (manutenções e instabilidades): texto padrão do aviso no site
 export const ACCOUNTS_PAUSED_TEXT = "Login, cadastro, favoritos e roteiros estão pausados por alguns instantes para manutenção. Você pode continuar navegando normalmente.";
-export const SITE = { announcement: null, maintenance: false, accountsPaused: false, accountsMessage: ACCOUNTS_PAUSED_TEXT, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
+export const ROTEIROS_PAUSED_TEXT = "Os roteiros estão em manutenção por alguns instantes. Lugares e o Radar seguem disponíveis normalmente.";
+export const SITE = { roteirosPaused: false, roteirosHidden: false, roteirosBar: true, roteirosMessage: ROTEIROS_PAUSED_TEXT, announcement: null, maintenance: false, accountsPaused: false, accountsMessage: ACCOUNTS_PAUSED_TEXT, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
 
 // ---------------------------------------------------------------------
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)
