@@ -6,7 +6,7 @@ import { SITE_TARGETS } from "../../menus.js";
 import { SEED_MENUS } from "../../data.js";
 
 const MENUS = [
-  ["header", "Menu superior", "Links do topo de todas as páginas. Recomendado: até 7 itens.", 8],
+  ["header", "Menu superior", "Links do topo de todas as páginas. Recomendado: até 7 itens visíveis (oculte os demais).", 10],
   ["footer", "Rodapé", "Links principais do rodapé.", 10],
   ["legal", "Rodapé · links legais", "Linha de baixo do rodapé (termos, privacidade…).", 5],
 ];

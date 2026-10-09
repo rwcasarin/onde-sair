@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useContext } from "react";
-import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, cityName } from "./data.js";
+import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, EVENTS, cityName } from "./data.js";
+import { whenLabel } from "./events.js";
 import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
 import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
@@ -9,6 +10,7 @@ import { Home } from "./screens/home.jsx";
 import { Lista } from "./screens/lista.jsx";
 import { VibesView } from "./screens/vibesview.jsx";
 import { RoteirosLista } from "./screens/roteiroslista.jsx";
+import { EventosLista, Evento } from "./screens/eventos.jsx";
 import { Detalhe } from "./screens/detalhe.jsx";
 import { Roteiro, MeuRoteiro } from "./screens/roteiro.jsx";
 import { MeuRoteiroEditor } from "./screens/meuroteiro.jsx";
@@ -49,26 +51,27 @@ function titleFor(screen, params) {
       return t(params.q ? `Busca: ${params.q}` : v ? v.label : tp ? tp.label : "Lugares");
     }
     case "vibes": { const v = AFFINITIES.find(a => a.id === params.aff); return t(v ? `${v.label} · Vibes` : "Vibes · Lugares e roteiros por clima"); }
+    case "evento": { const e = EVENTS.find(x => x.id === params.id); return e?.seo?.title || t(e ? `${e.title} · ${whenLabel(e)}` : "Evento"); }
     case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
     case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return r?.seo?.title || t(r ? r.title : "Roteiro"); }
     case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return s?.seo?.title || t(s ? `${s.title} · Radar` : "Radar"); }
-    case "perfil": return t({ favoritos: "Lugares favoritos", favRoteiros: "Roteiros favoritos", meus: "Meus roteiros", conta: "Dados da conta" }[params.tab] || "Meu perfil");
+    case "perfil": return t({ favoritos: "Lugares favoritos", favRoteiros: "Roteiros favoritos", favEventos: "Eventos favoritos", meus: "Meus roteiros", conta: "Dados da conta" }[params.tab] || "Meu perfil");
     case "meuRoteiro": return t(findMyRoteiro(params.id)?.title || "Meu roteiro");
     case "meuRoteiroEditar": return t(params.id === "novo" ? "Novo roteiro" : "Editar roteiro");
     case "entrar": return t({ cadastro: "Criar conta", "boas-vindas": "Boas-vindas" }[params.mode] || "Entrar");
     case "pagina": { const pg = PAGES.find(x => x.id === params.id); return pg?.seo?.title || t(pg ? pg.title : "Página"); }
     case "404": return t("Página não encontrada");
-    default: return t({ roteiros: "Roteiros", historias: "Radar · Novidades e listas", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
+    default: return t({ eventos: "Eventos · Agenda da cidade", roteiros: "Roteiros", historias: "Radar · Novidades e listas", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
   }
 }
 
 // Descrição e indexação de cada tela (SEO preenchido no painel; senão, o padrão do site)
 function metaFor(screen, params) {
-  const item = { detalhe: PLACES, roteiro: ROTEIROS, historia: ALL_STORIES, pagina: PAGES }[screen]?.find(x => x.id === params.id);
+  const item = { detalhe: PLACES, roteiro: ROTEIROS, historia: ALL_STORIES, pagina: PAGES, evento: EVENTS }[screen]?.find(x => x.id === params.id);
   const desc = item?.seo?.desc || (screen === "pagina" && item ? item.excerpt || htmlToText(item.body).slice(0, 160) : "") ||
     (screen === "vibes" ? (VIBE_PAGE[params.aff]?.lede || "Lugares e roteiros reunidos pela vibe do rolê: dates, impressionar, relaxar, turistar, economizar e programas com criança.") : "") ||
     (screen === "historias" ? "Radar Onde Sair: novidades, atualizações e listas de lugares da cidade, por quem vive ela." : "") ||
-    (screen === "detalhe" ? item?.tagline : screen === "historia" ? item?.desc : "") || SITE.seoDesc || "";
+    (screen === "detalhe" || screen === "evento" ? item?.tagline : screen === "historia" ? item?.desc : "") || SITE.seoDesc || "";
   return { desc, noindex: !!item?.seo?.noindex || screen === "404" || PRIVATE.has(screen) || screen === "entrar" };
 }
 function setTag(attr, key, content) {
@@ -215,6 +218,8 @@ export default function App() {
         <TopNav current={screen} params={params} unread={unread} user={paused ? null : user} paused={paused} />
         {screen === "home"         && <Home />}
         {screen === "vibes"        && <VibesView key={key} aff={params.aff} q={params.q} />}
+        {screen === "eventos"      && <EventosLista key={key} />}
+        {screen === "evento"       && <Evento key={key} id={params.id} />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
         {rotOff && <PausedScreen message={SITE.roteirosMessage} />}

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { PLACES, ROTEIROS, VIBE_ORDER, CITIES, cityName } from "../data.js";
+import { PLACES, ROTEIROS, EVENTS, VIBE_ORDER, CITIES, cityName } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, VibePill, MiniPlaceCard, RoteiroCard, ListingCard, SectionHead, Footer } from "../components/site.jsx";
+import { PageHead, VibePill, MiniPlaceCard, RoteiroCard, EventCard, ListingCard, SectionHead, Footer } from "../components/site.jsx";
 import { useNav, useFaves } from "../nav.js";
 import { href, toPath } from "../router.js";
 import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword, deleteMyRoteiro } from "../account.js";
@@ -12,7 +12,7 @@ import { SITE } from "../admin/store.js";
 
 const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); } catch { return ""; } };
 
-const TABS = [["favoritos", "Lugares favoritos"], ["favRoteiros", "Roteiros favoritos"], ["meus", "Meus roteiros"], ["conta", "Dados da conta"]];
+const TABS = [["favoritos", "Lugares favoritos"], ["favRoteiros", "Roteiros favoritos"], ["favEventos", "Eventos favoritos"], ["meus", "Meus roteiros"], ["conta", "Dados da conta"]];
 
 export function Perfil({ user, tab = "favoritos" }) {
   const nav = useNav();
@@ -22,8 +22,9 @@ export function Perfil({ user, tab = "favoritos" }) {
 
   const favPlaces = PLACES.filter(p => faves.has(p.id));
   const favRoteiros = ROTEIROS.filter(r => faves.has(r.id));
+  const favEventos = EVENTS.filter(e => faves.has(e.id));
   const mine = user.roteiros || [];
-  const count = { favoritos: favPlaces.length, favRoteiros: favRoteiros.length, meus: mine.length };
+  const count = { favoritos: favPlaces.length, favRoteiros: favRoteiros.length, favEventos: favEventos.length, meus: mine.length };
   // roteiros pausados: some "Meus roteiros" (e "Roteiros favoritos", se os roteiros saíram do site)
   const off = new Set([...(SITE.roteirosPaused ? ["meus"] : []), ...(SITE.roteirosHidden ? ["favRoteiros"] : [])]);
   const tabs = TABS.filter(([id]) => !off.has(id));
@@ -82,6 +83,12 @@ export function Perfil({ user, tab = "favoritos" }) {
               <Empty icon="heart" text="Nenhum roteiro favorito por enquanto." sub="Salve roteiros da curadoria para ter sempre à mão." cta="Ver roteiros" onClick={() => nav("roteiros")} />}>
               {(list) => <div className="rot-index">{list.map(r => <RoteiroCard key={r.id} r={r} />)}</div>}
             </Filtered>
+          )}
+
+          {tab === "favEventos" && (
+            favEventos.length
+              ? <div className="rot-index">{favEventos.map(e => <EventCard key={e.id} e={e} />)}</div>
+              : <Empty icon="heart" text="Nenhum evento favorito por enquanto." sub="Salve eventos da agenda para lembrar de ir." cta="Ver a agenda" onClick={() => nav("eventos")} />
           )}
 
           {tab === "meus" && !off.has(tab) && <MyRoteiros list={mine} />}

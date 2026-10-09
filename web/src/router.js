@@ -2,7 +2,7 @@
 // No servidor usa caminhos reais (/lugares/quintal-do-centro); aberto como
 // arquivo (onde-sair.html) usa o mesmo caminho depois do # (#/lugares/...).
 import { useEffect, useState } from "react";
-import { PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES } from "./data.js";
+import { PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, EVENTS } from "./data.js";
 import { slugify } from "./admin/store.js";
 
 export const HASH_MODE = typeof location !== "undefined" && location.protocol === "file:";
@@ -63,10 +63,11 @@ export const bySlug = (list, s) => list.find(x => slugOf(x) === s) || list.find(
 export const placePath = (p) => "/lugares/" + slugOf(typeof p === "string" ? PLACES.find(x => x.id === p) || { slug: p } : p);
 export const roteiroPath = (r) => "/roteiros/" + slugOf(typeof r === "string" ? ROTEIROS.find(x => x.id === r) || { slug: r } : r);
 export const storyPath = (s) => "/radar/" + slugOf(typeof s === "string" ? ALL_STORIES.find(x => x.id === s) || { slug: s } : s);
+export const eventPath = (e) => "/eventos/" + slugOf(typeof e === "string" ? EVENTS.find(x => x.id === e) || { slug: e } : e);
 export const vibePath = (aff) => "/vibes/" + slugOf(AFFINITIES.find(a => a.id === aff) || { slug: aff });
 
 const STATIC = {
-  home: "/", lista: "/lugares", roteiros: "/roteiros", mapa: "/guia", favoritos: "/perfil/favoritos",
+  home: "/", lista: "/lugares", roteiros: "/roteiros", eventos: "/eventos", mapa: "/guia", favoritos: "/perfil/favoritos",
   perfil: "/perfil", notificacoes: "/notificacoes", onboarding: "/cidade", historias: "/radar",
 };
 
@@ -82,10 +83,11 @@ export function toPath(screen, params = {}) {
     }
     case "detalhe": return placePath(params.id);
     case "roteiro": return roteiroPath(params.id);
+    case "evento": return eventPath(params.id);
     case "historia": return storyPath(params.id);
     case "pagina": return "/" + slugOf(PAGES.find(x => x.id === params.id) || { slug: params.id });
     case "mapa": return params.id ? "/guia/" + slugOf(PLACES.find(x => x.id === params.id) || { slug: params.id }) : "/guia";
-    case "perfil": return { favoritos: "/perfil/favoritos", favRoteiros: "/perfil/favoritos/roteiros", meus: "/perfil/roteiros", conta: "/perfil/conta" }[params.tab] || "/perfil";
+    case "perfil": return { favoritos: "/perfil/favoritos", favRoteiros: "/perfil/favoritos/roteiros", favEventos: "/perfil/favoritos/eventos", meus: "/perfil/roteiros", conta: "/perfil/conta" }[params.tab] || "/perfil";
     case "meuRoteiro": return "/perfil/roteiros/" + encodeURIComponent(params.id);
     case "meuRoteiroEditar": {
       if (params.id && params.id !== "novo") return "/perfil/roteiros/" + encodeURIComponent(params.id) + "/editar";
@@ -112,7 +114,7 @@ export function fromPath(full) {
     const rest = a === "favoritos" ? ["favoritos", b, c] : [b, c, d, e];
     const [x, y, z, w] = rest;
     if (!x) return { screen: "perfil", params: { tab: "favoritos" } };
-    if (x === "favoritos" && !z) return y === "roteiros" ? { screen: "perfil", params: { tab: "favRoteiros" } } : !y ? { screen: "perfil", params: { tab: "favoritos" } } : notFound;
+    if (x === "favoritos" && !z) return y === "roteiros" ? { screen: "perfil", params: { tab: "favRoteiros" } } : y === "eventos" ? { screen: "perfil", params: { tab: "favEventos" } } : !y ? { screen: "perfil", params: { tab: "favoritos" } } : notFound;
     if (x === "conta" && !y) return { screen: "perfil", params: { tab: "conta" } };
     if (x === "roteiros") {
       if (!y) return { screen: "perfil", params: { tab: "meus" } };
@@ -140,6 +142,11 @@ export function fromPath(full) {
       if (!b) return { screen: "roteiros", params: {} };
       const r = bySlug(ROTEIROS, b);
       return r ? { screen: "roteiro", params: { id: r.id } } : notFound;
+    }
+    case "eventos": {
+      if (!b) return { screen: "eventos", params: {} };
+      const e = bySlug(EVENTS, b);
+      return e ? { screen: "evento", params: { id: e.id } } : notFound;
     }
     case "radar": case "historias": {   // /historias: endereço antigo do blog (o App troca pela URL nova)
       if (!b) return { screen: "historias", params: {} };

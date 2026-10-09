@@ -25,7 +25,7 @@ export const GET = handle(async (request) => {
   });
 });
 
-const COLLS = ["places", "roteiros", "stories", "pages"];
+const COLLS = ["places", "roteiros", "stories", "pages", "events"];
 const LIVE = ["publicado", "agendado", "arquivado"];
 const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
@@ -44,7 +44,7 @@ function violation(user, prev, next) {
       }
     }
   }
-  const guard = [["content.publish", ["radarCategories", "types"]], ["home.edit", ["home", "vibes", "menus"]], ["members.manage", ["members"]], ["notify.send", ["campaigns"]], ["settings.edit", ["settings", "cities"]]];
+  const guard = [["content.publish", ["radarCategories", "types", "eventCategories"]], ["home.edit", ["home", "vibes", "menus"]], ["members.manage", ["members"]], ["notify.send", ["campaigns"]], ["settings.edit", ["settings", "cities"]]];
   for (const [perm, keys] of guard) {
     if (!can(user, perm) && keys.some(k => !same(prev[k], next[k]))) return "Seu perfil não pode alterar esta área.";
   }

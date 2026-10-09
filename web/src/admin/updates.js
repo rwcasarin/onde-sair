@@ -1,3 +1,4 @@
+import { SEED_EVENT_CATEGORIES } from "../data.js";
 // =====================================================================
 // Onde Sair · atualizações de conteúdo
 //
@@ -150,6 +151,68 @@ function headerVibes(d) {
   return ["menu principal"];
 }
 
+// Eventos: categorias iniciais e uma agenda de exemplo nos lugares de Sorocaba (datas a partir do dia da atualização)
+const EVENT_SAMPLES = [
+  { id: "e1", title: "Noite de jazz no Frater's", category: "shows", venue: "fraters-pub", affs: ["dates", "eco"], tags: ["Jazz", "Música ao vivo", "Chope artesanal"],
+    dow: 4, from: "20:00", to: "23:30", price: { free: false, from: 30, to: null, note: "Couvert artístico por pessoa" }, ticket: { required: false, url: "", label: "" }, age: "18",
+    tagline: "Quarteto de jazz ao vivo, 12 torneiras de chope e cozinha de pub aberta até tarde.",
+    desc: "Toda quinta o Frater's vira clube de jazz: um quarteto da cidade toca standards e autorais em dois sets, com intervalo pra pedir mais um chope. A cozinha fica aberta até o fim e a casa enche cedo, então chegue antes das 20h pra garantir mesa.",
+    program: [["20h", "Primeiro set"], ["21h15", "Intervalo"], ["21h30", "Segundo set"]], note: "o sax chega às 20h em ponto" },
+  { id: "e2", title: "Festival de cervejas artesanais", category: "gastronomia", venue: "parque-das-aguas", affs: ["eco", "relax"], tags: ["Cerveja artesanal", "Food trucks", "Ao ar livre"],
+    dow: 6, from: "12:00", to: "22:00", days: 1, price: { free: true }, ticket: { required: false, url: "", label: "" }, age: "livre",
+    tagline: "Dois dias de cervejarias da região, food trucks e bandas no gramado do Parque das Águas.",
+    desc: "As cervejarias artesanais da região ocupam o Parque das Águas por um fim de semana inteiro, com chope a preço de festival, food trucks e bandas no palco montado perto do lago. A entrada é gratuita; as fichas de consumo são vendidas no local.",
+    program: [["12h", "Abertura das tendas"], ["16h", "Show de abertura"], ["19h", "Banda principal"]], note: "leve canga pro gramado" },
+  { id: "e3", title: "Cinema e piquenique no parque", category: "infantil", venue: "parque-agua-vermelha", affs: ["crianca", "relax"], tags: ["Cinema ao ar livre", "Piquenique", "Família"],
+    dow: 0, from: "16:00", to: "19:00", price: { free: true }, ticket: { required: true, url: "https://www.sympla.com.br", label: "Retirar ingresso grátis" }, age: "livre",
+    tagline: "Animação na tela grande ao pôr do sol, com piquenique liberado no gramado.",
+    desc: "Sessão de cinema ao ar livre pra família toda, com um clássico da animação na tela grande ao lado do lago. Leve sua canga e seu lanche: o piquenique é liberado. Os ingressos são gratuitos, mas limitados, e precisam ser retirados antes.",
+    program: [["16h", "Atividades para as crianças"], ["17h30", "Início do filme"]], note: "chegue cedo pra pegar sombra", accessible: true },
+  { id: "e4", title: "Parrillada aberta com música ao vivo", category: "gastronomia", venue: "carneada", affs: ["impress", "dates"], tags: ["Parrilla", "Música ao vivo"],
+    dow: 5, from: "19:00", to: "23:00", price: { free: false, from: 89, to: 129, note: "Rodízio de cortes; bebidas à parte" }, ticket: { required: true, url: "https://www.sympla.com.br", label: "Comprar ingresso" }, age: "livre",
+    tagline: "Rodízio de cortes na brasa com som acústico, num jantar só com reserva antecipada.",
+    desc: "Uma noite especial no Carneada: a brasa não para e os cortes chegam à mesa em sequência, da entraña ao bife de chorizo, com empanadas na entrada e som acústico ao fundo. As vagas são limitadas e vendidas antecipadamente.",
+    program: [["19h", "Empanadas e boas-vindas"], ["20h", "Rodízio de cortes"], ["21h30", "Música ao vivo"]], note: "brasa acesa desde as 17h" },
+  { id: "e5", title: "Workshop de coquetelaria clássica", category: "cursos", venue: "drink-me", affs: ["impress", "dates"], tags: ["Coquetelaria", "Workshop"],
+    dow: 3, from: "19:30", to: "21:30", price: { free: false, from: 120, to: null, note: "Inclui os drinques preparados" }, ticket: { required: true, url: "https://www.sympla.com.br", label: "Comprar ingresso" }, age: "18",
+    tagline: "Aprenda três clássicos com os bartenders do único speakeasy da cidade.",
+    desc: "Em duas horas no balcão do Drink Me, você prepara um Negroni, um Old Fashioned e um Daiquiri com os bartenders da casa e entende o porquê de cada medida. Turma pequena, material incluído e, no fim, um drinque autoral da casa por conta.",
+    program: [["19h30", "Boas-vindas e técnicas básicas"], ["20h", "Mão na massa: 3 clássicos"], ["21h15", "Drinque da casa"]], note: "a senha é no balcão" },
+  { id: "e6", title: "Feira de vinil e café", category: "feiras", venue: "", venueName: "Praça Coronel Fernando Prestes", end: "Praça Cel. Fernando Prestes · Centro", bairro: "Centro",
+    affs: ["eco", "turist"], tags: ["Vinil", "Café especial", "Feira"], dow: 0, from: "09:00", to: "14:00", price: { free: true }, ticket: { required: false, url: "", label: "" }, age: "livre",
+    tagline: "Sebos de discos, cafés especiais e DJ tocando só vinil, numa manhã de domingo no Centro.",
+    desc: "Expositores de discos novos e usados, toca-discos à venda, cafeterias da cidade com métodos filtrados e um DJ discotecando só vinil no coreto. Programa de domingo de manhã, de graça e com a cara do Centro.",
+    program: [["9h", "Abertura da feira"], ["11h", "DJ set no coreto"]], note: "garimpe cedo", accessible: true },
+];
+function seedEvents(d, at) {
+  if (!d.eventCategories?.length) d.eventCategories = JSON.parse(JSON.stringify(SEED_EVENT_CATEGORIES));
+  if (d.events?.length) return [];
+  const base = new Date(at); base.setHours(0, 0, 0, 0);
+  const pad = (n) => String(n).padStart(2, "0");
+  const ymd = (dt) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+  d.events = EVENT_SAMPLES.map(({ dow, from, to, days = 0, ...e }, i) => {
+    const day = new Date(base); day.setDate(day.getDate() + ((dow - day.getDay() + 7) % 7 || 7));   // próximo dia da semana
+    const last = new Date(day); last.setDate(last.getDate() + days);
+    const p = (d.places || []).find(x => x.id === e.venue);
+    return {
+      slug: e.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/['’]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+      status: "publicado", city: p?.city || "sorocaba", venueName: "", end: "", bairro: "", cep: "", geo: null, placeId: "",
+      ...(p ? { end: p.end, bairro: p.bairro, city: p.city, cep: p.cep || "", geo: p.geo || null, placeId: p.placeId || "", map: p.map } : { map: { x: 50, y: 50, label: "" } }),
+      ...e, startAt: `${ymd(day)}T${from}`, endAt: `${ymd(last)}T${to}`,
+      organizer: p ? p.name : "Coletivo Vinil Sorocaba", insta: p?.insta || "", site: "", accessible: !!e.accessible, doors: "",
+      reasons: [], seo: { title: "", desc: "" }, tint: p?.tint || "tint-eco",
+      createdAt: at, updatedAt: at, updatedBy: "Curadoria · Onde Sair",
+    };
+  });
+  // menu superior ganha "Eventos" logo depois de Roteiros
+  const h = d.menus?.header;
+  if (h && !h.some(it => it.type === "site" && it.target === "eventos")) {
+    const i = h.findIndex(it => it.type === "site" && it.target === "roteiros");
+    h.splice(i >= 0 ? i + 1 : h.length, 0, { id: "m-eventos", label: "Eventos", type: "site", target: "eventos" });
+  }
+  return d.events.map(e => e.title);
+}
+
 // Tipos de lugar passam a ser cadastrados no painel (nome, cor e ícone)
 const TYPE_DEFAULTS = [
   ["restaurantes", "Restaurantes", "restaurantes", "vibe-orange", "utensils"], ["bares", "Bares", "bares", "vibe-pink", "cheers"],
@@ -181,6 +244,7 @@ const UPDATES = [
   { id: "2026-10-sem-reserva", label: "remoção do “Aceita reserva”", apply: dropReservations },
   { id: "2026-10-menu-radar", label: "Radar no menu principal no lugar de Vibes", apply: headerRadar },
   { id: "2026-10-menu-vibes", label: "página de Vibes no menu principal", apply: headerVibes },
+  { id: "2026-10-eventos", label: "eventos: categorias e agenda de exemplo", apply: seedEvents },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

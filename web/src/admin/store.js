@@ -12,6 +12,7 @@ import {
   CITIES, AFFINITIES, ROTEIROS, PLACES, NOTIFICATIONS, TAGLINES,
   VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
   VIBE_TO_ROTEIRO, BRAND_VALUES, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS, RADAR_CATEGORIES, TYPES, SEED_TYPES,
+  EVENTS, EVENT_CATEGORIES, SEED_EVENT_CATEGORIES,
 } from "../data.js";
 import { applyUpdates } from "./updates.js";
 
@@ -26,7 +27,7 @@ const daysAgo = (d, h = 10) => {
   return t.toISOString();
 };
 
-export const slugify = (s = "") => s.toString().normalize("NFD").replace(/[̀-ͯ]/g, "")
+export const slugify = (s = "") => s.toString().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/['’]/g, "")
   .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 // ---------------------------------------------------------------------
@@ -151,7 +152,8 @@ function seed() {
   }));
   const menus = clone(SEED_MENUS);
 
-  return { version: 1, places, roteiros, stories, pages, menus, vibes, home, members, team, cities, campaigns, settings, activity, media: {} };
+  // eventos de exemplo entram pela atualização única "2026-10-eventos" (usam os lugares de Sorocaba)
+  return { version: 1, places, roteiros, stories, pages, menus, vibes, home, members, team, cities, campaigns, settings, activity, media: {}, events: [], eventCategories: clone(SEED_EVENT_CATEGORIES) };
 }
 
 // ---------------------------------------------------------------------
@@ -357,6 +359,8 @@ export function syncPublic() {
   replace(PAGES, (db.pages || []).filter(isLive));
   replace(RADAR_CATEGORIES, clone(db.radarCategories || []));
   replace(TYPES, clone(db.types?.length ? db.types : SEED_TYPES));
+  replace(EVENT_CATEGORIES, clone(db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES));
+  replace(EVENTS, (db.events || []).filter(isLive).sort((a, b) => String(a.startAt).localeCompare(String(b.startAt))));
   Object.assign(MENUS, clone(db.menus || SEED_MENUS));
   replace(STORIES, db.home.storyIds.map(id => db.stories.find(s => s.id === id)).filter(s => s && isLive(s)).map(s => ({ ...s, tone: catTone(s), img: s.img || `images/historias/${s.id}.jpg` })));
 
@@ -438,10 +442,10 @@ function log(user, action, target, type) {
 // ---------------------------------------------------------------------
 // CRUD genérico de coleções com fluxo editorial
 // ---------------------------------------------------------------------
-const TYPE_LABEL = { places: "lugar", roteiros: "roteiro", stories: "história", pages: "página" };
-const PREFIX = { places: "p", roteiros: "r", stories: "s", pages: "pg" };
+const TYPE_LABEL = { places: "lugar", roteiros: "roteiro", stories: "história", pages: "página", events: "evento" };
+const PREFIX = { places: "p", roteiros: "r", stories: "s", pages: "pg", events: "e" };
 // endereços já usados pelo site: páginas de conteúdo (/{slug}) não podem usá-los
-export const RESERVED_SLUGS = ["lugares", "vibes", "roteiros", "historias", "radar", "guia", "entrar", "cadastro", "boas-vindas", "perfil", "favoritos",
+export const RESERVED_SLUGS = ["lugares", "vibes", "roteiros", "eventos", "historias", "radar", "guia", "entrar", "cadastro", "boas-vindas", "perfil", "favoritos",
   "notificacoes", "cidade", "admin", "api", "assets", "images", "index", "404"];
 const titleOf = (item) => item.name || item.title || item.id;
 
@@ -533,6 +537,12 @@ export function saveTypes(types, user, moves = {}) {
   });
   db.types = types;
   log(user, "atualizou", "tipos de lugar", "lugar"); commit();
+}
+// Categorias de evento: os eventos guardam o id, então renomear não mexe neles; excluídas movem os eventos (moves: { idExcluída: idDestino })
+export function saveEventCategories(cats, user, moves = {}) {
+  db.events = (db.events || []).map(e => moves[e.category] ? { ...e, category: moves[e.category] } : e);
+  db.eventCategories = cats;
+  log(user, "atualizou", "categorias de evento", "evento"); commit();
 }
 export function saveMenus(menus, user) { db.menus = menus; log(user, "atualizou", "menus", "menus"); commit(); }
 export function saveSettings(settings, user) { db.settings = settings; log(user, "atualizou", "configurações", "config"); commit(); }

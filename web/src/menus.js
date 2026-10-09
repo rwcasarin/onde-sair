@@ -11,6 +11,7 @@ export const SITE_TARGETS = [
   { id: "home#vibes",     label: "Vibes (seção da home)",         screen: "home",      params: { anchor: "vibes" }, active: () => false },
   { id: "lista",          label: "Lugares",                       screen: "lista",     active: (c, p) => (c === "lista" && !p.aff) || c === "detalhe" },
   { id: "roteiros",       label: "Roteiros",                      screen: "roteiros",  active: (c) => c === "roteiros" || c === "roteiro" },
+  { id: "eventos",        label: "Eventos (agenda)",              screen: "eventos",   active: (c) => c === "eventos" || c === "evento" },
   { id: "mapa",           label: "Guia da cidade",                screen: "mapa",      active: (c) => c === "mapa" },
   { id: "historias",      label: "Radar (blog)",                  screen: "historias", active: (c) => c === "historias" || c === "historia" },
   { id: "home#parceiros", label: "Para parceiros (seção da home)", screen: "home",     params: { anchor: "parceiros" }, active: () => false },
