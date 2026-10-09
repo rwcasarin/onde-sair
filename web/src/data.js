@@ -96,7 +96,6 @@ const PLACES = [
     by: "Curadoria · Marina F.",
     affs: ["dates", "eco"],
     tint: "tint-eco",
-    rating: 4.7, reviews: 248,
     priceLevel: 1,
     open: "Ter–Sáb · 17h – 00h",
     end: "R. Padre Luiz, 84 · Centro",
@@ -112,7 +111,6 @@ const PLACES = [
     by: "Curadoria · Lucas P.",
     affs: ["impress", "dates"],
     tint: "tint-impress",
-    rating: 4.9, reviews: 312,
     priceLevel: 3,
     open: "Qua–Sáb · 19h – 23h",
     end: "Al. dos Ipês, 1024 · Jardins",
@@ -128,7 +126,6 @@ const PLACES = [
     by: "Curadoria · Ana C.",
     affs: ["relax", "eco"],
     tint: "tint-relax",
-    rating: 4.8, reviews: 412,
     priceLevel: 2,
     open: "Diariamente · 8h – 19h",
     end: "R. Cesário Mota, 217 · Vila Nova",
@@ -144,7 +141,6 @@ const PLACES = [
     by: "Curadoria · Rafael S.",
     affs: ["impress"],
     tint: "tint-impress",
-    rating: 4.6, reviews: 184,
     priceLevel: 2,
     open: "Sex–Sáb · 23h – 5h",
     end: "R. Padre Anchieta, 412 · Boa Vista",
@@ -160,7 +156,6 @@ const PLACES = [
     by: "Curadoria · Marina F.",
     affs: ["dates", "eco"],
     tint: "tint-eco",
-    rating: 4.7, reviews: 296,
     priceLevel: 1,
     open: "Programação semanal",
     end: "R. da Penha, 165 · Centro",
@@ -176,7 +171,6 @@ const PLACES = [
     by: "Curadoria · time Onde Sair",
     affs: ["crianca", "turist", "eco"],
     tint: "tint-crianca",
-    rating: 4.7, reviews: 540,
     priceLevel: 0,
     open: "Sábados · 9h – 18h",
     end: "Largo do São Bento · Centro",
@@ -192,7 +186,6 @@ const PLACES = [
     by: "Curadoria · Lucas P.",
     affs: ["dates", "impress"],
     tint: "tint-impress",
-    rating: 4.8, reviews: 224,
     priceLevel: 2,
     open: "Ter–Sáb · 19h – 23h30",
     end: "R. Souza Pereira, 538 · Santa Cecília",
@@ -208,18 +201,11 @@ const PLACES = [
     by: "Curadoria · Carlos M.",
     affs: ["eco", "turist"],
     tint: "tint-turist",
-    rating: 4.6, reviews: 178,
     priceLevel: 1,
     open: "Qua–Dom · 18h – 00h",
     end: "R. Aparecida, 312 · Boa Vista",
     map: { x: 50, y: 50, label: "Z" },
   },
-];
-
-const REVIEWS = [
-  { name: "Bruna T.",  when: "há 3 dias",   text: "Segui o roteiro inteiro num sábado. Não precisei improvisar nem uma vez — chegou na hora certa, comeu bem, voltou rindo." },
-  { name: "Caio R.",   when: "há 1 semana", text: "Dica do balcão antes das 19h salvou a noite. A fila depois disso é absurda, ninguém me avisou antes." },
-  { name: "Helena M.", when: "há 2 semanas",text: "Atendimento atento sem ser exagerado. Conta saiu redonda, o lugar tem alma. Já voltei duas vezes." },
 ];
 
 const NOTIFICATIONS = [
@@ -254,7 +240,7 @@ const TAGLINES = {
   about:    "O roteiro é nosso. A escolha é sua.",
 };
 
-export { CITIES, AFFINITIES, TYPES, ROTEIROS, PLACES, REVIEWS, NOTIFICATIONS, FAV_LISTS, USER, TAGLINES };
+export { CITIES, AFFINITIES, TYPES, ROTEIROS, PLACES, NOTIFICATIONS, FAV_LISTS, USER, TAGLINES };
 
 export const cityName = (id) => (CITIES.find(c => c.id === id) || CITIES[0] || { name: "Sorocaba" }).name;
 export const priceLabel = (level) => level === 0 ? "Grátis" : "R$".repeat(level);
@@ -294,7 +280,7 @@ export const TIPS_TODAY = [
 ];
 export const placeImg = (id) => `images/lugares/${id}.jpg`;
 
-// "Dicas de quem já foi" — conteúdos editoriais
+// Radar (blog) — posts de exemplo
 export const STORIES = [
   {
     id: "s1", tag: "Vida noturna", tone: "purple", shape: "teal",
@@ -345,7 +331,7 @@ PLACES.push(
     desc: "Rooftop com vista panorâmica, gastronomia autoral e clima sofisticado. O pôr do sol aqui vira assunto.",
     dica: "Reserve a mesa do canto da varanda para 18h — você pega o pôr do sol inteiro e a cidade acendendo.",
     by: "Curadoria · Lucas P.", affs: ["impress", "dates"], tint: "tint-impress",
-    rating: 4.8, reviews: 1200, priceLevel: 3,
+    priceLevel: 3,
     open: "Ter–Dom · 12h – 00h", end: "Al. das Palmeiras, 1800 · Jardins",
     map: { x: 60, y: 18, label: "M360" },
   },
@@ -354,7 +340,7 @@ PLACES.push(
     desc: "Arte, arquitetura e vistas icônicas. Um programa cultural que sempre impressiona.",
     dica: "Terça a entrada é gratuita. Termine no café do último andar, a vista do vão central é outra.",
     by: "Curadoria · Ana C.", affs: ["turist", "impress", "eco"], tint: "tint-turist",
-    rating: 4.8, reviews: 1500, priceLevel: 1,
+    priceLevel: 1,
     open: "Ter–Dom · 10h – 18h", end: "Av. Central, 1578 · Centro",
     map: { x: 38, y: 62, label: "MC" },
   },
@@ -363,7 +349,7 @@ PLACES.push(
     desc: "Cozinha brasileira criativa, feita na brasa. Um dos endereços mais comentados da cidade.",
     dica: "Peça o menu do chef e deixe a sobremesa de rapadura chegar sem perguntar.",
     by: "Curadoria · Carlos M.", affs: ["impress", "dates"], tint: "tint-date",
-    rating: 4.7, reviews: 2100, priceLevel: 3,
+    priceLevel: 3,
     open: "Seg–Sáb · 12h – 23h", end: "R. Cesário Mota, 90 · Vila Nova",
     map: { x: 26, y: 30, label: "B&L" },
   },
@@ -372,7 +358,7 @@ PLACES.push(
     desc: "Drinks autorais, comidinhas pra dividir e um jardim encantador no meio da cidade.",
     dica: "Quarta tem happy hour até 20h. Peça o drink de cajá e a porção de bolinho de mandioca.",
     by: "Curadoria · Marina F.", affs: ["dates", "relax"], tint: "tint-relax",
-    rating: 4.6, reviews: 892, priceLevel: 2,
+    priceLevel: 2,
     open: "Ter–Dom · 17h – 01h", end: "R. das Acácias, 77 · Santa Cecília",
     map: { x: 72, y: 76, label: "JS" },
   },
@@ -381,7 +367,7 @@ PLACES.push(
     desc: "Sorvete artesanal com fruta da estação. Fila curta, sabor que fica na memória.",
     dica: "O sabor do mês sempre vale. Criança pode provar três antes de escolher.",
     by: "Curadoria · time Onde Sair", affs: ["crianca", "eco", "relax"], tint: "tint-crianca",
-    rating: 4.9, reviews: 640, priceLevel: 1,
+    priceLevel: 1,
     open: "Diariamente · 11h – 22h", end: "R. dos Ipês, 412 · Jardins",
     map: { x: 48, y: 36, label: "SP" },
   },
@@ -390,7 +376,7 @@ PLACES.push(
     desc: "Shows ao vivo num galpão restaurado. Do samba ao indie, a agenda é sempre boa.",
     dica: "Compre antecipado: na porta é mais caro. Fique perto da mesa de som, o áudio é melhor.",
     by: "Curadoria · Rafael S.", affs: ["turist", "impress"], tint: "tint-turist",
-    rating: 4.5, reviews: 780, priceLevel: 2,
+    priceLevel: 2,
     open: "Qui–Sáb · 20h – 03h", end: "Av. das Indústrias, 22 · Zona Norte",
     map: { x: 86, y: 48, label: "G22" },
   },
@@ -467,12 +453,6 @@ export const TESTIMONIALS = [
   { name: "Rafael T.", when: "Visitou em jul/2026", text: "Ver o pôr do sol com um bom vinho é simplesmente inesquecível. Vale cada momento." },
   { name: "Camila R.", when: "Visitou em jun/2026", text: "O lugar perfeito para impressionar. Ambiente lindo, comida incrível e atendimento impecável." },
 ];
-export const PLACE_TIPS = [
-  { name: "Marina Lopes", when: "2 semanas atrás", text: "O pôr do sol daqui é absurdo! Fui em um date e o clima foi perfeito. Atendimento super atencioso.", tags: [["Vista linda", "vibe-mint"], ["Para dates", "vibe-pink"], ["Comida incrível", "vibe-yellow"]] },
-  { name: "Rafael N.",    when: "1 mês atrás",     text: "Além da comida ótima, é um lugar que respira cultura. Vale combinar o almoço com uma visita às exposições.", tags: [["Cultura", "vibe-lavender"], ["Boa música", "vibe-sky"], ["Programa completo", "vibe-yellow"]] },
-  { name: "Camila R.",    when: "3 meses atrás",   text: "Adoro ir com amigos! Drinks ótimos, comida sempre criativa e a vista é de cinema. Já virei cliente fiel.", tags: [["Com amigos", "vibe-lavender"], ["Drinks", "vibe-mint"], ["Vista linda", "vibe-pink"]] },
-];
-
 // ----- Roteiros completos -----
 const ROTEIRO_EXTRA = {
   r1: {

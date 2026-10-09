@@ -49,15 +49,6 @@ export function PriceDots({ level }) {
   );
 }
 
-export const fmtReviews = (n) => n >= 1000 ? (n / 1000).toFixed(1).replace(".", ",") + "k" : String(n);
-
-export function Rating({ p }) {
-  return (
-    <span className="rating">
-      <Icon name="star" size={14} fill /> {p.rating.toFixed(1).replace(".", ",")} <span>({fmtReviews(p.reviews)})</span>
-    </span>
-  );
-}
 
 export function FaveButton({ id, className = "fave" }) {
   const { faves, toggle } = useFaves();
@@ -173,7 +164,6 @@ export function ListingCard({ p, badge }) {
       <div className="listing-body">
         <div className="listing-title">
           <h3>{p.name}</h3>
-          <Rating p={p} />
         </div>
         <span className="listing-sub">{p.sub} <i>•</i> {p.bairro}</span>
         <p>{p.desc.split(".")[0]}.</p>

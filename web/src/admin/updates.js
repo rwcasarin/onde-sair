@@ -98,12 +98,22 @@ function radarCategories(d) {
   return cats.map(c => c.label);
 }
 
+// Avaliações saem do portal: apaga as avaliações e as notas dos lugares
+function dropReviews(d) {
+  delete d.reviews;
+  (d.places || []).forEach(p => { delete p.rating; delete p.reviews; });
+  (d.members || []).forEach(m => { delete m.reviews; });
+  if (d.settings) delete d.settings.reviewsRequireApproval;
+  return ["avaliações"];
+}
+
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
   { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
   { id: "2026-10-blog-radar", label: "seção Radar (antigas Histórias)", apply: renameBlog },
   { id: "2026-10-radar-categorias", label: "categorias do Radar", apply: radarCategories },
+  { id: "2026-10-sem-avaliacoes", label: "remoção das avaliações", apply: dropReviews },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

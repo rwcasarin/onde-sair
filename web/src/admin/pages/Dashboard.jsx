@@ -20,7 +20,6 @@ export function Dashboard() {
     ...db.stories.filter(p => p.status === "revisao").map(p => ({ t: p.title, k: "Post", path: "radar/" + p.id, s: p })),
   ];
   const drafts = [...db.places, ...db.roteiros, ...db.stories].filter(x => x.status === "rascunho").length;
-  const pendingReviews = db.reviews.filter(r => r.status === "pendente");
   const weak = live.filter(p => !p.seo?.desc || (p.reasons || []).length < 3 || !p.dica);
   const weekAgo = Date.now() - 7 * 864e5;
   const newThisWeek = db.places.filter(p => new Date(p.createdAt) > weekAgo).length;
@@ -29,7 +28,6 @@ export function Dashboard() {
     { label: "Lugares publicados", value: live.length, note: `${newThisWeek} criado(s) nos últimos 7 dias`, path: "lugares", icon: "pin" },
     { label: "Roteiros publicados", value: db.roteiros.filter(isLive).length, note: `${db.roteiros.length} no total`, path: "roteiros", icon: "route" },
     { label: "Aguardando revisão", value: pendingReview.length, note: `${drafts} rascunho(s) em andamento`, path: "lugares", icon: "edit", tone: pendingReview.length ? "amber" : null },
-    { label: "Avaliações pendentes", value: pendingReviews.length, note: "para moderar", path: "avaliacoes", icon: "chat", tone: pendingReviews.length ? "amber" : null },
     { label: "Imagens faltando", value: checked < paths.length ? "…" : missing, note: `de ${paths.length} espaços de imagem`, path: "midia", icon: "image", tone: missing ? "red" : "green" },
   ];
 
@@ -78,7 +76,7 @@ export function Dashboard() {
         </Card>
       </div>
 
-      <div className="a-grid-3">
+      <div className="a-grid-2">
         <Card title="Para revisar" subtitle="Enviado pela curadoria" actions={<Badge n={pendingReview.length} />}>
           {pendingReview.length ? (
             <ul className="a-list">
@@ -90,18 +88,6 @@ export function Dashboard() {
               ))}
             </ul>
           ) : <Empty icon="check" title="Nada para revisar" text="Tudo em dia por aqui." />}
-        </Card>
-
-        <Card title="Avaliações na fila" actions={<Btn size="sm" kind="ghost" onClick={() => go("avaliacoes")}>Moderar</Btn>}>
-          {pendingReviews.length ? (
-            <ul className="a-list">
-              {pendingReviews.slice(0, 5).map(r => (
-                <li key={r.id}><button type="button" onClick={() => go("avaliacoes")}>
-                  <span><strong>{r.author} · {"★".repeat(r.rating)}</strong><em>“{r.text}”</em></span>
-                </button></li>
-              ))}
-            </ul>
-          ) : <Empty icon="check" title="Fila vazia" />}
         </Card>
 
         <Card title="Melhorar conteúdo" subtitle="Publicados com campos incompletos">
@@ -161,7 +147,7 @@ function VisitsChart({ data }) {
   );
 }
 
-const TYPE_ICON = { lugar: "pin", roteiro: "route", "história": "file", mídia: "image", avaliação: "chat", usuário: "users", equipe: "shield", config: "settings", home: "layout", vibes: "palette", notificação: "bell", acesso: "lock" };
+const TYPE_ICON = { lugar: "pin", roteiro: "route", "história": "file", mídia: "image", usuário: "users", equipe: "shield", config: "settings", home: "layout", vibes: "palette", notificação: "bell", acesso: "lock" };
 
 export function ActivityList({ items }) {
   if (!items.length) return <Empty title="Sem atividade ainda" />;

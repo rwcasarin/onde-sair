@@ -13,7 +13,6 @@ import { PagesList, PageEditor } from "./pages/Pages.jsx";
 import { MenusPage } from "./pages/Menus.jsx";
 import { VibesPage } from "./pages/Vibes.jsx";
 import { HomePage } from "./pages/HomeEditor.jsx";
-import { ReviewsPage } from "./pages/Reviews.jsx";
 import { MediaPage } from "./pages/Media.jsx";
 import { CampaignsPage } from "./pages/Campaigns.jsx";
 import { MembersPage, TeamPage } from "./pages/People.jsx";
@@ -41,7 +40,6 @@ const NAV = [
     { path: "midia", label: "Mídia", icon: "image", perm: "media.manage" },
   ]],
   ["Comunidade", [
-    { path: "avaliacoes", label: "Avaliações", icon: "chat", perm: "reviews.moderate", badge: (db) => db.reviews.filter(r => r.status === "pendente").length },
     { path: "usuarios", label: "Usuários", icon: "users", perm: "members.manage" },
     { path: "notificacoes", label: "Notificações", icon: "bell", perm: "notify.send" },
   ]],
@@ -126,7 +124,6 @@ export default function AdminApp() {
     home: <HomePage />,
     vibes: <VibesPage />,
     midia: <MediaPage />,
-    avaliacoes: <ReviewsPage />,
     usuarios: <MembersPage />,
     notificacoes: <CampaignsPage />,
     cidades: <CitiesPage />,

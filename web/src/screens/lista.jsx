@@ -12,7 +12,7 @@ import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 
-const SORTS = [["relevancia", "Mais relevantes"], ["rating", "Melhor avaliados"], ["preco", "Menor preço"], ["reviews", "Mais comentados"]];
+const SORTS = [["relevancia", "Mais relevantes"], ["preco", "Menor preço"]];
 
 function toggleIn(set, v) { const n = new Set(set); n.has(v) ? n.delete(v) : n.add(v); return n; }
 
@@ -74,10 +74,7 @@ export function Lista({ aff = null, q = "" }) {
     if (reserva.size && !reserva.has(p.reserva ? "sim" : "nao")) return false;
     return true;
   });
-  if (sort === "rating") results = [...results].sort((x, y) => y.rating - x.rating);
   if (sort === "preco") results = [...results].sort((x, y) => x.priceLevel - y.priceLevel);
-  if (sort === "reviews") results = [...results].sort((x, y) => y.reviews - x.reviews);
-  const mostSaved = [...results].sort((x, y) => y.reviews - x.reviews)[0]?.id;
 
   const count = (fn) => base.filter(fn).length;
   const filterCount = (bairroSel ? 1 : 0) + bairros.size + prices.size + momentos.size + ambientes.size + reserva.size;
@@ -222,7 +219,7 @@ export function Lista({ aff = null, q = "" }) {
             </div>
           ) : view === "lista" ? (
             <div className="listing-grid">
-              {results.map(p => <ListingCard key={p.id} p={p} badge={p.id === mostSaved && results.length > 2 ? "Mais salvo" : null} />)}
+              {results.map(p => <ListingCard key={p.id} p={p} />)}
             </div>
           ) : (
             <PlaceMap className="listing-map" activeId={cur?.id} onSelect={setActivePin}

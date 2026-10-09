@@ -104,7 +104,6 @@ export function SettingsPage() {
       {tab === "avancado" && (
         <Card>
           <Toggle label="Newsletter ativa" hint="Mostra o formulário de inscrição." checked={draft.newsletter} onChange={(newsletter) => set({ newsletter })} />
-          <Toggle label="Exigir aprovação de avaliações" checked={draft.reviewsRequireApproval} onChange={(reviewsRequireApproval) => set({ reviewsRequireApproval })} />
           <div className={"a-alert" + (draft.maintenance ? " tone-error" : "")}>
             <AIcon name="alert" size={16} />
             <div>

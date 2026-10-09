@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CITIES, PLACES, ROTEIROS, VIBE_STYLE, PRICE_RANGE, PLACE_TIPS, placeImg, placeGallery, roteiroImg } from "../data.js";
+import { CITIES, PLACES, ROTEIROS, VIBE_STYLE, PRICE_RANGE, placeImg, placeGallery, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
@@ -25,18 +25,16 @@ const directions = (p) => p.geo
 // O lugar no Google Maps (busca pelo nome + endereço; com placeId abre a ficha exata)
 const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.name}, ${fullAddress(p).replaceAll(" · ", ", ")}`)}${p.placeId ? "&query_place_id=" + p.placeId : ""}`;
 
-const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["dicas", "Dicas"], ["confira", "Confira também"]];
+const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["confira", "Confira também"]];
 
 export function Detalhe({ id }) {
   const nav = useNav();
   const { name: city } = useCity();
   const { faves, toggle } = useFaves();
   const p = PLACES.find(x => x.id === id) || PLACES[0];
-  // avaliações em destaque deste lugar (as de exemplo, sem lugar, valem para todos)
-  const tips = PLACE_TIPS.filter(t => !t.place || t.place === p.id).slice(0, 3);
   // seção de fotos pode ser escondida no admin
   const showFotos = p.showGallery !== false;
-  const tabs = TABS.filter(([t]) => (t !== "dicas" || tips.length) && (t !== "fotos" || showFotos));
+  const tabs = TABS.filter(([t]) => t !== "fotos" || showFotos);
   const [tab, setTab] = useState("visao");
   const [shift, setShift] = useState(0);
   const [shared, setShared] = useState(false);
@@ -196,30 +194,7 @@ export function Detalhe({ id }) {
           </div>
         </section>
 
-        {/* 5 · Dicas de quem já foi (só com avaliações deste lugar) */}
-        {tips.length > 0 && <section className="place-row" id="sec-dicas">
-          <div>
-            <div className="h2-head">
-              <h2>Dicas de quem já foi</h2>
-              <a href="#" className="h2-link" onClick={(e) => e.preventDefault()}>Ver todas as dicas <Icon name="arrow" size={16} /></a>
-            </div>
-            <div className="tip-reviews">
-              {tips.map(t => (
-                <article key={t.name} className="tip-review">
-                  <header>
-                    <ImageSlot className="avatar-slot sm" src={`images/pessoas/${t.name.split(" ")[0].toLowerCase()}.jpg`} compact />
-                    <div><strong>{t.name}</strong><span>{t.when}</span></div>
-                    <Icon name="heart" size={18} />
-                  </header>
-                  <p>{t.text}</p>
-                  <div className="tip-review-tags">{t.tags.map(([l, c]) => <Tag key={l} cls={c}>{l}</Tag>)}</div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>}
-
-        {/* 6 · Confira também — 2 lugares + 2 roteiros */}
+        {/* 5 · Confira também — 2 lugares + 2 roteiros */}
         <section className="place-row" id="sec-confira">
           <div>
             <div className="h2-head">

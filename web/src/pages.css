@@ -40,9 +40,6 @@
 
 .price-dots { font-weight: 700; color: var(--heading); letter-spacing: 0.04em; }
 .price-dots .off { color: #CBC5DC; }
-.rating { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--heading); white-space: nowrap; }
-.rating svg { color: #F5A623; }
-.rating span { font-weight: 400; color: var(--ink-3); }
 
 .fave-float {
   position: absolute; top: 10px; right: 10px; z-index: 2;
@@ -317,15 +314,6 @@
 .promo-geo { position: absolute; right: 0; top: 0; height: 100%; width: auto; }
 
 .row-tips { grid-template-columns: 1.15fr 1fr; gap: 22px; }
-.tip-reviews { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.tip-review { padding: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
-.tip-review header { display: flex; align-items: center; gap: 10px; }
-.tip-review header strong { display: block; font-size: 12.5px; color: var(--heading); }
-.tip-review header span { display: block; font-size: 10.5px; color: var(--ink-3); }
-.tip-review header > svg { margin-left: auto; color: var(--heading); flex-shrink: 0; }
-.tip-review p { margin: 12px 0; font-size: 12px; line-height: 1.45; color: var(--ink-2); }
-.tip-review-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-.tip-review .soft-tag, .rot-mini .soft-tag, .step-card .soft-tag { height: 21px; padding: 0 9px; font-size: 10px; }
 .stars-row { margin-left: auto; color: #F5A623; letter-spacing: 1px; }
 .stars-row i { font-style: normal; color: #DDD8E8; }
 .similar-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -513,8 +501,7 @@
   .guide { grid-template-columns: 1fr; height: auto; }
   .guide-list { max-height: 280px; }
   .guide-map { height: 420px; }
-  .tip-reviews { grid-template-columns: 1fr; }
-  .page-head { flex-direction: column; align-items: flex-start; }
+    .page-head { flex-direction: column; align-items: flex-start; }
   .geo-strip { display: none; }
   .stat-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .page-tabs { top: 84px; }

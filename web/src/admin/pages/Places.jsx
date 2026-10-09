@@ -56,7 +56,7 @@ const BLANK = {
   affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
   priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", site: "", insta: "", reserva: false, note: "",
   showGallery: true,
-  rating: 0, reviews: 0, map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
+  map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
 
 const RULES = [
@@ -214,16 +214,13 @@ function PlaceForm({ initial, isNew }) {
         <PublishPanel coll="places" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
         <Card title="Prévia do card">
           <div className="a-preview" aria-hidden="true">
-            <ListingCard p={{ ...draft, id: previewId, name: draft.name || "Nome do lugar", sub: draft.sub || "Subtítulo", desc: draft.desc || "Descrição.", tags: draft.tags, rating: draft.rating || 0, reviews: draft.reviews || 0 }} />
+            <ListingCard p={{ ...draft, id: previewId, name: draft.name || "Nome do lugar", sub: draft.sub || "Subtítulo", desc: draft.desc || "Descrição.", tags: draft.tags, reviews: draft.reviews || 0 }} />
           </div>
         </Card>
         <Checklist items={checklist} />
         {!isNew && (
           <Card title="Na comunidade">
             <dl className="a-meta">
-              <div><dt>Nota média</dt><dd>{draft.rating ? "★ " + draft.rating.toFixed(1) : "—"}</dd></div>
-              <div><dt>Avaliações</dt><dd>{draft.reviews}</dd></div>
-              <div><dt>Na fila</dt><dd>{db.reviews.filter(r => r.place === draft.id && r.status === "pendente").length} pendente(s)</dd></div>
             </dl>
           </Card>
         )}

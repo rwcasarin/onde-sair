@@ -9,7 +9,7 @@ import { loadUsers, updateUsers } from "../_lib/users.js";
 // Contas reais do site, no formato da tela "Usuários" do painel
 const asMember = (u) => ({
   id: u.id, name: u.name, email: u.email || "(sem e-mail)", city: u.city, status: u.status || "ativo",
-  saves: (u.faves || []).length, reviews: 0, joined: u.joined, lastSeen: u.lastSeen,
+  saves: (u.faves || []).length, joined: u.joined, lastSeen: u.lastSeen,
   vibes: u.vibes || [], marketing: !!u.marketing,
 });
 
@@ -44,7 +44,7 @@ function violation(user, prev, next) {
       }
     }
   }
-  const guard = [["content.publish", ["radarCategories"]], ["home.edit", ["home", "vibes", "menus"]], ["reviews.moderate", ["reviews"]], ["members.manage", ["members"]], ["notify.send", ["campaigns"]], ["settings.edit", ["settings", "cities"]]];
+  const guard = [["content.publish", ["radarCategories"]], ["home.edit", ["home", "vibes", "menus"]], ["members.manage", ["members"]], ["notify.send", ["campaigns"]], ["settings.edit", ["settings", "cities"]]];
   for (const [perm, keys] of guard) {
     if (!can(user, perm) && keys.some(k => !same(prev[k], next[k]))) return "Seu perfil não pode alterar esta área.";
   }

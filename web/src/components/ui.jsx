@@ -171,7 +171,6 @@ export function PlaceCard({ p, onClick }) {
         <p className="sub">{p.bairro} · {p.desc.split(".")[0]}.</p>
       </div>
       <div className="footer">
-        <span className="stars">★ {p.rating.toFixed(1)} <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>· {p.reviews}</span></span>
         <span>{priceLabel(p.priceLevel)}</span>
       </div>
     </article>
