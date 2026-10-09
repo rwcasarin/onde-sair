@@ -54,7 +54,7 @@ export function Home() {
             sub="Lugares reais, experiências incríveis. Selecionados por quem vive a cidade."
             link="Ver todos" onLink={() => nav("lista")}
           />
-          <div className="tips-grid">
+          <div className="tips-grid tips-4">
             {TIPS_TODAY.map(({ place }) => (
               <MiniPlaceCard key={place} p={PLACES.find(x => x.id === place)} />
             ))}

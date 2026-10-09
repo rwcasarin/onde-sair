@@ -982,8 +982,16 @@ a.btn-pill { text-decoration: none; }
 .post-place-open { display: inline-flex; align-items: center; gap: 4px; }
 .rich-text .post-place-cta { align-self: flex-start; margin-top: auto; text-decoration: none; color: #fff; }
 @media (max-width: 720px) { .post-place { grid-template-columns: 1fr; } .post-place-head h3 { font-size: 21px; } }
-.radar-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.radar-chip { padding: 7px 14px; border: 1px solid transparent; border-radius: 999px; background: #fff; color: var(--heading); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(30,21,80,.15); }
+.radar-filters { display: grid; grid-template-columns: repeat(auto-fill, 144px); gap: 8px; margin-top: 22px; max-width: 760px; }
+.radar-chip {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; height: 38px; padding: 0 14px;
+  border: 1px solid transparent; border-radius: 999px; background: #fff; color: var(--heading);
+  font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(30,21,80,.15); transition: background .15s, box-shadow .15s;
+}
+.radar-dot { width: 9px; height: 9px; flex-shrink: 0; border-radius: 999px; box-shadow: inset 0 0 0 2px currentColor; }
+.radar-dot.tone-purple { box-shadow: none; }
+.radar-chip.on .radar-dot { box-shadow: 0 0 0 1.5px #fff; }
 .radar-chip:hover { box-shadow: inset 0 0 0 1px var(--heading); }
 .radar-chip.on, .radar-chip.on:hover { background: var(--heading); color: #fff; box-shadow: none; }
 
@@ -1050,3 +1058,40 @@ a.btn-pill { text-decoration: none; }
 .hero2-roteiro .page-title.page-title-md { font-size: clamp(38px, 4.4vw, 60px); }
 .rot-side-preview { pointer-events: none; margin: 10px 0 20px; }
 .rot-side-card > .h2t + .rot-side-steps { margin-top: 8px; }
+
+/* Radar: posts de 2 em 2 */
+.radar-count { margin: 0 0 16px; font-size: 13px; color: var(--ink-3); }
+.radar-count strong { color: var(--heading); }
+.stories-grid.stories-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.stories-all { margin: 0 0 64px; }
+.stories-2 .story-card { grid-template-columns: 44% 1fr; min-height: 280px; border-radius: 10px; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.stories-2 .story-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -20px rgba(30,21,80,.45); }
+.stories-2 .story-img { min-height: 280px; }
+.stories-2 .story-body { padding: 26px 28px 24px; }
+.stories-2 .story-tag { font-size: 9.5px; padding: 4px 11px; }
+.stories-2 .story-body h3 { margin: 14px 0 10px; font-size: 27px; line-height: 1.05; }
+.stories-2 .story-body p { font-size: 14px; line-height: 1.5; margin-bottom: 18px; }
+.story-foot { margin-top: auto; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.story-foot { flex-wrap: wrap; row-gap: 6px; }
+.story-foot .h2-link { margin-top: 0; white-space: nowrap; }
+.story-date { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.story-article .stories-2 .story-card { grid-template-columns: 40% 1fr; min-height: 250px; }
+.story-article .stories-2 .story-img { min-height: 250px; }
+.story-article .stories-2 .story-body { padding: 22px 22px 20px; }
+.story-article .stories-2 .story-body h3 { font-size: 22px; }
+.story-article .stories-2 .story-body p { font-size: 13px; }
+.stories-grid:not(.stories-2) .story-date { display: none; }
+@media (max-width: 900px) {
+  .stories-grid.stories-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .radar-filters { display: flex; overflow-x: auto; margin-right: -16px; padding-right: 16px; scrollbar-width: none; }
+  .radar-chip { flex: 0 0 132px; }
+  .stories-2 .story-card { grid-template-columns: 1fr; }
+  .stories-2 .story-img { min-height: 0; aspect-ratio: 16 / 10; }
+  .stories-2 .story-body h3 { font-size: 23px; }
+}
+/* Home: dicas para hoje de 4 em 4 */
+.tips-grid.tips-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .tips-grid.tips-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .tips-grid.tips-4 { grid-template-columns: 1fr; } }

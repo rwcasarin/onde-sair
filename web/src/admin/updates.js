@@ -119,6 +119,19 @@ function dropMainVibe(d) {
   return ["roteiros e dicas da home"];
 }
 
+// Menu principal: sai "Vibes" (âncora da home) e entra "Radar" no mesmo lugar
+function headerRadar(d) {
+  const h = d.menus?.header;
+  if (!h) return [];
+  const i = h.findIndex(it => it.type === "site" && it.target === "home#vibes");
+  const hasRadar = h.some(it => it.type === "site" && it.target === "historias");
+  if (i < 0 && hasRadar) return [];
+  const radar = { id: "m-radar", label: "Radar", type: "site", target: "historias" };
+  if (i >= 0) h.splice(i, 1, ...(hasRadar ? [] : [radar]));
+  else h.push(radar);
+  return ["menu principal"];
+}
+
 // Tipos de lugar passam a ser cadastrados no painel (nome, cor e ícone)
 const TYPE_DEFAULTS = [
   ["restaurantes", "Restaurantes", "restaurantes", "vibe-orange", "utensils"], ["bares", "Bares", "bares", "vibe-pink", "cheers"],
@@ -147,6 +160,7 @@ const UPDATES = [
   { id: "2026-10-sem-avaliacoes", label: "remoção das avaliações", apply: dropReviews },
   { id: "2026-10-sem-vibe-principal", label: "fim da vibe principal", apply: dropMainVibe },
   { id: "2026-10-tipos-de-lugar", label: "tipos de lugar", apply: placeTypes },
+  { id: "2026-10-menu-radar", label: "Radar no menu principal no lugar de Vibes", apply: headerRadar },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.
