@@ -2,6 +2,7 @@
 // Item: { id, label, type: "site" | "page" | "url", target?, page?, url?, newTab? }
 import { PAGES, MENUS } from "./data.js";
 import { toPath } from "./router.js";
+import { SITE } from "./admin/store.js";
 
 // Telas do site que podem entrar no menu (target → rótulo, rota e quando fica "ativo")
 export const SITE_TARGETS = [
@@ -19,6 +20,8 @@ export const siteTarget = (id) => SITE_TARGETS.find(t => t.id === id);
 // Resolve o item: { href (caminho), screen, params, external, newTab } — ou null se não deve aparecer
 export function resolveItem(item, pages = PAGES) {
   if (!item?.label?.trim()) return null;
+  // roteiros pausados e escondidos: links para roteiros saem dos menus
+  if (SITE.roteirosHidden && ((item.type === "site" && item.target === "roteiros") || (item.type === "url" && /^\/roteiros(\/|$|\?)/.test((item.url || "").trim())))) return null;
   if (item.type === "page") {
     const pg = pages.find(p => p.id === item.page);
     return pg ? { path: toPath("pagina", { id: pg.id }), screen: "pagina", params: { id: pg.id } } : null;   // página não publicada: some

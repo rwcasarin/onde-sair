@@ -40,7 +40,7 @@ export function MembersPage() {
         <div className="a-alert tone-warn" role="status">
           <AIcon name="alert" size={16} />
           <div><strong>Contas e interações estão pausadas.</strong> Login, cadastro, favoritos e roteiros dos usuários estão indisponíveis no site.{" "}
-            {can(user, "settings.edit") && <a href={href("/admin/configuracoes/contas")} onClick={(e) => { e.preventDefault(); go("configuracoes/contas"); }}>Gerenciar a pausa</a>}</div>
+            {can(user, "settings.edit") && <a href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}>Gerenciar a pausa</a>}</div>
         </div>
       )}
       <div className="a-kpis a-kpis-4">

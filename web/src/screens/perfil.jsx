@@ -24,7 +24,10 @@ export function Perfil({ user, tab = "favoritos" }) {
   const favRoteiros = ROTEIROS.filter(r => faves.has(r.id));
   const mine = user.roteiros || [];
   const count = { favoritos: favPlaces.length, favRoteiros: favRoteiros.length, meus: mine.length };
-  const stats = [[favPlaces.length, "Lugares favoritos", "favoritos"], [favRoteiros.length, "Roteiros favoritos", "favRoteiros"], [mine.length, "Meus roteiros", "meus"], [affs.size, "Vibes", null]];
+  // roteiros pausados: some "Meus roteiros" (e "Roteiros favoritos", se os roteiros saíram do site)
+  const off = new Set([...(SITE.roteirosPaused ? ["meus"] : []), ...(SITE.roteirosHidden ? ["favRoteiros"] : [])]);
+  const tabs = TABS.filter(([id]) => !off.has(id));
+  const stats = [[favPlaces.length, "Lugares favoritos", "favoritos"], [favRoteiros.length, "Roteiros favoritos", "favRoteiros"], [mine.length, "Meus roteiros", "meus"], [affs.size, "Vibes", null]].filter(([, , t]) => !off.has(t));
 
   async function toggleAff(a) {
     const n = new Set(affs); n.has(a) ? n.delete(a) : n.add(a); setAffs(n);
@@ -57,7 +60,7 @@ export function Perfil({ user, tab = "favoritos" }) {
         </section>
 
         <nav className="underline-tabs" aria-label="Seções do perfil">
-          {TABS.map(([id, l]) => {
+          {tabs.map(([id, l]) => {
             const to = toPath("perfil", { tab: id });
             return <a key={id} href={href(to)} aria-current={tab === id ? "page" : undefined} className={tab === id ? "on" : ""}
               onClick={(e) => { e.preventDefault(); nav("perfil", { tab: id }); }}>{l}{count[id] !== undefined && <span className="tab-count">{count[id]}</span>}</a>;
@@ -72,14 +75,16 @@ export function Perfil({ user, tab = "favoritos" }) {
             </Filtered>
           )}
 
-          {tab === "favRoteiros" && (
+          {off.has(tab) && <Empty icon="list" text="Roteiros em pausa." sub={SITE.roteirosMessage} cta="Ver lugares favoritos" onClick={() => nav("perfil", { tab: "favoritos" })} />}
+
+          {tab === "favRoteiros" && !off.has(tab) && (
             <Filtered items={favRoteiros} vibesOf={roteiroVibes} empty={
               <Empty icon="heart" text="Nenhum roteiro favorito por enquanto." sub="Salve roteiros da curadoria para ter sempre à mão." cta="Ver roteiros" onClick={() => nav("roteiros")} />}>
               {(list) => <div className="rot-index">{list.map(r => <RoteiroCard key={r.id} r={r} />)}</div>}
             </Filtered>
           )}
 
-          {tab === "meus" && <MyRoteiros list={mine} />}
+          {tab === "meus" && !off.has(tab) && <MyRoteiros list={mine} />}
 
           {tab === "conta" && <AccountData user={user} onGone={() => nav("home")} />}
         </section>

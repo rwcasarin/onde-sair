@@ -9,6 +9,7 @@ import { ImageSlot } from "../components/image-slot.jsx";
 import { HeroMedia, VibePill, SectionHead, MiniPlaceCard, GeoCard, Footer } from "../components/site.jsx";
 import { href, storyPath } from "../router.js";
 import { useNav, useCity } from "../nav.js";
+import { SITE } from "../admin/store.js";
 import { CitySelect } from "../components/cityselect.jsx";
 
 export function Home() {
@@ -87,7 +88,7 @@ export function Home() {
         </section>
 
         {/* ================= ROTEIROS POR VIBE ================= */}
-        <section className="h2-section" id="roteiros">
+        {!SITE.roteirosHidden && <section className="h2-section" id="roteiros">
           <SectionHead
             title="Roteiros por vibe"
             sub="Curadorias prontas para te levar mais longe."
@@ -107,7 +108,7 @@ export function Home() {
             ))}
             <GeoCard />
           </div>
-        </section>
+        </section>}
 
         {/* ================= FAIXA DA MARCA ================= */}
         <section className="brand-strip" id="parceiros">

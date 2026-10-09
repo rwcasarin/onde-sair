@@ -5,9 +5,10 @@ import { PlaceMap } from "../../components/placemap.jsx";
 import { RoteiroCard } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
-  Card, Input, Textarea, Select, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Toggle, PageHeader, useAdmin, useDraft,
+  AIcon, Card, Input, Textarea, Select, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Toggle, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify } from "../store.js";
+import { slugify, can } from "../store.js";
+import { href } from "../../router.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 
 const TAG_COLORS = ["vibe-pink", "vibe-yellow", "vibe-mint", "vibe-lavender", "vibe-orange", "vibe-sky"];
@@ -16,9 +17,17 @@ const toTags = (labels) => labels.map(l => [l, tagColor(l)]);
 const STEP_COLORS = ["var(--c-magenta)", "var(--primary)", "#F58220", "var(--c-teal)", "var(--c-yellow)", "var(--primary)"];
 
 export function RoteirosList() {
-  const { db } = useAdmin();
+  const { db, user, go } = useAdmin();
+  const rp = db.settings.roteirosPause;
   return (
     <ContentList
+      notice={rp?.paused && (
+        <div className="a-alert tone-warn" role="status">
+          <AIcon name="alert" size={16} />
+          <div><strong>Os roteiros estão pausados no site.</strong> {rp.hideCatalog !== false ? "Nenhum roteiro aparece para os visitantes e os usuários não podem criar ou editar roteiros." : "Os usuários não podem criar ou editar roteiros; os da curadoria seguem visíveis."} Aqui no painel tudo funciona normalmente.{" "}
+            {can(user, "settings.edit") && <a href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}>Gerenciar a pausa</a>}</div>
+        </div>
+      )}
       coll="roteiros" title="Roteiros" newLabel="Novo roteiro"
       subtitle="Sequências de paradas com propósito e ordem."
       searchText={(r) => `${r.title} ${r.desc} ${r.bairros}`}
