@@ -3,7 +3,7 @@ import { ROTEIROS, roteiroImg, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, affById, TypePill,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, TypePill,
 } from "../components/site.jsx";
 import { roteiroVibes } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
@@ -43,7 +43,6 @@ function RoteiroView({ r, mine = false }) {
   const stepImg = (s) => s.place ? placeImg(s.place) : undefined;
   const vibes = roteiroVibes(r);
   const investLabel = r.stats.investLabel || INVEST_LABELS[r.stats.invest] || "";
-  const vibeWords = r.stats.vibe || vibes.map(a => affById(a)?.label).filter(Boolean).join(", ");
   const copy = () => user ? nav("meuRoteiroEditar", { id: "novo", copiar: r.id }) : ask({ type: "copiar", id: r.id });
   const tips = r.tips || {};
 

@@ -40,7 +40,7 @@ export function RoteirosList() {
 
 const BLANK = {
   title: "", slug: "", vibes: [], vibesAuto: true, seo: { title: "", desc: "" }, desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
-  stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "", vibe: "" },
+  stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "" },
   steps: [{ time: "", title: "", place: "", optional: false, desc: "" }],
   tips: { dica: "", horario: "", epoca: "", comoChegar: "", lembrete: "" }, tags: [], status: "rascunho",
 };
@@ -113,7 +113,6 @@ function RoteiroForm({ initial, isNew }) {
               <Input label="Tempo total" value={draft.stats.tempo} onChange={(v) => setStat("tempo", v)} placeholder="6 a 8 horas" />
               <Input label="Ideal para" value={draft.stats.ideal} onChange={(v) => setStat("ideal", v)} placeholder="Casais, amigos" />
               <Input label="Bairros" value={draft.bairros} onChange={(v) => set({ bairros: v })} placeholder="Centro · Boa Vista" />
-              <Input label="Vibe em palavras" value={draft.stats.vibe} onChange={(v) => setStat("vibe", v)} placeholder="Natureza e bem-estar" />
             </div>
             <Field label="Investimento">
               <Segmented label="Investimento" value={draft.stats.invest} onChange={(v) => set({ stats: { ...draft.stats, invest: v, investLabel: ["Grátis", "Econômico", "Moderado", "Especial"][v] } })}

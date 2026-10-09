@@ -458,7 +458,7 @@ export const TESTIMONIALS = [
 // ----- Roteiros completos -----
 const ROTEIRO_EXTRA = {
   r1: {
-    stats: { tempo: "4 a 5 horas", invest: 3, investLabel: "Especial", ideal: "Casais", vibe: "Romance, boa mesa" },
+    stats: { tempo: "4 a 5 horas", invest: 3, investLabel: "Especial", ideal: "Casais" },
     vibes: ["dates", "impress"], note: "o melhor date é o que ninguém precisa improvisar.",
     about: "Um roteiro pensado pra quem quer acertar sem parecer que se esforçou demais. Começa com drinque, segue para um jantar que rende conversa e termina com sobremesa e vista. Tudo a poucos passos, pra noite fluir sem carro e sem pressa.",
     quote: "Um bom date é feito de boas pausas.",
@@ -471,7 +471,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Faça as reservas com uma semana de antecedência e combine o horário do jantar com o pôr do sol.", horario: "Noite, a partir das 19h", epoca: "O ano todo", comoChegar: "Tudo a pé — bairros vizinhos", lembrete: "Leve um casaco leve: na varanda do Mirante venta à noite." },
   },
   r2: {
-    stats: { tempo: "6 a 8 horas", invest: 1, investLabel: "Econômico", ideal: "Turistas, família", vibe: "História, cultura" },
+    stats: { tempo: "6 a 8 horas", invest: 1, investLabel: "Econômico", ideal: "Turistas, família" },
     vibes: ["turist", "eco", "crianca"], note: "toda cidade tem um começo — comece por ele.",
     about: "O jeito mais rápido de entender uma cidade é começar pelo centro. Catedral, mercado, praças e os cafés que os locais mantêm em segredo, num roteiro que dá pra fazer todo a pé e gastando pouco.",
     quote: "O centro é onde a cidade conta a própria história.",
@@ -484,7 +484,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Vá de sábado para pegar a feira e o chorinho. Use sapato confortável — dá pra fazer tudo a pé.", horario: "Manhã e começo da tarde", epoca: "O ano todo", comoChegar: "Metrô · estação Centro", lembrete: "Terça o museu é gratuito, mas a feira só acontece aos sábados." },
   },
   r3: {
-    stats: { tempo: "3 a 4 horas", invest: 3, investLabel: "Especial", ideal: "Casais, clientes", vibe: "Sofisticação" },
+    stats: { tempo: "3 a 4 horas", invest: 3, investLabel: "Especial", ideal: "Casais, clientes" },
     vibes: ["impress", "dates"], note: "chegar e já causar antes da carta sair.",
     about: "Endereços escondidos, atmosfera única e aquela sensação de que você conhece a cidade por dentro. Um roteiro pra impressionar sem esforço — cliente, sogra ou aquele date importante.",
     quote: "Impressionar é mostrar o que pouca gente conhece.",
@@ -496,7 +496,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Reserve tudo com antecedência e avise que é ocasião especial — as casas costumam caprichar.", horario: "Noite", epoca: "O ano todo", comoChegar: "Táxi ou app — bairros próximos", lembrete: "Traje esporte fino cai bem no Mesa 14." },
   },
   r4: {
-    stats: { tempo: "6 a 8 horas", invest: 2, investLabel: "Moderado", ideal: "Casais, amigos e solo", vibe: "Natureza, cultura e bem-estar" },
+    stats: { tempo: "6 a 8 horas", invest: 2, investLabel: "Moderado", ideal: "Casais, amigos e solo" },
     vibes: ["relax", "turist", "impress", "dates"], note: "mais que um parque, um jeito de viver a cidade.",
     about: "O parque é um convite pra viver várias cidades em uma só: tem arte, natureza, gastronomia, esporte e encontros. Neste roteiro reunimos nossas dicas favoritas para um dia completo, com paradas que equilibram cultura, bem-estar e boa comida. Você pode seguir tudo ou adaptar ao seu ritmo — o importante é sair e viver.",
     quote: "O parque é sempre uma boa ideia. É onde a cidade respira.",
@@ -509,7 +509,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Vá durante a semana para aproveitar com mais tranquilidade. E não esqueça de levar uma garrafa de água!", horario: "Manhã e fim de tarde", epoca: "O ano todo", comoChegar: "Metrô · estação Parque (linha verde)", lembrete: "O pôr do sol no lago é um dos cartões-postais mais bonitos da cidade." },
   },
   r5: {
-    stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Amigos, solo", vibe: "Rolê raiz" },
+    stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Amigos, solo" },
     vibes: ["eco", "turist"], note: "cabe no bolso e não cabe no esquecimento.",
     about: "Comida boa, programa de graça e drinque honesto. Um rolê completo provando que dá pra sair bem gastando menos de R$ 80 — e voltar pra casa com história pra contar.",
     quote: "Bom programa não precisa ser caro. Precisa ser bem escolhido.",
@@ -521,7 +521,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Combine com os amigos e divida as porções — o torresmo do Z'é serve três pessoas.", horario: "Tarde e noite", epoca: "O ano todo", comoChegar: "Metrô · estação Centro", lembrete: "Leve dinheiro trocado: algumas barracas da feira não aceitam cartão." },
   },
   r6: {
-    stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Família com crianças", vibe: "Diversão ao ar livre" },
+    stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Família com crianças" },
     vibes: ["crianca", "relax", "eco"], note: "a família toda feliz no mesmo rolê.",
     about: "Quatro paradas testadas com criança de verdade — todas com troca, banheiro decente e sombra. Do parque ao sorvete artesanal, um sábado que agrada a família inteira.",
     quote: "Rolê bom com criança é rolê com sombra, espaço e sorvete.",
