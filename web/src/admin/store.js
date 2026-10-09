@@ -367,7 +367,7 @@ export function syncPublic() {
   });
 
   Object.assign(HERO, db.home.hero);
-  replace(TIPS_TODAY, db.home.tips.filter(t => PLACES.some(p => p.id === t.place) && VIBE_STYLE[t.aff]));
+  replace(TIPS_TODAY, db.home.tips.filter(t => PLACES.some(p => p.id === t.place)));
   replace(VIBE_ROTEIROS, db.home.vibeRoteiros);
   db.home.vibeRoteiros.forEach(v => { VIBE_TO_ROTEIRO[v.id] = v.roteiro; });
   replace(BRAND_VALUES, db.home.brandValues);

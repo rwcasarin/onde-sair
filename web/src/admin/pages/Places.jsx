@@ -3,7 +3,7 @@ import { TYPES, PRICE_RANGE, MOMENTOS, AMBIENTES, placeImg, placeGallery } from 
 import { ListingCard, MapArt } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
-  AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, PillPicker, Repeater, ImageField, Segmented, Tabs, Field, Check,
+  AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Check,
   PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
 import { slugify, addCity, addBairro } from "../store.js";
@@ -54,12 +54,13 @@ export function PlacesList() {
 const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
   affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
-  priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", site: "", insta: "", reserva: false, note: "",
+  priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", reserva: false, note: "",
   showGallery: true,
   map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
 
 const RULES = [
+  ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{2}9\d{8}$/.test(d.whatsapp.replace(/\D/g, "")), "Use um celular com DDD, como (15) 99999-9999."],
   ["name", (d) => d.name.trim().length >= 2, "Dê um nome ao lugar."],
   ["type", (d) => !!d.type, "Escolha o tipo.", true],
   ["city", (d) => !!d.city, "Escolha a cidade.", true],
@@ -105,7 +106,7 @@ function PlaceForm({ initial, isNew }) {
       main={<>
         <Tabs value={tab} onChange={setTab} tabs={[
           ["conteudo", "Conteúdo", tabErr(["name", "desc"])],
-          ["detalhes", "Detalhes práticos", tabErr(["type"])],
+          ["detalhes", "Detalhes práticos", tabErr(["type", "whatsapp"])],
           ["vibes", "Vibes e tags", tabErr(["affs"])],
           ["imagens", "Imagens"],
           ["mapa", "Localização", tabErr(["end", "city", "bairro"])],
@@ -154,6 +155,8 @@ function PlaceForm({ initial, isNew }) {
               <Input label="Telefone" value={draft.phone} onChange={(v) => set({ phone: v })} type="tel" placeholder="(00) 0000-0000" />
               <Input label="Site" value={draft.site} onChange={(v) => set({ site: v.replace(/^https?:\/\//, "") })} prefix="https://" />
               <Input label="Instagram" value={draft.insta} onChange={(v) => set({ insta: v.startsWith("@") || !v ? v : "@" + v })} />
+              <Input label="WhatsApp" value={draft.whatsapp || ""} onChange={(v) => set({ whatsapp: v })} type="tel" placeholder="(15) 99999-9999"
+                error={errors.whatsapp} hint="Celular com DDD. Vira o botão de WhatsApp na página do lugar." />
             </div>
             <Field label="Faixa de preço por pessoa">
               <Segmented label="Faixa de preço" value={draft.priceLevel} onChange={(v) => set({ priceLevel: v })}
@@ -171,9 +174,9 @@ function PlaceForm({ initial, isNew }) {
 
         {tab === "vibes" && (
           <Card>
-            <PillPicker label="Vibes" error={errors.affs} hint="A primeira marcada é a vibe principal (aparece na etiqueta do topo)."
+            <OrderedPicker label="Vibes" error={errors.affs} hint="A ordem aqui é a ordem em que as vibes aparecem no site."
               value={draft.affs} onChange={(affs) => set({ affs })} options={db.vibes.map(v => [v.id, v.label, v.cls])} />
-            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} hint="Aparecem no topo da página do lugar (abaixo das vibes) e nos cards da listagem. De 3 a 5 funcionam melhor."
+            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} hint="Aparecem na página do lugar (abaixo do texto “Sobre o lugar”) e nos cards da listagem. De 3 a 5 funcionam melhor."
               suggestions={[...new Set(db.places.flatMap(p => p.tags || []))]} />
           </Card>
         )}

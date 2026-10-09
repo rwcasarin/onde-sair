@@ -1,5 +1,6 @@
 // Editor de roteiros do usuário — criar do zero, a partir de um lugar ou copiando outro roteiro
 import { useEffect, useMemo, useRef, useState } from "react";
+import { vibesFromPlaces } from "../vibes.js";
 import { PLACES, ROTEIROS, AFFINITIES, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
@@ -14,6 +15,40 @@ import { PlaceMap } from "../components/placemap.jsx";
 const STEP_COLORS = ["var(--c-magenta)", "var(--primary)", "#F58220", "var(--c-teal)", "var(--c-yellow)"];
 const plain = (s = "") => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const placeById = (id) => PLACES.find(p => p.id === id);
+// Vibes do roteiro: lista ordenada (sem vibe principal); começa pelas vibes das paradas
+function VibeOrder({ value, onChange, auto, onAuto, canAuto, error }) {
+  const move = (i, k) => { const n = [...value]; [n[i], n[i + k]] = [n[i + k], n[i]]; onChange(n); };
+  const rest = AFFINITIES.filter(a => !value.includes(a.id));
+  return (
+    <div className="rot-field">
+      <span className="rot-label">Vibes <i>*</i></span>
+      <p className="rot-hint">{auto
+        ? "Seguem os lugares das paradas, da mais presente para a menos presente. Edite à vontade."
+        : <>A ordem é a que aparece no roteiro. {canAuto && <button type="button" className="link-btn" onClick={onAuto}>Usar as vibes das paradas</button>}</>}</p>
+      {value.length > 0 ? (
+        <ol className="vibe-order">
+          {value.map((a, i) => (
+            <li key={a}>
+              <VibePill aff={a} size="sm" />
+              <span className="vibe-order-tools">
+                <button type="button" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}><Icon name="left" size={14} style={{ transform: "rotate(90deg)" }} /></button>
+                <button type="button" aria-label="Descer" disabled={i === value.length - 1} onClick={() => move(i, 1)}><Icon name="right" size={14} style={{ transform: "rotate(90deg)" }} /></button>
+                <button type="button" aria-label="Remover" onClick={() => onChange(value.filter(x => x !== a))}><Icon name="x" size={14} /></button>
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : <p className="rot-hint">Adicione paradas com lugares ou escolha as vibes abaixo.</p>}
+      {rest.length > 0 && (
+        <div className="hero2-vibes rot-vibes vibe-order-add">
+          {rest.map(a => <VibePill key={a.id} aff={a.id} size="sm" onClick={() => onChange([...value, a.id])} />)}
+        </div>
+      )}
+      {error && <span className="auth-error" role="alert">{error}</span>}
+    </div>
+  );
+}
+
 const stepFromPlace = (p) => blankStep({ place: p.id, title: p.name, sub: p.sub || "" });
 
 // Monta o rascunho inicial: edição, cópia (?copiar=) ou novo com um lugar (?lugar=)
@@ -26,7 +61,7 @@ function initialDraft({ id, lugar, copiar }) {
   }
   const d = blankRoteiro();
   const p = lugar && placeById(lugar);
-  if (p) { d.steps = [stepFromPlace(p)]; d.aff = p.affs?.[0] || ""; }
+  if (p) { d.steps = [stepFromPlace(p)]; d.vibes = vibesFromPlaces([p]); }
   return d;
 }
 
@@ -58,6 +93,10 @@ function Editor({ start, isNew }) {
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
   useEffect(() => { if (Object.keys(errors).length) setErrors(roteiroErrors(d)); }, [d]); // eslint-disable-line
+  // vibes automáticas: seguem os lugares das paradas até a pessoa editar a lista
+  const suggested = vibesFromPlaces(d.steps.map(s => s.place && placeById(s.place)));
+  const sugKey = suggested.join(",");
+  useEffect(() => { if (d.vibesAuto && d.vibes.join(",") !== sugKey) set({ vibes: suggested }); }, [sugKey, d.vibesAuto]); // eslint-disable-line
 
   function move(i, dir) {
     const j = i + dir; if (j < 0 || j >= d.steps.length) return;
@@ -74,7 +113,7 @@ function Editor({ start, isNew }) {
   async function save() {
     const e = roteiroErrors(d);
     setErrors(e);
-    if (Object.keys(e).length) { setTab(e.title || e.aff ? "info" : "paradas"); return; }
+    if (Object.keys(e).length) { setTab(e.title || e.vibes ? "info" : "paradas"); return; }
     setBusy(true); setMsg("");
     try {
       const saved = await saveMyRoteiro(d);
@@ -112,7 +151,7 @@ function Editor({ start, isNew }) {
         <div className="rot-editor-grid">
           <div>
             <div className="underline-tabs" role="tablist">
-              {[["info", "Informações", errors.title || errors.aff], ["paradas", `Paradas (${d.steps.length})`, errors.steps], ["dicas", "Dicas e anotações"]].map(([k, l, err]) => (
+              {[["info", "Informações", errors.title || errors.vibes], ["paradas", `Paradas (${d.steps.length})`, errors.steps], ["dicas", "Dicas e anotações"]].map(([k, l, err]) => (
                 <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}{err && <span className="tab-err" aria-label="com erro">!</span>}</button>
               ))}
             </div>
@@ -125,20 +164,9 @@ function Editor({ start, isNew }) {
                 <F label="Resumo" hint="Uma ou duas frases sobre o clima do roteiro.">
                   {(id) => <textarea id={id} rows={2} maxLength={240} value={d.desc} onChange={(e) => set({ desc: e.target.value })} />}
                 </F>
-                <div className="rot-field">
-                  <span className="rot-label">Vibe principal <i>*</i></span>
-                  <div className="hero2-vibes rot-vibes" role="radiogroup" aria-label="Vibe principal">
-                    {AFFINITIES.map(a => <VibePill key={a.id} aff={a.id} active={d.aff === a.id} onClick={() => set({ aff: a.id, vibes: d.vibes.filter(v => v !== a.id) })} />)}
-                  </div>
-                  {errors.aff && <span className="auth-error" role="alert">{errors.aff}</span>}
-                </div>
-                <div className="rot-field">
-                  <span className="rot-label">Outras vibes</span>
-                  <div className="hero2-vibes rot-vibes">
-                    {AFFINITIES.filter(a => a.id !== d.aff).map(a => <VibePill key={a.id} aff={a.id} size="sm" active={d.vibes.includes(a.id)}
-                      onClick={() => set({ vibes: d.vibes.includes(a.id) ? d.vibes.filter(v => v !== a.id) : [...d.vibes, a.id] })} />)}
-                  </div>
-                </div>
+                <VibeOrder value={d.vibes} auto={d.vibesAuto} error={errors.vibes}
+                  onChange={(vibes) => set({ vibes, vibesAuto: false })}
+                  onAuto={() => set({ vibes: suggested, vibesAuto: true })} canAuto={suggested.length > 0} />
                 <F label="Sobre este roteiro" hint="Opcional. Conte o que torna esse dia especial.">
                   {(id) => <textarea id={id} rows={4} maxLength={1500} value={d.about} onChange={(e) => set({ about: e.target.value })} />}
                 </F>

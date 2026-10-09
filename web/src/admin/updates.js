@@ -107,6 +107,16 @@ function dropReviews(d) {
   return ["avaliações"];
 }
 
+// Sem "vibe principal": roteiros guardam só a lista ordenada de vibes; dicas da home sem vibe
+function dropMainVibe(d) {
+  (d.roteiros || []).forEach(r => {
+    r.vibes = [...new Set([r.aff, ...(r.vibes || [])].filter(Boolean))];
+    delete r.aff;
+  });
+  if (d.home?.tips) d.home.tips = d.home.tips.map(({ aff, ...t }) => t);
+  return ["roteiros e dicas da home"];
+}
+
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
@@ -114,6 +124,7 @@ const UPDATES = [
   { id: "2026-10-blog-radar", label: "seção Radar (antigas Histórias)", apply: renameBlog },
   { id: "2026-10-radar-categorias", label: "categorias do Radar", apply: radarCategories },
   { id: "2026-10-sem-avaliacoes", label: "remoção das avaliações", apply: dropReviews },
+  { id: "2026-10-sem-vibe-principal", label: "fim da vibe principal", apply: dropMainVibe },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

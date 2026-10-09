@@ -1012,3 +1012,19 @@ a.btn-pill { text-decoration: none; }
 /* Por que ir: texto ao lado do ícone */
 .why-row li { flex-direction: row; align-items: center; gap: 12px; }
 .why-row .why-icon { flex: none; }
+.type-chip { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 10px; padding: 6px 12px; border: 1px solid var(--heading); border-radius: 999px; background: var(--paper); color: var(--heading); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.type-chip:hover { background: var(--primary-soft); }
+.tip-vibes { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Vibes ordenadas do roteiro (Meus roteiros) */
+.vibe-order { list-style: none; margin: 6px 0 10px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; counter-reset: v; }
+.vibe-order li { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 8px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--paper); counter-increment: v; }
+.vibe-order li::before { content: counter(v); font-size: 11px; font-weight: 700; color: var(--ink-3); margin-right: 2px; }
+.vibe-order-tools { display: inline-flex; }
+.vibe-order-tools button { width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--heading); cursor: pointer; }
+.vibe-order-tools button:hover:not(:disabled) { background: var(--primary-soft); }
+.vibe-order-tools button:disabled { opacity: .3; cursor: default; }
+.vibe-order-add .vibe-pill { opacity: .75; }
+.vibe-order-add .vibe-pill:hover { opacity: 1; }
+.rot-hint { margin: 2px 0 6px; font-size: 13px; color: var(--ink-3); }
+.rot-hint .link-btn { font-size: 13px; font-weight: 600; color: var(--primary); cursor: pointer; }
+.about-text .place-tags { margin: 14px 0 0; }

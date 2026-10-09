@@ -306,6 +306,46 @@ export function PillPicker({ label, hint, options, value = [], onChange, error }
   );
 }
 
+// Seleção ordenada (vibes): escolhidas em ordem, com subir/descer/remover; as demais viram botões de adicionar.
+// auto: { on, label, onReset } — mostra que a lista segue uma sugestão automática e permite voltar a ela.
+export function OrderedPicker({ label, hint, options, value = [], onChange, error, auto }) {
+  const labelOf = (v) => options.find(o => o[0] === v);
+  const move = (i, d) => { const n = [...value]; [n[i], n[i + d]] = [n[i + d], n[i]]; onChange(n); };
+  const rest = options.filter(([v]) => !value.includes(v));
+  return (
+    <Field label={label} hint={hint} error={error}>
+      {auto && (auto.on
+        ? <p className="a-opick-auto"><AIcon name="refresh" size={14} /> {auto.label}</p>
+        : auto.onReset && <button type="button" className="a-opick-reset" onClick={auto.onReset}><AIcon name="refresh" size={14} /> {auto.resetLabel || "Usar a sugestão automática"}</button>)}
+      {value.length > 0 ? (
+        <ol className="a-opick" aria-label={label}>
+          {value.map((v, i) => {
+            const o = labelOf(v);
+            return (
+              <li key={v}>
+                <span className="a-opick-n">{i + 1}</span>
+                <span className={"a-pill on " + (o?.[2] || "")}>{o?.[1] || v}</span>
+                <span className="a-opick-tools">
+                  <button type="button" aria-label={`Subir ${o?.[1] || v}`} disabled={i === 0} onClick={() => move(i, -1)}><AIcon name="up" size={15} /></button>
+                  <button type="button" aria-label={`Descer ${o?.[1] || v}`} disabled={i === value.length - 1} onClick={() => move(i, 1)}><AIcon name="down" size={15} /></button>
+                  <button type="button" aria-label={`Remover ${o?.[1] || v}`} onClick={() => onChange(value.filter(x => x !== v))}><AIcon name="x" size={15} /></button>
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      ) : <p className="a-hint">Nenhuma escolhida ainda.</p>}
+      {rest.length > 0 && (
+        <div className="a-pills a-opick-add" role="group" aria-label={"Adicionar " + (label || "")}>
+          {rest.map(([v, l, cls]) => (
+            <button key={v} type="button" className={"a-pill " + (cls || "")} onClick={() => onChange([...value, v])}><AIcon name="plus" size={13} />{l}</button>
+          ))}
+        </div>
+      )}
+    </Field>
+  );
+}
+
 // Lista reordenável (motivos, paradas, destaques…)
 export function Repeater({ items, onChange, render, newItem, addLabel = "Adicionar", max, min = 0 }) {
   function move(i, d) {

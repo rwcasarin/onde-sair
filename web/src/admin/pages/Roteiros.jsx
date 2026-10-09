@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { roteiroVibes, vibesFromPlaces } from "../../vibes.js";
 import { roteiroImg, placeImg } from "../../data.js";
 import { PlaceMap } from "../../components/placemap.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
-  Card, Input, Textarea, Select, ChipInput, PillPicker, Repeater, ImageField, Segmented, Tabs, Field, Toggle, PageHeader, useAdmin, useDraft,
+  Card, Input, Textarea, Select, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Toggle, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
 import { slugify } from "../store.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
@@ -20,7 +21,7 @@ export function RoteirosList() {
       coll="roteiros" title="Roteiros" newLabel="Novo roteiro"
       subtitle="Sequências de paradas com propósito e ordem."
       searchText={(r) => `${r.title} ${r.desc} ${r.bairros}`}
-      filters={[{ key: "vibe", label: "Vibe", options: db.vibes.map(v => [v.id, v.label]), test: (r, v) => r.aff === v || (r.vibes || []).includes(v) }]}
+      filters={[{ key: "vibe", label: "Vibe", options: db.vibes.map(v => [v.id, v.label]), test: (r, v) => roteiroVibes(r).includes(v) || (r.vibes || []).includes(v) }]}
       columns={[
         { key: "title", label: "Roteiro", render: (r) => (
           <span className="a-cell-main">
@@ -28,7 +29,7 @@ export function RoteirosList() {
             <span><strong>{r.title}</strong><em>{r.bairros}</em></span>
           </span>
         ) },
-        { key: "aff", label: "Vibe", width: 150, render: (r) => { const v = db.vibes.find(x => x.id === r.aff); return v ? <span className={"a-vibe-dot " + v.cls}>{v.label}</span> : "—"; } },
+        { key: "vibes", label: "Vibes", width: 190, sortable: false, render: (r) => { const vs = roteiroVibes(r).map(a => db.vibes.find(x => x.id === a)).filter(Boolean); return vs.length ? <span className="a-vibe-list">{vs.slice(0, 2).map(v => <span key={v.id} className={"a-vibe-dot " + v.cls}>{v.label}</span>)}{vs.length > 2 && <em>+{vs.length - 2}</em>}</span> : "—"; } },
         { key: "steps", label: "Paradas", width: 90, align: "center", render: (r) => r.steps.length, sortValue: (r) => r.steps.length },
         { key: "tempo", label: "Duração", width: 120, render: (r) => r.stats?.tempo, sortable: false },
       ]}
@@ -37,14 +38,14 @@ export function RoteirosList() {
 }
 
 const BLANK = {
-  title: "", slug: "", aff: "", vibes: [], desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
+  title: "", slug: "", vibes: [], vibesAuto: true, desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
   stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "", vibe: "" },
   steps: [{ time: "", title: "", sub: "", place: "", optional: false, tags: [], desc: "" }],
   tips: { dica: "", horario: "", epoca: "", comoChegar: "", lembrete: "" }, tags: [], status: "rascunho",
 };
 const RULES = [
   ["title", (d) => d.title.trim().length >= 4, "Dê um título ao roteiro."],
-  ["aff", (d) => !!d.aff, "Escolha a vibe principal.", true],
+  ["vibes", (d) => d.vibes.length > 0, "Escolha pelo menos uma vibe.", true],
   ["desc", (d) => d.desc.trim().length >= 30, "Escreva um resumo com pelo menos 30 caracteres.", true],
   ["steps", (d) => d.steps.length >= 2 && d.steps.every(s => s.title.trim()), "Inclua ao menos 2 paradas, todas com título.", true],
 ];
@@ -54,7 +55,10 @@ export function RoteiroEditor({ id }) {
   const isNew = id === "novo";
   const found = db.roteiros.find(r => r.id === id);
   if (!isNew && !found) return <NotFoundItem what="Roteiro" path="roteiros" />;
-  return <RoteiroForm initial={isNew ? BLANK : { ...BLANK, ...found, tips: { ...BLANK.tips, ...found.tips }, stats: { ...BLANK.stats, ...found.stats } }} isNew={isNew} />;
+  if (isNew) return <RoteiroForm initial={BLANK} isNew />;
+  // sem "vibe principal": a antiga (aff) vira a primeira da lista
+  const { aff, ...rest } = found;
+  return <RoteiroForm initial={{ ...BLANK, ...rest, vibes: roteiroVibes(found), vibesAuto: found.vibesAuto === true, tips: { ...BLANK.tips, ...found.tips }, stats: { ...BLANK.stats, ...found.stats } }} isNew={false} />;
 }
 
 function RoteiroForm({ initial, isNew }) {
@@ -65,6 +69,10 @@ function RoteiroForm({ initial, isNew }) {
   const pid = draft.id || "novo";
   const setStat = (k, v) => set({ stats: { ...draft.stats, [k]: v } });
   const setTip = (k, v) => set({ tips: { ...draft.tips, [k]: v } });
+  // vibes automáticas pelas paradas (mais presentes primeiro) até alguém editar a lista
+  const suggested = vibesFromPlaces(draft.steps.map(s => s.place && db.places.find(p => p.id === s.place)));
+  const sugKey = suggested.join(",");
+  useEffect(() => { if (draft.vibesAuto && draft.vibes.join(",") !== sugKey) set({ vibes: suggested }); }, [sugKey, draft.vibesAuto]); // eslint-disable-line
 
   const pins = draft.steps.map((s, i) => {
     const pl = s.place && db.places.find(p => p.id === s.place);
@@ -78,7 +86,7 @@ function RoteiroForm({ initial, isNew }) {
         subtitle={`/roteiros/${draft.slug || slugify(draft.title) || "…"}`} />}
       main={<>
         <Tabs value={tab} onChange={setTab} tabs={[
-          ["conteudo", "Conteúdo", ["title", "aff", "desc"].some(k => errors[k]) ? "!" : null],
+          ["conteudo", "Conteúdo", ["title", "vibes", "desc"].some(k => errors[k]) ? "!" : null],
           ["paradas", `Paradas (${draft.steps.length})`, errors.steps ? "!" : null],
           ["dicas", "Dicas e resumo"],
           ["imagens", "Imagens"],
@@ -97,9 +105,10 @@ function RoteiroForm({ initial, isNew }) {
               <Input label="Citação em destaque" value={draft.quote} onChange={(v) => set({ quote: v })} maxCount={90} />
               <Input label="Frase manuscrita da foto" value={draft.note} onChange={(v) => set({ note: v })} maxCount={60} />
             </div>
-            <Select label="Vibe principal" required value={draft.aff} onChange={(v) => set({ aff: v, vibes: draft.vibes.includes(v) ? draft.vibes : [v, ...draft.vibes] })}
-              options={db.vibes.map(v => [v.id, v.label])} placeholder="Escolha" error={errors.aff} />
-            <PillPicker label="Outras vibes" value={draft.vibes} onChange={(vibes) => set({ vibes })} options={db.vibes.map(v => [v.id, v.label, v.cls])} />
+            <OrderedPicker label="Vibes" error={errors.vibes} hint="A ordem aqui é a ordem em que as vibes aparecem no roteiro e nos cards."
+              value={draft.vibes} onChange={(vibes) => set({ vibes, vibesAuto: false })} options={db.vibes.map(v => [v.id, v.label, v.cls])}
+              auto={{ on: draft.vibesAuto, label: "Automáticas: vibes dos lugares das paradas, da mais presente para a menos presente.",
+                onReset: suggested.length ? () => set({ vibes: suggested, vibesAuto: true }) : null, resetLabel: "Usar as vibes das paradas" }} />
             <ChipInput label="Tags dos cards" value={draft.tags.map(t => t[0])} onChange={(l) => set({ tags: toTags(l) })} hint="Aparecem em “Continue explorando”." />
             <div className="a-form-grid a-form-grid-3">
               <Input label="Tempo total" value={draft.stats.tempo} onChange={(v) => setStat("tempo", v)} placeholder="6 a 8 horas" />
@@ -189,7 +198,7 @@ function RoteiroForm({ initial, isNew }) {
         </Card>
         <Checklist items={[
           ["Título e resumo", !!draft.title && draft.desc.length >= 30],
-          ["Vibe principal", !!draft.aff],
+          ["Vibes", draft.vibes.length > 0],
           ["2 ou mais paradas", draft.steps.length >= 2],
           ["Todas as paradas com descrição", draft.steps.every(s => s.desc)],
           ["Tempo e investimento", !!draft.stats.tempo],

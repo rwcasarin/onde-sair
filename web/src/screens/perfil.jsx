@@ -7,6 +7,7 @@ import { useNav, useFaves } from "../nav.js";
 import { href, toPath } from "../router.js";
 import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword, deleteMyRoteiro } from "../account.js";
 import { MyRoteiroCard } from "./roteiro.jsx";
+import { roteiroVibes } from "../vibes.js";
 import { SITE } from "../admin/store.js";
 
 const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); } catch { return ""; } };
@@ -72,7 +73,7 @@ export function Perfil({ user, tab = "favoritos" }) {
           )}
 
           {tab === "favRoteiros" && (
-            <Filtered items={favRoteiros} vibesOf={(r) => [r.aff, ...(r.vibes || [])]} empty={
+            <Filtered items={favRoteiros} vibesOf={roteiroVibes} empty={
               <Empty icon="heart" text="Nenhum roteiro favorito por enquanto." sub="Salve roteiros da curadoria para ter sempre à mão." cta="Ver roteiros" onClick={() => nav("roteiros")} />}>
               {(list) => <div className="rot-mini-grid">{list.map(r => <RoteiroMini key={r.id} r={r} />)}</div>}
             </Filtered>
@@ -88,7 +89,7 @@ export function Perfil({ user, tab = "favoritos" }) {
             <SectionHead title="Sugerido pra você" sub="A partir das suas vibes." link="Ver mais" onLink={() => nav("lista")} />
             <div className="tips-grid">
               {PLACES.filter(p => !faves.has(p.id) && (!affs.size || p.affs.some(a => affs.has(a)))).slice(0, 6).map(p => (
-                <MiniPlaceCard key={p.id} p={p} aff={p.affs.find(a => affs.has(a)) || p.affs[0]} />
+                <MiniPlaceCard key={p.id} p={p} />
               ))}
             </div>
           </section>
@@ -144,7 +145,7 @@ function MyRoteiros({ list }) {
           {create}
         </div>
       </div>
-      <Filtered items={list} vibesOf={(r) => [r.aff, ...(r.vibes || [])]} empty={null}>
+      <Filtered items={list} vibesOf={roteiroVibes} empty={null}>
         {(items) => (
           <div className="my-rot-grid">
             {items.map(r => (

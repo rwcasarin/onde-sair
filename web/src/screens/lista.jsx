@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import {
   PLACES, VIBE_ORDER, VIBE_PAGE, PRICE_BUCKETS, MOMENTOS, AMBIENTES, TESTIMONIALS, vibeImg,
 } from "../data.js";
-import { CITIES } from "../data.js";
+import { CITIES, TYPES } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
@@ -25,7 +25,7 @@ function CheckRow({ checked, onChange, children, count, boxed }) {
   );
 }
 
-export function Lista({ aff = null, q = "" }) {
+export function Lista({ aff = null, q = "", tipo = "" }) {
   const nav = useNav();
   const { id: globalCity, name: city, set: setGlobalCity } = useCity();
   const [vibe, setVibe] = useState(aff);
@@ -43,6 +43,7 @@ export function Lista({ aff = null, q = "" }) {
   const [activePin, setActivePin] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState(q);
+  const [typeF, setTypeF] = useState(() => TYPES.find(t => t.slug === tipo)?.label || "");   // /lugares?tipo=bares
 
   const a = vibe ? affById(vibe) : null;
   const page = vibe ? VIBE_PAGE[vibe] : null;
@@ -50,12 +51,13 @@ export function Lista({ aff = null, q = "" }) {
   // vibe + busca (sem cidade): base das contagens por cidade
   const anyCity = useMemo(() => PLACES.filter(p => {
     if (vibe && !p.affs.includes(vibe)) return false;
+    if (typeF && p.type !== typeF) return false;
     if (query) {
       const hay = [p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" ").toLowerCase();
       if (!hay.includes(query.toLowerCase())) return false;
     }
     return true;
-  }), [vibe, query]);
+  }), [vibe, query, typeF]);
   const cityCounts = useMemo(() => anyCity.reduce((m, p) => ({ ...m, [p.city]: (m[p.city] || 0) + 1 }), {}), [anyCity]);
   // base: vibe + busca + cidade (as contagens dos outros filtros partem daqui)
   const base = useMemo(() => anyCity.filter(p => !cityF || p.city === cityF), [anyCity, cityF]);
@@ -83,7 +85,7 @@ export function Lista({ aff = null, q = "" }) {
     setMomentos(new Set()); setAmbientes(new Set()); setReserva(new Set());
   }
 
-  const title = a ? a.label : query ? "Resultados da busca" : "Lugares";
+  const title = a ? a.label : query ? "Resultados da busca" : typeF || "Lugares";
   const lede = page ? page.lede : query
     ? <>Tudo o que encontramos para “{query}”. Refine pelos filtros ao lado.</>
     : "Todos os endereços que passaram pelo crivo. Escolha uma vibe ou use os filtros.";
@@ -101,6 +103,7 @@ export function Lista({ aff = null, q = "" }) {
         <div className="hero2-copy">
           <Crumbs items={[["Início", "home"], ...(a ? [["Vibes", "home", { anchor: "vibes" }], [a.label]] : [["Lugares"]])]} />
           <h1 className="page-title">{title}</h1>
+          {typeF && <button type="button" className="type-chip" onClick={() => { setTypeF(""); history.replaceState(null, "", location.pathname); }} aria-label={"Remover filtro " + typeF}>Tipo: {typeF} <Icon name="x" size={14} /></button>}
           <p className="hero2-lede">{lede}</p>
           {page ? (
             <ul className="feature-row">

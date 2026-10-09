@@ -5,6 +5,7 @@ import { ImageSlot } from "../components/image-slot.jsx";
 import {
   HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroMini, SectionHead, PageHead, FaveButton, Footer, placeById, affById,
 } from "../components/site.jsx";
+import { roteiroVibes } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { findMyRoteiro, myRoteiros, deleteMyRoteiro } from "../account.js";
 import { INVEST_LABELS } from "../../shared/myroteiros.js";
@@ -37,9 +38,9 @@ function RoteiroView({ r, mine = false }) {
   const firstPlace = r.steps.find(s => s.place)?.place;
   const heroImg = mine ? (firstPlace ? placeImg(firstPlace) : undefined) : roteiroImg(r.id);
   const stepImg = (s, i) => mine ? (s.place ? placeImg(s.place) : undefined) : roteiroImg(r.id, i + 1);
-  const vibes = [...new Set([r.aff, ...(r.vibes || [])].filter(Boolean))];
+  const vibes = roteiroVibes(r);
   const investLabel = r.stats.investLabel || INVEST_LABELS[r.stats.invest] || "";
-  const vibeWords = r.stats.vibe || affById(r.aff)?.label || "";
+  const vibeWords = r.stats.vibe || vibes.map(a => affById(a)?.label).filter(Boolean).join(", ");
   const copy = () => user ? nav("meuRoteiroEditar", { id: "novo", copiar: r.id }) : ask({ type: "copiar", id: r.id });
   const tips = r.tips || {};
 
@@ -66,7 +67,7 @@ function RoteiroView({ r, mine = false }) {
             {r.stats.tempo && <li><Icon name="clock" size={24} /><div><span>Tempo total</span>{r.stats.tempo}</div></li>}
             <li><Icon name="coins" size={24} /><div><span>Investimento</span><b>{INVEST[r.stats.invest]}</b> {investLabel}</div></li>
             {r.stats.ideal && <li><Icon name="users" size={24} fill /><div><span>Ideal para</span>{r.stats.ideal}</div></li>}
-            {vibeWords && <li><Icon name="leaf" size={24} /><div><span>Vibe principal</span>{vibeWords}</div></li>}
+            {vibeWords && <li><Icon name="leaf" size={24} /><div><span>Vibes</span>{vibeWords}</div></li>}
           </ul>
 
           <div className="hero2-vibes">
@@ -250,7 +251,7 @@ export function Roteiros() {
                 <FaveButton id={r.id} className="fave fave-float" />
               </ImageSlot>
               <div className="rot-index-body">
-                <VibePill aff={r.aff} size="sm" />
+                <div className="tip-vibes">{roteiroVibes(r).slice(0, 2).map(a => <VibePill key={a} aff={a} size="sm" />)}</div>
                 <h3>{r.title}</h3>
                 <p>{r.desc}</p>
                 <ul className="rot-index-meta">
@@ -277,7 +278,7 @@ export function MyRoteiroCard({ r, actions }) {
     <article className="my-rot-card" onClick={() => nav("meuRoteiro", { id: r.id })}>
       <ImageSlot className="my-rot-img" src={thumb ? placeImg(thumb) : undefined} hint={thumb ? "16:10" : "Sem foto"} compact />
       <div className="my-rot-body">
-        {r.aff && <VibePill aff={r.aff} size="sm" />}
+        {roteiroVibes(r).length > 0 && <div className="tip-vibes">{roteiroVibes(r).slice(0, 2).map(a => <VibePill key={a} aff={a} size="sm" />)}</div>}
         <h3>{r.title || "Sem nome"}</h3>
         <p className="my-rot-meta">{r.steps.length} parada{r.steps.length === 1 ? "" : "s"}{r.stats.tempo ? " · " + r.stats.tempo : ""}</p>
         <p className="my-rot-stops">{r.steps.map(s => s.title).filter(Boolean).join(" → ") || "Sem paradas ainda"}</p>

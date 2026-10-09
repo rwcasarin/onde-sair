@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CITIES, PLACES, ROTEIROS, VIBE_STYLE, placeImg, placeGallery, roteiroImg } from "../data.js";
+import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, placeGallery, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
@@ -9,6 +9,7 @@ import { useNav, useCity, useFaves } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
+import { roteiroVibes } from "../vibes.js";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -27,7 +28,7 @@ const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${
 
 const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["confira", "Confira também"]];
 
-// WhatsApp: só para celular brasileiro (DDD + 9 dígitos começando com 9)
+// WhatsApp do lugar (campo próprio no painel): celular brasileiro com DDD
 function whatsappLink(phone = "") {
   let d = String(phone).replace(/\D/g, "");
   if (d.startsWith("55") && d.length >= 12) d = d.slice(2);
@@ -48,7 +49,7 @@ export function Detalhe({ id }) {
   const [mapSel, setMapSel] = useState(null);       // pin selecionado no mapa "Onde fica"
   const saved = faves.has(p.id);
   const insta = instaProfile(p.insta);
-  const whats = whatsappLink(p.phone);
+  const whats = whatsappLink(p.whatsapp);
 
   const gallery = placeGallery(p.id);
   const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
@@ -60,7 +61,7 @@ export function Detalhe({ id }) {
     .slice(0, 2).map(s => s.x);
 
   const rots = ROTEIROS
-    .map(r => ({ r, score: (r.steps.some(st => st.place === p.id) ? 10 : 0) + r.vibes.filter(a => p.affs.includes(a)).length }))
+    .map(r => ({ r, score: (r.steps.some(st => st.place === p.id) ? 10 : 0) + roteiroVibes(r).filter(a => p.affs.includes(a)).length }))
     .sort((m, n) => n.score - m.score)
     .slice(0, 2).map(s => s.r);
 
@@ -84,17 +85,12 @@ export function Detalhe({ id }) {
         <HeroMedia img={placeImg(p.id)} note={p.note} shape="diagonal" hint="Foto do lugar · ~1400×800" />
         <div className="hero2-copy">
           <Crumbs items={[["Início", "home"], ["Lugares", "lista"], [p.bairro, "lista", { q: p.bairro }], [p.name]]} />
-          {/* vibes (pequenas) → nome → descrição → tags → informações → ações */}
+          {/* vibes (pequenas) → nome → descrição → informações → ações */}
           <div className="place-vibes place-vibes-sm">
             {p.affs.map(a => <VibePill key={a} aff={a} size="sm" />)}
           </div>
           <h1 className="page-title">{p.name}</h1>
           <p className="hero2-lede">{p.tagline}</p>
-          {p.tags?.length > 0 && (
-            <ul className="place-tags" aria-label="Tags">
-              {p.tags.map(t => <li key={t}>{t}</li>)}
-            </ul>
-          )}
 
           <ul className="place-meta">
             <li><Icon name="pin" size={18} fill /> {p.bairro}</li>
@@ -139,6 +135,11 @@ export function Detalhe({ id }) {
               É o tipo de lugar que faz você querer ficar mais um pouco: a gente indica
               pra {p.affs.map(a => affById(a).label.toLowerCase().replace(/^(para|pra) /, "")).join(", ")}.
             </p>
+            {p.tags?.length > 0 && (
+              <ul className="place-tags" aria-label="Tags">
+                {p.tags.map(t => <li key={t}>{t}</li>)}
+              </ul>
+            )}
           </div>
           <blockquote className="big-quote">
             <span className="big-quote-mark">“</span>
@@ -212,13 +213,13 @@ export function Detalhe({ id }) {
             <div className="h2-head">
               <h2>Confira também</h2>
               <p>Lugares e roteiros com a mesma vibe em {city}.</p>
-              <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("lista", { aff: p.affs[0] }); }}>Ver mais <Icon name="arrow" size={16} /></a>
+              <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("lista", { tipo: TYPES.find(t => t.label === p.type)?.slug }); }}>Ver mais <Icon name="arrow" size={16} /></a>
             </div>
             <div className="related-grid">
               {similar.map(x => (
                 <div key={x.id} className="related-item">
                   <span className="related-kind">Lugar</span>
-                  <MiniPlaceCard p={x} aff={x.affs.find(a => p.affs.includes(a)) || x.affs[0]} />
+                  <MiniPlaceCard p={x} />
                 </div>
               ))}
               {rots.map(r => (
@@ -244,7 +245,7 @@ function RoteiroCard({ r }) {
     <article className="tip-card" onClick={() => nav("roteiro", { id: r.id })}>
       <ImageSlot className="tip-img" src={roteiroImg(r.id)} alt="" hint="5:4" />
       <div className="tip-body">
-        <VibePill aff={r.aff} size="sm" />
+        <div className="tip-vibes">{roteiroVibes(r).slice(0, 2).map(a => <VibePill key={a} aff={a} size="sm" />)}</div>
         <div className="tip-title">
           <h3>{r.title}</h3>
           <FaveButton id={r.id} />

@@ -55,8 +55,8 @@ export function Home() {
             link="Ver todos" onLink={() => nav("lista")}
           />
           <div className="tips-grid">
-            {TIPS_TODAY.map(({ place, aff }) => (
-              <MiniPlaceCard key={place} p={PLACES.find(x => x.id === place)} aff={aff} />
+            {TIPS_TODAY.map(({ place }) => (
+              <MiniPlaceCard key={place} p={PLACES.find(x => x.id === place)} />
             ))}
           </div>
         </section>

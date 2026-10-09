@@ -179,13 +179,12 @@ export function ListingCard({ p, badge }) {
 }
 
 // Card compacto de lugar (home "Dicas para hoje" e "Lugares parecidos")
-export function MiniPlaceCard({ p, aff = p.affs[0], showDesc = true }) {
+export function MiniPlaceCard({ p, showDesc = true }) {
   const nav = useNav();
   return (
     <article className="tip-card" onClick={() => nav("detalhe", { id: p.id })}>
       <ImageSlot className="tip-img" src={placeImg(p.id)} alt={p.name} hint="5:4" />
       <div className="tip-body">
-        <VibePill aff={aff} size="sm" />
         <div className="tip-title">
           <h3>{p.name}</h3>
           <FaveButton id={p.id} />
