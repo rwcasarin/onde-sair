@@ -576,6 +576,7 @@ export const SEED_MENUS = {
   header: [
     { id: "m1", label: "Hoje", type: "site", target: "home" },
     { id: "m2", label: "Radar", type: "site", target: "historias" },
+    { id: "m-vibes", label: "Vibes", type: "site", target: "vibes" },
     { id: "m3", label: "Lugares", type: "site", target: "lista" },
     { id: "m4", label: "Roteiros", type: "site", target: "roteiros" },
     { id: "m5", label: "Guia da cidade", type: "site", target: "mapa" },

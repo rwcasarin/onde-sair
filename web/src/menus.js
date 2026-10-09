@@ -7,7 +7,8 @@ import { SITE } from "./admin/store.js";
 // Telas do site que podem entrar no menu (target → rótulo, rota e quando fica "ativo")
 export const SITE_TARGETS = [
   { id: "home",           label: "Início (Hoje)",                 screen: "home",      active: (c) => c === "home" },
-  { id: "home#vibes",     label: "Vibes (seção da home)",         screen: "home",      params: { anchor: "vibes" }, active: (c, p) => c === "lista" && !!p.aff },
+  { id: "vibes",          label: "Vibes (lugares e roteiros)",    screen: "vibes",     active: (c) => c === "vibes" },
+  { id: "home#vibes",     label: "Vibes (seção da home)",         screen: "home",      params: { anchor: "vibes" }, active: () => false },
   { id: "lista",          label: "Lugares",                       screen: "lista",     active: (c, p) => (c === "lista" && !p.aff) || c === "detalhe" },
   { id: "roteiros",       label: "Roteiros",                      screen: "roteiros",  active: (c) => c === "roteiros" || c === "roteiro" },
   { id: "mapa",           label: "Guia da cidade",                screen: "mapa",      active: (c) => c === "mapa" },
