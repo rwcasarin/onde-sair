@@ -266,25 +266,5 @@ function RoteiroView({ r, mine = false }) {
 }
 
 // Índice de roteiros (menu "Roteiros")
-export function Roteiros() {
-  const nav = useNav();
-  const { name: city } = useCity();
-  return (
-    <main className="home2">
-      <div className="shell">
-        <PageHead
-          crumbs={[["Início", "home"], ["Roteiros"]]}
-          title="Roteiros"
-          lede={`Curadorias prontas para viver ${city} do seu jeito. Cada roteiro tem propósito, ordem e dicas de quem já foi.`}
-        />
-        <div className="rot-index">
-          {ROTEIROS.map(r => <RoteiroCard key={r.id} r={r} />)}
-        </div>
-      </div>
-      <Footer />
-    </main>
-  );
-}
-
 // Card de um roteiro meu (perfil e página do roteiro): mesmo card dos roteiros do site
 export const MyRoteiroCard = ({ r, actions }) => <RoteiroCard r={r} mine actions={actions} />;

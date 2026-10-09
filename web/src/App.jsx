@@ -8,8 +8,9 @@ import { Onboarding } from "./screens/onboarding.jsx";
 import { Home } from "./screens/home.jsx";
 import { Lista } from "./screens/lista.jsx";
 import { VibesView } from "./screens/vibesview.jsx";
+import { RoteirosLista } from "./screens/roteiroslista.jsx";
 import { Detalhe } from "./screens/detalhe.jsx";
-import { Roteiro, Roteiros, MeuRoteiro } from "./screens/roteiro.jsx";
+import { Roteiro, MeuRoteiro } from "./screens/roteiro.jsx";
 import { MeuRoteiroEditor } from "./screens/meuroteiro.jsx";
 import { Historia, Historias } from "./screens/historia.jsx";
 import { Mapa } from "./screens/mapa.jsx";
@@ -145,7 +146,7 @@ export default function App() {
 
   // ação que exige conta: guarda a intenção, leva ao login e volta para onde estava
   const ask = useCallback((intent) => {
-    if (SITE.accountsPaused || (SITE.roteirosPaused && (intent.type === "roteiro" || intent.type === "copiar"))) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
+    if (SITE.accountsPaused || (SITE.roteirosPaused && (intent.type === "roteiro" || intent.type === "copiar" || intent.type === "criar"))) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
 
   const toggleFave = useCallback((id) => {
     if (SITE.accountsPaused) return;
@@ -173,6 +174,7 @@ export default function App() {
       setFaves(f); updateAccount({ faves: [...f] }).catch(() => {});
     }
     if (i?.type === "copiar") return nav("meuRoteiroEditar", { id: "novo", copiar: i.id });
+    if (i?.type === "criar") return nav("meuRoteiroEditar", { id: "novo" });
     if (i?.back && !/^\/(entrar|cadastro|boas-vindas)/.test(i.back)) { go(i.back); window.scrollTo(0, 0); return; }
     nav(isNew ? "home" : "perfil");
   }
@@ -217,7 +219,7 @@ export default function App() {
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
         {rotOff && <PausedScreen message={SITE.roteirosMessage} />}
-        {screen === "roteiros"     && !rotOff && <Roteiros />}
+        {screen === "roteiros"     && !rotOff && <RoteirosLista />}
         {screen === "roteiro"      && !rotOff && <Roteiro key={key} id={params.id} />}
         {screen === "historias"    && <Historias />}
         {screen === "historia"     && <Historia key={key} id={params.id} />}
