@@ -1114,3 +1114,10 @@ a.btn-pill { text-decoration: none; }
 /* Roteiros: busca nos filtros */
 .filter-search { width: 100%; height: 42px; padding: 0 14px; border: 1px solid var(--line-strong, rgba(30,21,80,.2)); border-radius: 10px; background: #fff; font: inherit; font-size: 14px; color: var(--heading); }
 .filter-search:focus { outline: 2px solid var(--c-teal); outline-offset: 1px; }
+
+/* Cards de lugar e roteiro: informação logo abaixo do nome e "Saiba mais" no rodapé */
+.rot-index-card .rot-index-meta.card-sub { margin: 6px 0 0; color: var(--ink-2); }
+.rot-index-card .card-sub + p { margin-top: 10px; }
+.rot-index-card .card-foot { margin-top: auto; padding-top: 4px; }
+.rot-index-card .card-more { font-size: 13px; }
+.rot-index-card .my-rot-actions { margin-top: 12px; }

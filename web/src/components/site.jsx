@@ -1,6 +1,5 @@
 // Componentes compartilhados do site (v3)
 import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, PRICE_RANGE, placeImg, roteiroImg } from "../data.js";
-import { INVEST_LABELS } from "../../shared/myroteiros.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
@@ -165,8 +164,19 @@ export function TypePill({ type }) {
   return <span className={"vibe-pill vibe-pill-sm " + (t?.cls || "vibe-lavender")}><span className="vibe-pill-icon"><Icon name={t?.icon || "pin"} size={12} /></span>{type}</span>;
 }
 
+// "Saiba mais" no rodapé dos cards: link de verdade (abre em nova aba com o botão do meio) que navega sem recarregar
+export function CardMore({ screen, params, label = "Saiba mais" }) {
+  const nav = useNav();
+  return (
+    <a className="h2-link card-more" href={href(toPath(screen, params))}
+      onClick={(e) => { e.stopPropagation(); if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); nav(screen, params); }}>
+      {label} <Icon name="arrow" size={16} />
+    </a>
+  );
+}
+
 // Card de lugar — o mesmo em todo o site e no formato do card de roteiro:
-// foto 16:10 com favoritar, título, descrição e bairro (alinhado no rodapé do card)
+// foto 16:10 com favoritar, tipo, nome, bairro, descrição e "Saiba mais" no rodapé
 export function PlaceCard({ p }) {
   const nav = useNav();
   const desc = p.tagline || (p.desc ? p.desc.split(".")[0] + "." : "");
@@ -178,10 +188,9 @@ export function PlaceCard({ p }) {
       <div className="rot-index-body">
         {p.type && <div className="rot-index-vibes"><TypePill type={p.type} /></div>}
         <h3>{p.name}</h3>
+        {p.bairro && <ul className="rot-index-meta card-sub"><li><Icon name="pin" size={14} /> {p.bairro}</li></ul>}
         {desc && <p>{desc}</p>}
-        <ul className="rot-index-meta">
-          <li><Icon name="pin" size={14} /> {p.bairro}</li>
-        </ul>
+        <div className="card-foot"><CardMore screen="detalhe" params={{ id: p.id }} /></div>
       </div>
     </article>
   );
@@ -197,7 +206,6 @@ export function RoteiroCard({ r, mine = false, actions }) {
   const vibes = [...new Set([r.aff, ...(r.vibes || [])].filter(Boolean))].slice(0, 2);
   const thumb = mine ? r.steps.find(s => s.place)?.place : null;
   const paradas = r.paradas ?? r.steps?.length ?? 0;
-  const invest = r.stats?.investLabel || INVEST_LABELS[r.stats?.invest] || "";
   const open = () => nav(mine ? "meuRoteiro" : "roteiro", { id: r.id });
   return (
     <article className="rot-index-card" onClick={open}>
@@ -208,13 +216,13 @@ export function RoteiroCard({ r, mine = false, actions }) {
       <div className="rot-index-body">
         {vibes.length > 0 && <div className="rot-index-vibes">{vibes.map(a => <VibePill key={a} aff={a} size="sm" />)}</div>}
         <h3>{r.title || "Sem nome"}</h3>
-        {r.desc && <p>{r.desc}</p>}
-        <ul className="rot-index-meta">
-          {r.stats?.tempo && <li><Icon name="clock" size={14} /> {r.stats.tempo}</li>}
+        <ul className="rot-index-meta card-sub">
           <li><Icon name="pin" size={14} /> {paradas} parada{paradas === 1 ? "" : "s"}</li>
-          {invest && <li><Icon name="coins" size={14} /> {invest}</li>}
+          {r.stats?.tempo && <li><Icon name="clock" size={14} /> {r.stats.tempo}</li>}
         </ul>
+        {r.desc && <p>{r.desc}</p>}
         {mine && r.from && <span className="my-rot-from">Baseado em “{r.from.title}”</span>}
+        <div className="card-foot"><CardMore screen={mine ? "meuRoteiro" : "roteiro"} params={{ id: r.id }} /></div>
         {actions && <div className="my-rot-actions" onClick={(e) => e.stopPropagation()}>{actions}</div>}
       </div>
     </article>
