@@ -204,7 +204,7 @@ export default function App() {
         {SITE.announcement?.enabled && SITE.announcement.text && (
           <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
         )}
-        {paused && <div className="site-announce tone-yellow accounts-paused-bar" role="status">{SITE.accountsMessage}</div>}
+        {paused && SITE.accountsBar && <div className="site-announce tone-yellow accounts-paused-bar" role="status">{SITE.accountsMessage}</div>}
         <TopNav current={screen} params={params} unread={unread} user={paused ? null : user} paused={paused} />
         {screen === "home"         && <Home />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}

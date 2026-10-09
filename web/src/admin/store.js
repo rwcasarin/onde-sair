@@ -133,7 +133,7 @@ function seed() {
     contactEmail: "contato@ondesair.com.br", instagram: "@ondesair", tiktok: "@ondesair", youtube: "/ondesair", spotify: "Onde Sair",
     seoTitle: "Onde Sair · O lugar certo pra cada vibe", seoDesc: "Curadoria por afinidade: lugares, roteiros e experiências escolhidos por quem vive a cidade.",
     defaultCity: "sorocaba", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
-    newsletter: true, maintenance: false, accounts: { paused: false, message: "" },
+    newsletter: true, maintenance: false, accounts: { paused: false, showBar: true, message: "" },
   };
 
   const activity = [
@@ -380,6 +380,7 @@ export function syncPublic() {
   SITE.announcement = db.settings.announcement;
   SITE.maintenance = db.settings.maintenance;
   SITE.accountsPaused = !!db.settings.accounts?.paused;
+  SITE.accountsBar = db.settings.accounts?.showBar !== false;
   SITE.accountsMessage = db.settings.accounts?.message || ACCOUNTS_PAUSED_TEXT;
   SITE.mapsKey = db.settings.mapsKey || "";
   SITE.seoTitle = db.settings.seoTitle || "";

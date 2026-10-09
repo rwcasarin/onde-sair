@@ -11,7 +11,7 @@ export function SettingsPage({ initialTab }) {
   const file = useRef(null);
   useEffect(() => { setDirty(dirty); return () => setDirty(false); }, [dirty, setDirty]);
   const ann = draft.announcement;
-  const acc = { paused: false, message: "", ...(draft.accounts || {}) };
+  const acc = { paused: false, showBar: true, message: "", ...(draft.accounts || {}) };
   const setAcc = (patch) => set({ accounts: { ...acc, ...patch } });
 
   function save() {
@@ -94,13 +94,17 @@ export function SettingsPage({ initialTab }) {
             <li>Login e cadastro ficam indisponíveis (o servidor também recusa).</li>
             <li>Quem já está conectado navega como visitante; a sessão volta quando a pausa acabar.</li>
             <li>Somem do site: Entrar, favoritar, favoritos, notificações, criar, copiar e editar roteiros e “Adicionar a um roteiro”.</li>
-            <li>Perfil, favoritos, meus roteiros e notificações mostram o aviso abaixo.</li>
+            <li>Perfil, favoritos, meus roteiros, notificações, entrar e cadastro mostram uma tela de pausa com o aviso abaixo.</li>
             <li>O painel continua funcionando normalmente.</li>
           </ul>
           <Textarea label="Aviso no site" value={acc.message} placeholder={ACCOUNTS_PAUSED_TEXT} onChange={(message) => setAcc({ message })} rows={3} maxCount={200}
-            hint="Aparece numa faixa no topo de todas as páginas enquanto a pausa estiver ligada. Em branco, usa o texto padrão." />
-          <span className="a-label">Prévia</span>
-          <div className={"site-announce tone-yellow" + (acc.paused ? "" : " off")}>{acc.message || ACCOUNTS_PAUSED_TEXT}</div>
+            hint="Usado na tela de pausa e, se ligada, na faixa amarela. Em branco, usa o texto padrão." />
+          <Toggle label="Mostrar a faixa amarela no topo do site" checked={acc.showBar} onChange={(showBar) => setAcc({ showBar })}
+            hint={acc.showBar ? "A faixa com o aviso aparece em todas as páginas enquanto a pausa estiver ligada." : "Sem faixa: o aviso aparece só na tela de pausa das áreas de conta."} />
+          {acc.showBar && <>
+            <span className="a-label">Prévia da faixa</span>
+            <div className={"site-announce tone-yellow" + (acc.paused ? "" : " off")}>{acc.message || ACCOUNTS_PAUSED_TEXT}</div>
+          </>}
         </Card>
       )}
 
