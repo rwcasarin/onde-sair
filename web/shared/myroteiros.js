@@ -6,7 +6,7 @@ const str = (v, max) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max
 const text = (v, max) => String(v ?? "").replace(/\r/g, "").trim().slice(0, max);
 const list = (v, n, max) => (Array.isArray(v) ? v : []).map(x => str(x, max)).filter(Boolean).slice(0, n);
 
-export const blankStep = (over = {}) => ({ time: "", title: "", sub: "", place: "", optional: false, desc: "", ...over });
+export const blankStep = (over = {}) => ({ time: "", title: "", place: "", optional: false, desc: "", ...over });
 export const blankRoteiro = () => ({
   id: "", title: "", vibes: [], vibesAuto: true, desc: "", about: "",
   stats: { tempo: "", invest: 1, ideal: "" },
@@ -28,7 +28,7 @@ export function cleanRoteiro(r = {}) {
     about: text(r.about, 1500),
     stats: { tempo: str(r.stats?.tempo, 40), invest, ideal: str(r.stats?.ideal, 60) },
     steps: (Array.isArray(r.steps) ? r.steps : []).slice(0, LIMITS.steps).map(s => ({
-      time: str(s?.time, 30), title: str(s?.title, 90), sub: str(s?.sub, 90),
+      time: str(s?.time, 30), title: str(s?.title, 90),
       place: str(s?.place, 20), optional: !!s?.optional, desc: text(s?.desc, 400),
     })),
     tips: { dica: text(r.tips?.dica, 300), horario: str(r.tips?.horario, 60), comoChegar: str(r.tips?.comoChegar, 120), lembrete: text(r.tips?.lembrete, 200) },

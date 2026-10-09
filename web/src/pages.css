@@ -338,9 +338,9 @@
   border-radius: 999px; background: var(--pin); color: #fff; font-size: 11px; font-weight: 700;
 }
 
-.steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
-.step-card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
-.step-img { aspect-ratio: 2 / 1; }
+.steps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.step-card.is-free { cursor: default; }
+.step-card.is-free:hover { transform: none; box-shadow: none; }
 .step-time {
   position: absolute; top: 10px; left: 10px;
   display: inline-flex; align-items: center; gap: 8px; padding: 3px 12px 3px 3px;
@@ -350,13 +350,7 @@
   position: absolute; top: 44px; left: 10px;
   padding: 3px 12px; border-radius: 999px; background: #CDEFE2; color: #0E6B4F; font-size: 11px; font-weight: 600;
 }
-.step-body { padding: 12px 16px 16px; display: flex; flex-direction: column; flex: 1; }
-.step-body h3 { margin: 0; font-family: var(--serif); font-weight: 700; font-size: 19px; letter-spacing: -0.03em; color: var(--heading); }
-.step-sub { font-size: 13px; color: var(--ink-2); }
-.step-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
-.step-body p { margin: 0 0 12px; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
-.step-body .h2-link, .step-free { margin-top: auto; }
-.step-free { font-size: 12px; color: var(--ink-3); }
+.step-free { color: var(--ink-3); }
 
 .rot-extras { display: grid; grid-template-columns: 1.3fr 0.95fr 0.8fr 1.05fr; gap: 14px; margin: 6px 0 20px; }
 .save-card {

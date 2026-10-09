@@ -3,7 +3,7 @@ import { ROTEIROS, roteiroImg, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, affById,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, affById, TypePill,
 } from "../components/site.jsx";
 import { roteiroVibes } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
@@ -39,7 +39,8 @@ function RoteiroView({ r, mine = false }) {
   const others = ROTEIROS.filter(x => x.id !== r.id).slice(0, 5);
   const firstPlace = r.steps.find(s => s.place)?.place;
   const heroImg = mine ? (firstPlace ? placeImg(firstPlace) : undefined) : roteiroImg(r.id);
-  const stepImg = (s, i) => mine ? (s.place ? placeImg(s.place) : undefined) : roteiroImg(r.id, i + 1);
+  // a foto da parada é a do lugar vinculado; parada livre fica sem foto
+  const stepImg = (s) => s.place ? placeImg(s.place) : undefined;
   const vibes = roteiroVibes(r);
   const investLabel = r.stats.investLabel || INVEST_LABELS[r.stats.invest] || "";
   const vibeWords = r.stats.vibe || vibes.map(a => affById(a)?.label).filter(Boolean).join(", ");
@@ -163,23 +164,27 @@ function RoteiroView({ r, mine = false }) {
               <span className="h2-sub">{mine ? "Do seu jeito. Use “Editar roteiro” para mudar a ordem ou as paradas." : "Uma sugestão de dia para inspirar o seu. Sinta-se livre para adaptar!"}</span>
             </div>
             <div className="steps-grid">
-              {r.steps.map((s, i) => (
-                <article key={i} className="step-card">
-                  <ImageSlot className="step-img" src={stepImg(s, i)} alt={s.title} hint={mine && !s.place ? "Parada livre" : "16:9"}>
-                    <span className="step-time"><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>{s.time}</span>
-                    {s.optional && <span className="step-optional">Opcional</span>}
-                    {s.place && <FaveButton id={s.place} className="fave fave-float" />}
-                  </ImageSlot>
-                  <div className="step-body">
-                    <h3>{s.title}</h3>
-                    <span className="step-sub">{s.sub}</span>
-                    <p>{s.desc}</p>
-                    {s.place
-                      ? <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("detalhe", { id: s.place }); }}>Ver lugar <Icon name="arrow" size={16} /></a>
-                      : <span className="step-free">Parada livre</span>}
-                  </div>
-                </article>
-              ))}
+              {r.steps.map((s, i) => {
+                const p = s.place && placeById(s.place);
+                const open = p ? () => nav("detalhe", { id: p.id }) : undefined;
+                return (
+                  <article key={i} className={"rot-index-card step-card" + (p ? "" : " is-free")} onClick={open}>
+                    <ImageSlot className="rot-index-img" src={stepImg(s)} alt={s.title} hint={p ? "16:10" : "Parada livre"}>
+                      <span className="step-time"><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>{s.time}</span>
+                      {s.optional && <span className="step-optional">Opcional</span>}
+                      {p && <FaveButton id={p.id} className="fave fave-float" />}
+                    </ImageSlot>
+                    <div className="rot-index-body">
+                      {p?.type && <div className="rot-index-vibes"><TypePill type={p.type} /></div>}
+                      <h3>{s.title}</h3>
+                      {s.desc && <p>{s.desc}</p>}
+                      <ul className="rot-index-meta">
+                        {p ? <li><Icon name="pin" size={14} /> {p.bairro}</li> : <li className="step-free">Parada livre</li>}
+                      </ul>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>

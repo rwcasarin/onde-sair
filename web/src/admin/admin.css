@@ -277,6 +277,9 @@ span.a-label { margin: 6px 0 8px; }
 .a-imgfield.compact { margin-bottom: 0; }
 .a-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .a-gallery-grid .img-slot-hint { display: block !important; }
+.a-step-photo { margin: 0; }
+.a-step-photo .img-slot { aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; }
+.a-step-photo figcaption { margin-top: 6px; font-size: 12px; color: var(--a-ink-2, #555); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .a-map-pick { cursor: crosshair; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
 .a-map-art { height: 340px; }

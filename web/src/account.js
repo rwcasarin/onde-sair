@@ -109,7 +109,7 @@ export async function addPlaceToRoteiro(id, place) {
   if (r.steps.some(s => s.place === place.id)) return { already: true, roteiro: r };
   if (r.steps.length >= LIMITS.steps) throw new Error(`Um roteiro pode ter até ${LIMITS.steps} paradas.`);
   const steps = r.steps.length === 1 && !r.steps[0].title && !r.steps[0].place ? [] : r.steps;
-  const saved = await saveMyRoteiro({ ...r, steps: [...steps, blankStep({ place: place.id, title: place.name, sub: place.sub || "" })] });
+  const saved = await saveMyRoteiro({ ...r, steps: [...steps, blankStep({ place: place.id, title: place.name })] });
   return { roteiro: saved };
 }
 
@@ -119,7 +119,7 @@ export function copyOf(src, { mine = false } = {}) {
     ...src, id: "", createdAt: "", updatedAt: "",
     title: mine ? `${src.title} (cópia)` : src.title,
     stats: { tempo: src.stats?.tempo, invest: src.stats?.invest, ideal: src.stats?.ideal },
-    steps: (src.steps || []).map(s => blankStep({ time: s.time, title: s.title, sub: s.sub, place: s.place || "", optional: !!s.optional, desc: s.desc })),
+    steps: (src.steps || []).map(s => blankStep({ time: s.time, title: s.title, place: s.place || "", optional: !!s.optional, desc: s.desc })),
     tips: { dica: src.tips?.dica, horario: src.tips?.horario, comoChegar: src.tips?.comoChegar, lembrete: src.tips?.lembrete },
     from: { id: src.id, title: src.title, mine },
   });

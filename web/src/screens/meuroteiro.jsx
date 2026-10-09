@@ -49,7 +49,7 @@ function VibeOrder({ value, onChange, auto, onAuto, canAuto, error }) {
   );
 }
 
-const stepFromPlace = (p) => blankStep({ place: p.id, title: p.name, sub: p.sub || "" });
+const stepFromPlace = (p) => blankStep({ place: p.id, title: p.name });
 
 // Monta o rascunho inicial: edição, cópia (?copiar=) ou novo com um lugar (?lugar=)
 function initialDraft({ id, lugar, copiar }) {
@@ -215,11 +215,10 @@ function Editor({ start, isNew }) {
                         </div>
                       </div>
                       <PlacePicker value={s.place} exclude={usedPlaces}
-                        onChange={(pid) => { const p = placeById(pid); setStep(i, p ? { place: pid, title: !s.title || placeById(s.place)?.name === s.title ? p.name : s.title, sub: s.sub || p.sub || "" } : { place: "" }); }} />
-                      <div className="rot-form-3">
+                        onChange={(pid) => { const p = placeById(pid); setStep(i, p ? { place: pid, title: !s.title || placeById(s.place)?.name === s.title ? p.name : s.title } : { place: "" }); }} />
+                      <div className="rot-form-2">
                         <F label="Horário">{(id) => <input id={id} value={s.time} maxLength={30} onChange={(e) => setStep(i, { time: e.target.value })} placeholder="10h – 12h" />}</F>
                         <F label="Título da parada" required>{(id) => <input id={id} value={s.title} maxLength={90} onChange={(e) => setStep(i, { title: e.target.value })} placeholder={s.place ? "" : "Ex.: Piquenique no parque"} />}</F>
-                        <F label="Subtítulo">{(id) => <input id={id} value={s.sub} maxLength={90} onChange={(e) => setStep(i, { sub: e.target.value })} placeholder="Café da manhã sem pressa" />}</F>
                       </div>
                       <F label="Anotação">{(id) => <textarea id={id} rows={2} maxLength={400} value={s.desc} onChange={(e) => setStep(i, { desc: e.target.value })} placeholder="O que pedir, onde sentar, quanto tempo ficar…" />}</F>
                       <label className="auth-check"><input type="checkbox" checked={s.optional} onChange={(e) => setStep(i, { optional: e.target.checked })} /><span>Parada opcional</span></label>

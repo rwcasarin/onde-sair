@@ -41,7 +41,7 @@ export function RoteirosList() {
 const BLANK = {
   title: "", slug: "", vibes: [], vibesAuto: true, seo: { title: "", desc: "" }, desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
   stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "", vibe: "" },
-  steps: [{ time: "", title: "", sub: "", place: "", optional: false, desc: "" }],
+  steps: [{ time: "", title: "", place: "", optional: false, desc: "" }],
   tips: { dica: "", horario: "", epoca: "", comoChegar: "", lembrete: "" }, tags: [], status: "rascunho",
 };
 const RULES = [
@@ -144,7 +144,7 @@ function RoteiroForm({ initial, isNew }) {
             {errors.steps && <p className="a-error" role="alert">{errors.steps}</p>}
             <Repeater
               items={draft.steps} min={1} addLabel="Adicionar parada"
-              newItem={() => ({ time: "", title: "", sub: "", place: "", optional: false, desc: "" })}
+              newItem={() => ({ time: "", title: "", place: "", optional: false, desc: "" })}
               onChange={(steps) => set({ steps })}
               render={(s, upd) => (
                 <div className="a-step-edit">
@@ -155,10 +155,7 @@ function RoteiroForm({ initial, isNew }) {
                       options={db.places.map(p => [p.id, `${p.name} · ${p.bairro}`])} />
                     <Toggle label="Opcional" checked={s.optional} onChange={(optional) => upd({ optional })} />
                   </div>
-                  <div className="a-form-grid">
-                    <Input label="Título da parada" value={s.title} onChange={(title) => upd({ title })} />
-                    <Input label="Subtítulo" value={s.sub} onChange={(sub) => upd({ sub })} placeholder="Café da manhã sem pressa" />
-                  </div>
+                  <Input label="Título da parada" value={s.title} onChange={(title) => upd({ title })} />
                   <Textarea label="Descrição" value={s.desc} onChange={(desc) => upd({ desc })} rows={2} maxCount={200} />
                 </div>
               )}
@@ -172,15 +169,18 @@ function RoteiroForm({ initial, isNew }) {
         {tab === "imagens" && (
           <Card>
             <ImageField label="Foto do topo e dos cards" path={roteiroImg(pid)} hint="16:10 · mín. 1400 px" />
-            {isNew ? <p className="a-hint">Salve o roteiro para enviar as fotos das paradas.</p> : (
-              <>
-                <span className="a-label">Fotos das paradas</span>
-                <div className="a-gallery-grid">
-                  {draft.steps.map((s, i) => <ImageField key={i} path={roteiroImg(pid, i + 1)} hint={`${i + 1}. ${s.title || "Parada"}`} ratio="2 / 1" compact />)}
-                  <ImageField path={roteiroImg(pid, "lembrete")} hint="Card “Não esqueça”" ratio="2 / 1" compact />
-                </div>
-              </>
-            )}
+            <span className="a-label">Fotos das paradas</span>
+            <p className="a-hint">Cada parada usa a foto já cadastrada no lugar vinculado. Para trocar, edite a foto do lugar.</p>
+            <div className="a-gallery-grid">
+              {draft.steps.map((s, i) => (
+                <figure key={i} className="a-step-photo">
+                  <ImageSlot src={s.place ? placeImg(s.place) : undefined} alt={s.title} hint={s.place ? "Sem foto no lugar" : "Parada livre"} compact />
+                  <figcaption>{i + 1}. {s.title || "Parada"}</figcaption>
+                </figure>
+              ))}
+            </div>
+            {isNew ? <p className="a-hint">Salve o roteiro para enviar a foto do card “Não esqueça”.</p>
+              : <ImageField label="Card “Não esqueça”" path={roteiroImg(pid, "lembrete")} hint="2:1" ratio="2 / 1" compact />}
           </Card>
         )}
         {tab === "seo" && (
