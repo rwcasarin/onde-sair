@@ -311,6 +311,10 @@ span.a-label { margin: 6px 0 8px; }
 .a-alert { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; margin-bottom: 16px; border-radius: 10px; background: #F4F2F8; color: var(--a-text-2); font-size: 13.5px; }
 .a-alert > svg { flex-shrink: 0; margin-top: 2px; }
 .a-alert.tone-error { background: var(--a-red-soft); color: var(--a-red); }
+.a-alert.tone-warn { background: #FFF4D6; color: #6B4E00; }
+.a-alert.tone-warn a { color: inherit; font-weight: 600; }
+.a-checklist-plain { margin: 0 0 18px; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: var(--a-text-2); }
+a.a-paused-pill { text-decoration: none; }
 .a-alert .a-toggle { margin: 0; }
 
 /* ---------------- Tabela ---------------- */

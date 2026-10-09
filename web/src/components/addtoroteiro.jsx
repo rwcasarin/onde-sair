@@ -6,7 +6,7 @@ import { myRoteiros, addPlaceToRoteiro } from "../account.js";
 
 export function AddToRoteiro({ place, className = "btn-outline btn-lg", iconSize = 18, compact = false }) {
   const nav = useNav();
-  const { user, ask } = useAccount();
+  const { user, ask, paused } = useAccount();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState("");
   const [done, setDone] = useState(null);       // { roteiro, already } | { error }
@@ -31,6 +31,7 @@ export function AddToRoteiro({ place, className = "btn-outline btn-lg", iconSize
   }
   const list = user ? myRoteiros() : [];
 
+  if (paused) return null;                       // contas e interações pausadas
   return (
     <div className="add-rot" ref={box}>
       <button className={className + (open ? " show" : "")} onClick={toggle} aria-expanded={open} aria-haspopup="dialog" aria-label="Adicionar a um roteiro">

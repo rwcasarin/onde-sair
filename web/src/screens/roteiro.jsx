@@ -30,7 +30,7 @@ function RoteiroView({ r, mine = false }) {
   const nav = useNav();
   const { name: city } = useCity();
   const { faves, toggle } = useFaves();
-  const { ask, user } = useAccount();
+  const { ask, user, paused } = useAccount();
   const [confirmDel, setConfirmDel] = useState(false);
   const [mapSel, setMapSel] = useState(null);
   const [tab, setTab] = useState("visao");
@@ -105,10 +105,12 @@ function RoteiroView({ r, mine = false }) {
             </> : (
               // favoritar, copiar e adaptar, compartilhar: mesmo estilo (só ícone, texto no hover)
               <div className="act-row act-sub">
-                <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
-                  <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
-                </button>
-                <button className="act-btn act-sm" onClick={copy} aria-label="Copiar e adaptar"><Icon name="copy" size={17} /><span className="act-label">Copiar e adaptar</span></button>
+                {!paused && <>
+                  <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
+                    <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
+                  </button>
+                  <button className="act-btn act-sm" onClick={copy} aria-label="Copiar e adaptar"><Icon name="copy" size={17} /><span className="act-label">Copiar e adaptar</span></button>
+                </>}
                 <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
               </div>
             )}

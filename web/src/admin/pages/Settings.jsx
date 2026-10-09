@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, useAdmin, useDraft } from "../kit.jsx";
-import { saveSettings, getDB, resetDemo, importDB, REMOTE } from "../store.js";
+import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT } from "../store.js";
 
-export function SettingsPage() {
+const TABS = [["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["contas", "Contas e interações"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["avancado", "Avançado"], ["dados", "Dados"]];
+
+export function SettingsPage({ initialTab }) {
   const { db, user, toast, saved, confirm, setDirty } = useAdmin();
   const { draft, set, dirty, commit } = useDraft(db.settings);
-  const [tab, setTab] = useState("geral");
+  const [tab, setTab] = useState(TABS.some(([k]) => k === initialTab) ? initialTab : "geral");
   const file = useRef(null);
   useEffect(() => { setDirty(dirty); return () => setDirty(false); }, [dirty, setDirty]);
   const ann = draft.announcement;
+  const acc = { paused: false, message: "", ...(draft.accounts || {}) };
+  const setAcc = (patch) => set({ accounts: { ...acc, ...patch } });
 
   function save() {
     if (!draft.siteName.trim()) return toast("O nome do site não pode ficar vazio.", "error");
@@ -42,7 +46,7 @@ export function SettingsPage() {
       <PageHeader title="Configurações" crumbs={[["Painel", "/"], ["Configurações"]]} subtitle="Identidade, SEO, avisos e dados do site."
         actions={<Btn kind="primary" icon="check" disabled={!dirty} onClick={save}>Salvar configurações</Btn>} />
       {dirty && <p className="a-dirty a-dirty-bar"><i /> Alterações não salvas</p>}
-      <Tabs value={tab} onChange={setTab} tabs={[["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["avancado", "Avançado"], ["dados", "Dados"]]} />
+      <Tabs value={tab} onChange={setTab} tabs={TABS} />
 
       {tab === "geral" && (
         <Card>
@@ -73,6 +77,30 @@ export function SettingsPage() {
           </Field>
           <span className="a-label">Prévia</span>
           <div className={"site-announce tone-" + ann.tone + (ann.enabled ? "" : " off")}>{ann.text || "Texto do aviso"}</div>
+        </Card>
+      )}
+
+      {tab === "contas" && (
+        <Card title="Pausar contas e interações" subtitle="Para manutenções e instabilidades. O site continua no ar para quem só quer navegar.">
+          <div className={"a-alert" + (acc.paused ? " tone-warn" : "")}>
+            <AIcon name="alert" size={16} />
+            <div>
+              <Toggle label="Pausar contas e interações" checked={acc.paused} onChange={(paused) => setAcc({ paused })}
+                hint={acc.paused ? "Ligado: vale para todo o site assim que você salvar as configurações." : "Desligado: tudo funciona normalmente."} />
+            </div>
+          </div>
+          <span className="a-label">Enquanto estiver pausado</span>
+          <ul className="a-checklist-plain">
+            <li>Login e cadastro ficam indisponíveis (o servidor também recusa).</li>
+            <li>Quem já está conectado navega como visitante; a sessão volta quando a pausa acabar.</li>
+            <li>Somem do site: Entrar, favoritar, favoritos, notificações, criar, copiar e editar roteiros e “Adicionar a um roteiro”.</li>
+            <li>Perfil, favoritos, meus roteiros e notificações mostram o aviso abaixo.</li>
+            <li>O painel continua funcionando normalmente.</li>
+          </ul>
+          <Textarea label="Aviso no site" value={acc.message} placeholder={ACCOUNTS_PAUSED_TEXT} onChange={(message) => setAcc({ message })} rows={3} maxCount={200}
+            hint="Aparece numa faixa no topo de todas as páginas enquanto a pausa estiver ligada. Em branco, usa o texto padrão." />
+          <span className="a-label">Prévia</span>
+          <div className={"site-announce tone-yellow" + (acc.paused ? "" : " off")}>{acc.message || ACCOUNTS_PAUSED_TEXT}</div>
         </Card>
       )}
 

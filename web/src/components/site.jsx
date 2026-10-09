@@ -5,7 +5,7 @@ import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
 import { href, go, toPath } from "../router.js";
-import { useNav, useCity, useFaves } from "../nav.js";
+import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { CitySelect } from "./cityselect.jsx";
 import { MenuLink } from "./ui.jsx";
 import { menuItems } from "../menus.js";
@@ -53,6 +53,8 @@ export function PriceDots({ level }) {
 
 export function FaveButton({ id, className = "fave" }) {
   const { faves, toggle } = useFaves();
+  const { paused } = useAccount();
+  if (paused) return null;                       // contas e interações pausadas
   const on = faves.has(id);
   return (
     <button

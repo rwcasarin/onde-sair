@@ -5,7 +5,7 @@ import { ImageSlot } from "../components/image-slot.jsx";
 import {
   HeroMedia, Crumbs, VibePill, PriceDots, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, affById,
 } from "../components/site.jsx";
-import { useNav, useCity, useFaves } from "../nav.js";
+import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
@@ -39,6 +39,7 @@ export function Detalhe({ id }) {
   const nav = useNav();
   const { name: city } = useCity();
   const { faves, toggle } = useFaves();
+  const { paused } = useAccount();
   const p = PLACES.find(x => x.id === id) || PLACES[0];
   // seção de fotos pode ser escondida no admin
   const showFotos = p.showGallery !== false;
@@ -106,9 +107,9 @@ export function Detalhe({ id }) {
               {whats && <a className="act-btn act-round act-whats" href={whats} target="_blank" rel="noreferrer" aria-label="Conversar no WhatsApp" title="WhatsApp"><Icon name="whatsapp" size={19} /></a>}
             </div>
             <div className="act-row act-sub">
-              <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
+              {!paused && <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
                 <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
-              </button>
+              </button>}
               <AddToRoteiro place={p} className="act-btn act-sm" iconSize={17} compact />
               <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
             </div>

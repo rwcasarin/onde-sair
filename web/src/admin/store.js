@@ -133,7 +133,7 @@ function seed() {
     contactEmail: "contato@ondesair.com.br", instagram: "@ondesair", tiktok: "@ondesair", youtube: "/ondesair", spotify: "Onde Sair",
     seoTitle: "Onde Sair · O lugar certo pra cada vibe", seoDesc: "Curadoria por afinidade: lugares, roteiros e experiências escolhidos por quem vive a cidade.",
     defaultCity: "sorocaba", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
-    newsletter: true, maintenance: false,
+    newsletter: true, maintenance: false, accounts: { paused: false, message: "" },
   };
 
   const activity = [
@@ -379,13 +379,17 @@ export function syncPublic() {
   Object.assign(TAGLINES, { sub: db.settings.tagline, campaign: db.settings.campaign });
   SITE.announcement = db.settings.announcement;
   SITE.maintenance = db.settings.maintenance;
+  SITE.accountsPaused = !!db.settings.accounts?.paused;
+  SITE.accountsMessage = db.settings.accounts?.message || ACCOUNTS_PAUSED_TEXT;
   SITE.mapsKey = db.settings.mapsKey || "";
   SITE.seoTitle = db.settings.seoTitle || "";
   SITE.seoDesc = db.settings.seoDesc || "";
   SITE.defaultCity = CITIES.some(c => c.id === db.settings.defaultCity) ? db.settings.defaultCity : CITIES[0]?.id;
 }
 // Configurações lidas pelo site público (faixa de aviso, manutenção)
-export const SITE = { announcement: null, maintenance: false, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
+// pausa de contas e interações (manutenções e instabilidades): texto padrão do aviso no site
+export const ACCOUNTS_PAUSED_TEXT = "Login, cadastro, favoritos e roteiros estão pausados por alguns instantes para manutenção. Você pode continuar navegando normalmente.";
+export const SITE = { announcement: null, maintenance: false, accountsPaused: false, accountsMessage: ACCOUNTS_PAUSED_TEXT, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
 
 // ---------------------------------------------------------------------
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)

@@ -59,7 +59,7 @@ export function MenuLink({ to, className, children, ...rest }) {
   );
 }
 
-export function TopNav({ current, params = {}, unread, user }) {
+export function TopNav({ current, params = {}, unread, user, paused }) {
   const nav = useNav();
   return (
     <header className="topnav">
@@ -73,13 +73,13 @@ export function TopNav({ current, params = {}, unread, user }) {
         <div className="nav-right">
           <CityPill />
           <IconBtn title="Buscar" onClick={() => nav("lista")}><Icon name="search" size={20} /></IconBtn>
-          <IconBtn title="Favoritos" onClick={() => nav("favoritos")}><Icon name="heart" size={20} /></IconBtn>
+          {!paused && <IconBtn title="Favoritos" onClick={() => nav("favoritos")}><Icon name="heart" size={20} /></IconBtn>}
           {user && <IconBtn title="Notificações" badge={unread > 0 ? unread : null} onClick={() => nav("notificacoes")}><Icon name="bell" size={20} /></IconBtn>}
           {user
             ? <button className="nav-avatar" title="Meu perfil" aria-label={"Meu perfil · " + user.name} onClick={() => nav("perfil")}>
                 {user.avatar ? <img src={user.avatar} alt="" /> : <span>{(user.name || "?").trim().charAt(0).toUpperCase()}</span>}
               </button>
-            : <button className="btn-enter" onClick={() => nav("entrar")}>Entrar</button>}
+            : !paused && <button className="btn-enter" onClick={() => nav("entrar")}>Entrar</button>}
         </div>
       </div>
     </header>
