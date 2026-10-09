@@ -83,6 +83,16 @@ export async function writeJSON(name, data, etag) {
 const PUT_OPTS = { access: "private", contentType: "application/json", addRandomSuffix: false, cacheControlMaxAge: 60 };
 const isPrecondition = (e) => /precondition|already exists|412|409/i.test(String(e?.message) + e?.name);
 
+// Apaga um JSON do CMS (sem erro se não existir)
+export async function deleteJSON(name) {
+  if (useBlob) {
+    const { del } = await blobLib();
+    await del(`cms/${name}.json`).catch(() => {});
+    return;
+  }
+  await fs.rm(path.join(LOCAL, "cms", name + ".json"), { force: true });
+}
+
 // ---------- Arquivos de mídia ----------
 const mediaKey = (p) => "media/" + p.replace(/^\/+/, "");
 
