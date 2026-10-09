@@ -20,7 +20,7 @@ export const siteTarget = (id) => SITE_TARGETS.find(t => t.id === id);
 
 // Resolve o item: { href (caminho), screen, params, external, newTab } — ou null se não deve aparecer
 export function resolveItem(item, pages = PAGES) {
-  if (!item?.label?.trim()) return null;
+  if (!item?.label?.trim() || item.hidden) return null;   // item oculto no painel
   // roteiros pausados e escondidos: links para roteiros saem dos menus
   if (SITE.roteirosHidden && ((item.type === "site" && item.target === "roteiros") || (item.type === "url" && /^\/roteiros(\/|$|\?)/.test((item.url || "").trim())))) return null;
   if (item.type === "page") {
