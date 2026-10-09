@@ -25,13 +25,15 @@ const AFFINITIES = [
 ];
 
 // Camada 2 — Tipo (chips outline · FILTRO)
-const TYPES = [
-  { id: "restaurantes",   label: "Restaurantes",     slug: "restaurantes" },
-  { id: "bares",          label: "Bares",            slug: "bares" },
-  { id: "parques",        label: "Parques",          slug: "parques" },
-  { id: "shows-baladas",  label: "Shows e baladas",  slug: "shows-e-baladas" },
-  { id: "eventos",        label: "Eventos",          slug: "eventos" },
+// Tipos de lugar (gerenciados no painel em Lugares › Tipos; aqui ficam os iniciais)
+export const SEED_TYPES = [
+  { id: "restaurantes",   label: "Restaurantes",     slug: "restaurantes",    cls: "vibe-orange",   icon: "utensils" },
+  { id: "bares",          label: "Bares",            slug: "bares",           cls: "vibe-pink",     icon: "cheers" },
+  { id: "parques",        label: "Parques",          slug: "parques",         cls: "vibe-mint",     icon: "tree" },
+  { id: "shows-baladas",  label: "Shows e baladas",  slug: "shows-e-baladas", cls: "vibe-lavender", icon: "music" },
+  { id: "eventos",        label: "Eventos",          slug: "eventos",         cls: "vibe-sky",      icon: "calendar" },
 ];
+const TYPES = SEED_TYPES.map(t => ({ ...t }));
 
 const ROTEIROS = [
   {
@@ -384,33 +386,33 @@ PLACES.push(
 
 // Campos complementares por lugar
 const PLACE_EXTRA = {
-  p1:  { sub: "Boteco de calçada", cuisine: "Petiscos e chope", tagline: "Chope honesto, pastel lendário e conversa que só acaba quando fecha.", tags: ["Boteco", "Chope", "Ao ar livre"], momento: ["Happy hour", "Noite"], ambiente: ["Ambiente externo"], reserva: false, extras: ["Boa música", "Para ir com amigos"], note: "chope gelado e conversa sem hora pra acabar.", phone: "(00) 3200-1084", site: "quintaldocentro.com.br", insta: "@quintaldocentro",
+  p1:  { sub: "Boteco de calçada", cuisine: "Petiscos e chope", tagline: "Chope honesto, pastel lendário e conversa que só acaba quando fecha.", tags: ["Boteco", "Chope", "Ao ar livre"], momento: ["Happy hour", "Noite"], ambiente: ["Ambiente externo"], extras: ["Boa música", "Para ir com amigos"], note: "chope gelado e conversa sem hora pra acabar.", phone: "(00) 3200-1084", site: "quintaldocentro.com.br", insta: "@quintaldocentro",
          reasons: [["users", "Mesa na calçada e clima de encontro"], ["star", "O pastel de pernil mais famoso da região"], ["coins", "Preço justo do começo ao fim"], ["music", "Samba de vez em quando, sem aviso"], ["heart", "Ótimo pra um date sem pressão"]] },
-  p2:  { sub: "Cozinha autoral", cuisine: "Contemporânea", tagline: "Balcão aberto pra cozinha e um menu que muda toda semana.", tags: ["Degustação", "Alta gastronomia", "Ocasiões especiais"], momento: ["Jantar"], ambiente: ["Ambiente interno"], reserva: true, extras: ["Experiência única"], note: "a melhor mesa da casa é no balcão.", phone: "(00) 3300-1024", site: "mesa14.com.br", insta: "@mesa14",
+  p2:  { sub: "Cozinha autoral", cuisine: "Contemporânea", tagline: "Balcão aberto pra cozinha e um menu que muda toda semana.", tags: ["Degustação", "Alta gastronomia", "Ocasiões especiais"], momento: ["Jantar"], ambiente: ["Ambiente interno"], extras: ["Experiência única"], note: "a melhor mesa da casa é no balcão.", phone: "(00) 3300-1024", site: "mesa14.com.br", insta: "@mesa14",
          reasons: [["eye", "Cozinha aberta: o jantar vira espetáculo"], ["star", "Menu degustação de 5 tempos"], ["sparkle", "Pratos que mudam toda semana"], ["users", "Serviço atento sem ser exagerado"], ["heart", "Perfeito para ocasiões especiais"]] },
-  p3:  { sub: "Café de especialidade", cuisine: "Café e brunch", tagline: "Coado do dia, pão de fermentação natural e a melhor luz da manhã.", tags: ["Brunch", "Café especial", "Padaria"], momento: ["Brunch", "Almoço"], ambiente: ["Ambiente interno", "Ambiente externo"], reserva: false, extras: ["Boa luz", "Sem pressa"], note: "sábado de manhã tem outro gosto aqui.", phone: "(00) 3400-0217", site: "floradocafe.com.br", insta: "@floradocafe",
+  p3:  { sub: "Café de especialidade", cuisine: "Café e brunch", tagline: "Coado do dia, pão de fermentação natural e a melhor luz da manhã.", tags: ["Brunch", "Café especial", "Padaria"], momento: ["Brunch", "Almoço"], ambiente: ["Ambiente interno", "Ambiente externo"], extras: ["Boa luz", "Sem pressa"], note: "sábado de manhã tem outro gosto aqui.", phone: "(00) 3400-0217", site: "floradocafe.com.br", insta: "@floradocafe",
          reasons: [["sun", "Luz da manhã imbatível na janela"], ["star", "Pão de fermentação natural feito ali"], ["leaf", "Clima calmo, ninguém te apressa"], ["coins", "Brunch completo com preço honesto"], ["heart", "Ótimo pra começar o domingo"]] },
-  p5:  { sub: "Clube de música", cuisine: "Bar e pista", tagline: "Line-up que respeita house e disco, até o sol nascer.", tags: ["Balada", "House", "Disco"], momento: ["Noite"], ambiente: ["Ambiente interno"], reserva: false, extras: ["Boa música", "Para ir com amigos"], note: "a pista só esquenta depois da meia-noite.", phone: "(00) 3500-0412", site: "clubeaurora.com.br", insta: "@clubeaurora",
+  p5:  { sub: "Clube de música", cuisine: "Bar e pista", tagline: "Line-up que respeita house e disco, até o sol nascer.", tags: ["Balada", "House", "Disco"], momento: ["Noite"], ambiente: ["Ambiente interno"], extras: ["Boa música", "Para ir com amigos"], note: "a pista só esquenta depois da meia-noite.", phone: "(00) 3500-0412", site: "clubeaurora.com.br", insta: "@clubeaurora",
          reasons: [["music", "Line-up de house e disco caprichado"], ["sparkle", "Som e luz de primeira"], ["users", "Público animado e sem pose"], ["star", "Entrada sem fila antes das 23h30"], ["heart", "Noite pra lembrar"]] },
-  p6:  { sub: "Cinema de rua", cuisine: "Cinema e bar", tagline: "Sala única, cinema independente e pipoca que vale a ida.", tags: ["Cinema", "Cultura", "Programa a dois"], momento: ["Experiência cultural", "Noite"], ambiente: ["Ambiente interno"], reserva: true, extras: ["Programa a dois"], note: "filme cult e chope: combinação correta.", phone: "(00) 3600-0165", site: "cinevitoria.com.br", insta: "@cinevitoria",
+  p6:  { sub: "Cinema de rua", cuisine: "Cinema e bar", tagline: "Sala única, cinema independente e pipoca que vale a ida.", tags: ["Cinema", "Cultura", "Programa a dois"], momento: ["Experiência cultural", "Noite"], ambiente: ["Ambiente interno"], extras: ["Programa a dois"], note: "filme cult e chope: combinação correta.", phone: "(00) 3600-0165", site: "cinevitoria.com.br", insta: "@cinevitoria",
          reasons: [["eye", "Curadoria de filmes independentes"], ["star", "Pipoca gourmet de verdade"], ["coins", "Ingresso com preço justo"], ["heart", "Programa perfeito a dois"], ["sparkle", "Chope de cortesia às quintas"]] },
-  p7:  { sub: "Feira de rua", cuisine: "Comida de feira", tagline: "Chorinho ao vivo, antiguidades e pastel de feira de verdade.", tags: ["Feira", "Música ao vivo", "Grátis"], momento: ["Almoço", "Experiência cultural"], ambiente: ["Ambiente externo"], reserva: false, extras: ["Boa música", "Para ir com crianças"], note: "sábado de sol e chorinho na praça.", phone: "—", site: "feiradolargo.org", insta: "@feiradolargo",
+  p7:  { sub: "Feira de rua", cuisine: "Comida de feira", tagline: "Chorinho ao vivo, antiguidades e pastel de feira de verdade.", tags: ["Feira", "Música ao vivo", "Grátis"], momento: ["Almoço", "Experiência cultural"], ambiente: ["Ambiente externo"], extras: ["Boa música", "Para ir com crianças"], note: "sábado de sol e chorinho na praça.", phone: "—", site: "feiradolargo.org", insta: "@feiradolargo",
          reasons: [["music", "Chorinho ao vivo a partir das 13h"], ["star", "Pastel de queijo e caldo de cana"], ["camera", "Antiguidades e achados únicos"], ["coins", "Entrada gratuita"], ["smile", "Programa para a família toda"]] },
-  p8:  { sub: "Asiático contemporâneo", cuisine: "Asiática", tagline: "Bao de costela, drink de soju e clima de jantar entre amigos.", tags: ["Asiático", "Drinks", "Jantar"], momento: ["Jantar", "Happy hour"], ambiente: ["Ambiente interno"], reserva: true, extras: ["Para ir com amigos"], note: "comece pelo bao, termine no bibimbap.", phone: "(00) 3800-0538", site: "casakomorebi.com.br", insta: "@casakomorebi",
+  p8:  { sub: "Asiático contemporâneo", cuisine: "Asiática", tagline: "Bao de costela, drink de soju e clima de jantar entre amigos.", tags: ["Asiático", "Drinks", "Jantar"], momento: ["Jantar", "Happy hour"], ambiente: ["Ambiente interno"], extras: ["Para ir com amigos"], note: "comece pelo bao, termine no bibimbap.", phone: "(00) 3800-0538", site: "casakomorebi.com.br", insta: "@casakomorebi",
          reasons: [["star", "O bao de costela mais pedido da casa"], ["users", "Clima de jantar entre amigos"], ["wine", "Drinks de soju bem equilibrados"], ["heart", "Balcão perfeito pra dois"], ["sparkle", "Ambiente intimista e bonito"]] },
-  p9:  { sub: "Boteco de raiz", cuisine: "Bar e petiscos", tagline: "Balcão de mármore, caipirinha forte e roda de samba toda quinta.", tags: ["Samba", "Boteco", "Petiscos"], momento: ["Happy hour", "Noite"], ambiente: ["Ambiente interno", "Ambiente externo"], reserva: false, extras: ["Boa música", "Para ir com amigos"], note: "quinta é dia de roda de samba.", phone: "(00) 3900-0312", site: "bardoze.com.br", insta: "@bardoze",
+  p9:  { sub: "Boteco de raiz", cuisine: "Bar e petiscos", tagline: "Balcão de mármore, caipirinha forte e roda de samba toda quinta.", tags: ["Samba", "Boteco", "Petiscos"], momento: ["Happy hour", "Noite"], ambiente: ["Ambiente interno", "Ambiente externo"], extras: ["Boa música", "Para ir com amigos"], note: "quinta é dia de roda de samba.", phone: "(00) 3900-0312", site: "bardoze.com.br", insta: "@bardoze",
          reasons: [["music", "Roda de samba toda quinta"], ["star", "Torresmo que serve três"], ["coins", "Preço de boteco de verdade"], ["users", "Galera animada e acolhedora"], ["heart", "Alma de bar antigo"]] },
-  p10: { sub: "Rooftop", cuisine: "Contemporânea", tagline: "Boa comida, drinks autorais e uma das vistas mais lindas da cidade.", tags: ["Rooftop", "Alta gastronomia", "Vista incrível"], momento: ["Jantar", "Happy hour"], ambiente: ["Ambiente externo"], reserva: true, extras: ["Vista linda", "Boa música", "Para ir com amigos"], note: "arte, boa comida e essa vista incrível.", phone: "(00) 2842-9120", site: "mirante360.com.br", insta: "@mirante360",
+  p10: { sub: "Rooftop", cuisine: "Contemporânea", tagline: "Boa comida, drinks autorais e uma das vistas mais lindas da cidade.", tags: ["Rooftop", "Alta gastronomia", "Vista incrível"], momento: ["Jantar", "Happy hour"], ambiente: ["Ambiente externo"], extras: ["Vista linda", "Boa música", "Para ir com amigos"], note: "arte, boa comida e essa vista incrível.", phone: "(00) 2842-9120", site: "mirante360.com.br", insta: "@mirante360",
          reasons: [["eye", "Uma das melhores vistas da cidade"], ["star", "Gastronomia autoral contemporânea"], ["image", "Pertinho de exposições incríveis"], ["users", "Ambiente elegante e descontraído"], ["heart", "Perfeito para dates e encontros especiais"]] },
-  p11: { sub: "Museu", cuisine: "Arte e cultura", tagline: "Arte, arquitetura e vistas icônicas num só programa.", tags: ["Cultura", "Arte", "Programa a dois"], momento: ["Experiência cultural"], ambiente: ["Ambiente interno"], reserva: false, extras: ["Experiência única"], note: "boas histórias começam aqui.", phone: "(00) 3011-1578", site: "museudacidade.org", insta: "@museudacidade",
+  p11: { sub: "Museu", cuisine: "Arte e cultura", tagline: "Arte, arquitetura e vistas icônicas num só programa.", tags: ["Cultura", "Arte", "Programa a dois"], momento: ["Experiência cultural"], ambiente: ["Ambiente interno"], extras: ["Experiência única"], note: "boas histórias começam aqui.", phone: "(00) 3011-1578", site: "museudacidade.org", insta: "@museudacidade",
          reasons: [["image", "Acervo que vale a visita sozinho"], ["eye", "Arquitetura icônica"], ["coins", "Gratuito às terças"], ["star", "Café com vista no último andar"], ["users", "Programa ótimo pra receber visitas"]] },
-  p12: { sub: "Cozinha brasileira", cuisine: "Brasileira contemporânea", tagline: "Cozinha brasileira criativa, feita na brasa.", tags: ["Gastronomia", "Cozinha brasileira", "Experiência"], momento: ["Jantar", "Almoço"], ambiente: ["Ambiente interno"], reserva: true, extras: ["Experiência única"], note: "fogo, tempo e ingrediente bom.", phone: "(00) 3022-0090", site: "brasaelenha.com.br", insta: "@brasaelenha",
+  p12: { sub: "Cozinha brasileira", cuisine: "Brasileira contemporânea", tagline: "Cozinha brasileira criativa, feita na brasa.", tags: ["Gastronomia", "Cozinha brasileira", "Experiência"], momento: ["Jantar", "Almoço"], ambiente: ["Ambiente interno"], extras: ["Experiência única"], note: "fogo, tempo e ingrediente bom.", phone: "(00) 3022-0090", site: "brasaelenha.com.br", insta: "@brasaelenha",
          reasons: [["star", "Menu do chef surpreendente"], ["leaf", "Ingredientes de pequenos produtores"], ["sparkle", "Tudo feito na brasa"], ["users", "Serviço caloroso"], ["heart", "Ótimo pra impressionar"]] },
-  p13: { sub: "Bar de drinks", cuisine: "Drinks e petiscos", tagline: "Drinks autorais e um jardim escondido no meio da cidade.", tags: ["Jantar", "Ambiente externo", "Drinks"], momento: ["Happy hour", "Jantar"], ambiente: ["Ambiente externo"], reserva: true, extras: ["Vista linda", "Para ir com amigos"], note: "um respiro verde com drink na mão.", phone: "(00) 3033-0077", site: "jardimsuspenso.com.br", insta: "@jardimsuspenso",
+  p13: { sub: "Bar de drinks", cuisine: "Drinks e petiscos", tagline: "Drinks autorais e um jardim escondido no meio da cidade.", tags: ["Jantar", "Ambiente externo", "Drinks"], momento: ["Happy hour", "Jantar"], ambiente: ["Ambiente externo"], extras: ["Vista linda", "Para ir com amigos"], note: "um respiro verde com drink na mão.", phone: "(00) 3033-0077", site: "jardimsuspenso.com.br", insta: "@jardimsuspenso",
          reasons: [["leaf", "Jardim encantador ao ar livre"], ["wine", "Drinks autorais com frutas brasileiras"], ["clock", "Happy hour às quartas"], ["users", "Bom pra grupo pequeno"], ["heart", "Clima perfeito pra date"]] },
-  p14: { sub: "Sorvete artesanal", cuisine: "Sorveteria", tagline: "Fruta da estação, massa cremosa e fila que anda rápido.", tags: ["Doces", "Família", "Artesanal"], momento: ["Almoço", "Brunch"], ambiente: ["Ambiente interno"], reserva: false, extras: ["Para ir com crianças"], note: "a sobremesa que todo roteiro merece.", phone: "(00) 3044-0412", site: "polar.com.br", insta: "@sorveteriapolar",
+  p14: { sub: "Sorvete artesanal", cuisine: "Sorveteria", tagline: "Fruta da estação, massa cremosa e fila que anda rápido.", tags: ["Doces", "Família", "Artesanal"], momento: ["Almoço", "Brunch"], ambiente: ["Ambiente interno"], extras: ["Para ir com crianças"], note: "a sobremesa que todo roteiro merece.", phone: "(00) 3044-0412", site: "polar.com.br", insta: "@sorveteriapolar",
          reasons: [["leaf", "Fruta da estação de verdade"], ["smile", "Criança prova antes de escolher"], ["coins", "Preço amigo"], ["clock", "Aberto todo dia até tarde"], ["heart", "Sabor que fica na memória"]] },
-  p15: { sub: "Casa de shows", cuisine: "Bar e shows", tagline: "Shows ao vivo num galpão restaurado, do samba ao indie.", tags: ["Shows", "Música ao vivo", "Noite"], momento: ["Noite"], ambiente: ["Ambiente interno"], reserva: false, extras: ["Boa música", "Para ir com amigos"], note: "a noite começa quando a banda sobe.", phone: "(00) 3055-0022", site: "galpao22.com.br", insta: "@galpao22",
+  p15: { sub: "Casa de shows", cuisine: "Bar e shows", tagline: "Shows ao vivo num galpão restaurado, do samba ao indie.", tags: ["Shows", "Música ao vivo", "Noite"], momento: ["Noite"], ambiente: ["Ambiente interno"], extras: ["Boa música", "Para ir com amigos"], note: "a noite começa quando a banda sobe.", phone: "(00) 3055-0022", site: "galpao22.com.br", insta: "@galpao22",
          reasons: [["music", "Agenda de shows sempre boa"], ["sparkle", "Galpão restaurado lindíssimo"], ["star", "Som muito bem resolvido"], ["users", "Público diverso e animado"], ["heart", "Noite pra lembrar"]] },
 };
 PLACES.forEach(p => Object.assign(p, PLACE_EXTRA[p.id]));
@@ -456,7 +458,7 @@ export const TESTIMONIALS = [
 // ----- Roteiros completos -----
 const ROTEIRO_EXTRA = {
   r1: {
-    stats: { tempo: "4 a 5 horas", invest: 3, investLabel: "Especial", ideal: "Casais", vibe: "Romance, boa mesa" },
+    stats: { tempo: "4 a 5 horas", invest: 3, investLabel: "Especial", ideal: "Casais" },
     vibes: ["dates", "impress"], note: "o melhor date é o que ninguém precisa improvisar.",
     about: "Um roteiro pensado pra quem quer acertar sem parecer que se esforçou demais. Começa com drinque, segue para um jantar que rende conversa e termina com sobremesa e vista. Tudo a poucos passos, pra noite fluir sem carro e sem pressa.",
     quote: "Um bom date é feito de boas pausas.",
@@ -469,7 +471,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Faça as reservas com uma semana de antecedência e combine o horário do jantar com o pôr do sol.", horario: "Noite, a partir das 19h", epoca: "O ano todo", comoChegar: "Tudo a pé — bairros vizinhos", lembrete: "Leve um casaco leve: na varanda do Mirante venta à noite." },
   },
   r2: {
-    stats: { tempo: "6 a 8 horas", invest: 1, investLabel: "Econômico", ideal: "Turistas, família", vibe: "História, cultura" },
+    stats: { tempo: "6 a 8 horas", invest: 1, investLabel: "Econômico", ideal: "Turistas, família" },
     vibes: ["turist", "eco", "crianca"], note: "toda cidade tem um começo — comece por ele.",
     about: "O jeito mais rápido de entender uma cidade é começar pelo centro. Catedral, mercado, praças e os cafés que os locais mantêm em segredo, num roteiro que dá pra fazer todo a pé e gastando pouco.",
     quote: "O centro é onde a cidade conta a própria história.",
@@ -482,7 +484,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Vá de sábado para pegar a feira e o chorinho. Use sapato confortável — dá pra fazer tudo a pé.", horario: "Manhã e começo da tarde", epoca: "O ano todo", comoChegar: "Metrô · estação Centro", lembrete: "Terça o museu é gratuito, mas a feira só acontece aos sábados." },
   },
   r3: {
-    stats: { tempo: "3 a 4 horas", invest: 3, investLabel: "Especial", ideal: "Casais, clientes", vibe: "Sofisticação" },
+    stats: { tempo: "3 a 4 horas", invest: 3, investLabel: "Especial", ideal: "Casais, clientes" },
     vibes: ["impress", "dates"], note: "chegar e já causar antes da carta sair.",
     about: "Endereços escondidos, atmosfera única e aquela sensação de que você conhece a cidade por dentro. Um roteiro pra impressionar sem esforço — cliente, sogra ou aquele date importante.",
     quote: "Impressionar é mostrar o que pouca gente conhece.",
@@ -494,7 +496,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Reserve tudo com antecedência e avise que é ocasião especial — as casas costumam caprichar.", horario: "Noite", epoca: "O ano todo", comoChegar: "Táxi ou app — bairros próximos", lembrete: "Traje esporte fino cai bem no Mesa 14." },
   },
   r4: {
-    stats: { tempo: "6 a 8 horas", invest: 2, investLabel: "Moderado", ideal: "Casais, amigos e solo", vibe: "Natureza, cultura e bem-estar" },
+    stats: { tempo: "6 a 8 horas", invest: 2, investLabel: "Moderado", ideal: "Casais, amigos e solo" },
     vibes: ["relax", "turist", "impress", "dates"], note: "mais que um parque, um jeito de viver a cidade.",
     about: "O parque é um convite pra viver várias cidades em uma só: tem arte, natureza, gastronomia, esporte e encontros. Neste roteiro reunimos nossas dicas favoritas para um dia completo, com paradas que equilibram cultura, bem-estar e boa comida. Você pode seguir tudo ou adaptar ao seu ritmo — o importante é sair e viver.",
     quote: "O parque é sempre uma boa ideia. É onde a cidade respira.",
@@ -507,7 +509,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Vá durante a semana para aproveitar com mais tranquilidade. E não esqueça de levar uma garrafa de água!", horario: "Manhã e fim de tarde", epoca: "O ano todo", comoChegar: "Metrô · estação Parque (linha verde)", lembrete: "O pôr do sol no lago é um dos cartões-postais mais bonitos da cidade." },
   },
   r5: {
-    stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Amigos, solo", vibe: "Rolê raiz" },
+    stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Amigos, solo" },
     vibes: ["eco", "turist"], note: "cabe no bolso e não cabe no esquecimento.",
     about: "Comida boa, programa de graça e drinque honesto. Um rolê completo provando que dá pra sair bem gastando menos de R$ 80 — e voltar pra casa com história pra contar.",
     quote: "Bom programa não precisa ser caro. Precisa ser bem escolhido.",
@@ -519,7 +521,7 @@ const ROTEIRO_EXTRA = {
     tips: { dica: "Combine com os amigos e divida as porções — o torresmo do Z'é serve três pessoas.", horario: "Tarde e noite", epoca: "O ano todo", comoChegar: "Metrô · estação Centro", lembrete: "Leve dinheiro trocado: algumas barracas da feira não aceitam cartão." },
   },
   r6: {
-    stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Família com crianças", vibe: "Diversão ao ar livre" },
+    stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Família com crianças" },
     vibes: ["crianca", "relax", "eco"], note: "a família toda feliz no mesmo rolê.",
     about: "Quatro paradas testadas com criança de verdade — todas com troca, banheiro decente e sombra. Do parque ao sorvete artesanal, um sábado que agrada a família inteira.",
     quote: "Rolê bom com criança é rolê com sombra, espaço e sorvete.",
@@ -573,7 +575,7 @@ export const SEED_PAGES = [
 export const SEED_MENUS = {
   header: [
     { id: "m1", label: "Hoje", type: "site", target: "home" },
-    { id: "m2", label: "Vibes", type: "site", target: "home#vibes" },
+    { id: "m2", label: "Radar", type: "site", target: "historias" },
     { id: "m3", label: "Lugares", type: "site", target: "lista" },
     { id: "m4", label: "Roteiros", type: "site", target: "roteiros" },
     { id: "m5", label: "Guia da cidade", type: "site", target: "mapa" },

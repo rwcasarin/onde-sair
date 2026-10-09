@@ -21,8 +21,14 @@ if (typeof window !== "undefined") {
   if (!HASH_MODE) window.addEventListener("hashchange", () => { if (location.hash.startsWith("#/")) { migrateLegacyHash(); emit(); } });
 }
 
+// quantas telas o visitante abriu dentro do site (para o "Voltar" saber se há página anterior)
+let depth = 0;
+if (typeof window !== "undefined") window.addEventListener("popstate", () => { if (depth > 0) depth--; });
+export const canGoBack = () => depth > 0;
+
 export function go(path, { replace = false } = {}) {
   if (path === currentPath()) { emit(); return; }
+  if (!replace) depth++;
   if (HASH_MODE) {
     if (replace) history.replaceState(null, "", "#" + path); else location.hash = path;
   } else {
@@ -68,7 +74,10 @@ export function toPath(screen, params = {}) {
   switch (screen) {
     case "lista": {
       const base = params.aff ? vibePath(params.aff) : "/lugares";
-      return params.q ? `${base}?busca=${encodeURIComponent(params.q)}` : base;
+      const qs = new URLSearchParams();
+      if (params.q) qs.set("busca", params.q);
+      if (params.tipo) qs.set("tipo", params.tipo);
+      return qs.toString() ? `${base}?${qs}` : base;
     }
     case "detalhe": return placePath(params.id);
     case "roteiro": return roteiroPath(params.id);
@@ -116,7 +125,7 @@ export function fromPath(full) {
   if (!a) return { screen: "home", params: {} };
   switch (a) {
     case "lugares": {
-      if (!b) return { screen: "lista", params: q.get("busca") ? { q: q.get("busca") } : {} };
+      if (!b) return { screen: "lista", params: { ...(q.get("busca") ? { q: q.get("busca") } : {}), ...(q.get("tipo") ? { tipo: q.get("tipo") } : {}) } };
       const p = bySlug(PLACES, b);
       return p ? { screen: "detalhe", params: { id: p.id } } : notFound;
     }

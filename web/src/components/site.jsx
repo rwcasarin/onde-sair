@@ -1,5 +1,6 @@
 // Componentes compartilhados do site (v3)
-import { AFFINITIES, CITIES, PLACES, VIBE_STYLE, PRICE_RANGE, placeImg, roteiroImg, ROTEIRO_TAGS } from "../data.js";
+import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, PRICE_RANGE, placeImg, roteiroImg } from "../data.js";
+import { INVEST_LABELS } from "../../shared/myroteiros.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
@@ -137,11 +138,13 @@ export function GeoStrip() {
 }
 
 // Cabeçalho das telas internas (favoritos, perfil, notificações…)
-export function PageHead({ crumbs, title, lede, children }) {
+export function PageHead({ crumbs, back, eyebrow, title, lede, children }) {
   return (
     <section className="page-head">
       <div className="page-head-copy">
         {crumbs && <Crumbs items={crumbs} />}
+        {back}
+        {eyebrow && <div className="page-head-eyebrow">{eyebrow}</div>}
         <h1>{title}</h1>
         {lede && <p className="page-head-lede">{lede}</p>}
         {children}
@@ -153,61 +156,64 @@ export function PageHead({ crumbs, title, lede, children }) {
 
 // ---------- Cards ----------
 // Card de lugar da listagem (3 por linha)
-export function ListingCard({ p, badge }) {
+// Etiqueta do tipo de lugar (mesmo estilo das vibes nos cards de roteiro)
+export function TypePill({ type }) {
+  const t = TYPES.find(x => x.label === type);
+  if (!type) return null;
+  return <span className={"vibe-pill vibe-pill-sm " + (t?.cls || "vibe-lavender")}><span className="vibe-pill-icon"><Icon name={t?.icon || "pin"} size={12} /></span>{type}</span>;
+}
+
+// Card de lugar — o mesmo em todo o site e no formato do card de roteiro:
+// foto 16:10 com favoritar, título, descrição e bairro (alinhado no rodapé do card)
+export function PlaceCard({ p }) {
   const nav = useNav();
+  const desc = p.tagline || (p.desc ? p.desc.split(".")[0] + "." : "");
   return (
-    <article className="listing-card" onClick={() => nav("detalhe", { id: p.id })}>
-      <ImageSlot className="listing-img" src={placeImg(p.id)} alt={p.name} hint="16:10">
-        {badge && <span className="listing-badge"><Icon name="cheers" size={13} /> {badge}</span>}
+    <article className="rot-index-card place-card" onClick={() => nav("detalhe", { id: p.id })}>
+      <ImageSlot className="rot-index-img" src={placeImg(p.id)} alt={p.name} hint="16:10">
         <FaveButton id={p.id} className="fave fave-float" />
       </ImageSlot>
-      <div className="listing-body">
-        <div className="listing-title">
-          <h3>{p.name}</h3>
-        </div>
-        <span className="listing-sub">{p.sub} <i>•</i> {p.bairro}</span>
-        <p>{p.desc.split(".")[0]}.</p>
-        <div className="listing-tags">{p.tags.map(t => <Tag key={t}>{t}</Tag>)}</div>
-        <div className="listing-foot">
-          <strong>{PRICE_RANGE[p.priceLevel]}</strong>
-          <PriceDots level={p.priceLevel} />
-          <span className="listing-where"><Icon name="pin" size={14} /> {p.bairro}</span>
-        </div>
+      <div className="rot-index-body">
+        {p.type && <div className="rot-index-vibes"><TypePill type={p.type} /></div>}
+        <h3>{p.name}</h3>
+        {desc && <p>{desc}</p>}
+        <ul className="rot-index-meta">
+          <li><Icon name="pin" size={14} /> {p.bairro}</li>
+        </ul>
       </div>
     </article>
   );
 }
+// nomes antigos (listagem e cards compactos) usam o mesmo card
+export const ListingCard = ({ p }) => <PlaceCard p={p} />;
+export const MiniPlaceCard = ({ p }) => <PlaceCard p={p} />;
 
-// Card compacto de lugar (home "Dicas para hoje" e "Lugares parecidos")
-export function MiniPlaceCard({ p, aff = p.affs[0], showDesc = true }) {
+// Card de roteiro — o mesmo em todo o site (lista de roteiros, página do lugar, "Continue explorando", perfil).
+// mine: roteiro criado pelo visitante (foto da 1ª parada, abre o roteiro dele); actions: botões extras no rodapé.
+export function RoteiroCard({ r, mine = false, actions }) {
   const nav = useNav();
+  const vibes = [...new Set([r.aff, ...(r.vibes || [])].filter(Boolean))].slice(0, 2);
+  const thumb = mine ? r.steps.find(s => s.place)?.place : null;
+  const paradas = r.paradas ?? r.steps?.length ?? 0;
+  const invest = r.stats?.investLabel || INVEST_LABELS[r.stats?.invest] || "";
+  const open = () => nav(mine ? "meuRoteiro" : "roteiro", { id: r.id });
   return (
-    <article className="tip-card" onClick={() => nav("detalhe", { id: p.id })}>
-      <ImageSlot className="tip-img" src={placeImg(p.id)} alt={p.name} hint="5:4" />
-      <div className="tip-body">
-        <VibePill aff={aff} size="sm" />
-        <div className="tip-title">
-          <h3>{p.name}</h3>
-          <FaveButton id={p.id} />
-        </div>
-        <span className="tip-where"><Icon name="pin" size={13} /> {p.bairro}</span>
-        {showDesc && <p>{p.desc.split(".")[0]}.</p>}
-      </div>
-    </article>
-  );
-}
-
-// Card de roteiro ("Continue explorando")
-export function RoteiroMini({ r }) {
-  const nav = useNav();
-  return (
-    <article className="rot-mini" onClick={() => nav("roteiro", { id: r.id })}>
-      <ImageSlot className="rot-mini-img" src={roteiroImg(r.id)} alt="" hint="2:1" />
-      <div className="rot-mini-body">
-        <h3>{r.title}</h3>
-        <div className="rot-mini-tags">
-          {(ROTEIRO_TAGS[r.id] || []).map(([t, c]) => <Tag key={t} cls={c}>{t}</Tag>)}
-        </div>
+    <article className="rot-index-card" onClick={open}>
+      <ImageSlot className="rot-index-img" src={mine ? (thumb ? placeImg(thumb) : undefined) : roteiroImg(r.id)} alt="" hint={mine && !thumb ? "Sem foto" : "16:10"} compact={mine}>
+        {!mine && <FaveButton id={r.id} className="fave fave-float" />}
+        {mine && <span className="rot-index-badge">Meu roteiro</span>}
+      </ImageSlot>
+      <div className="rot-index-body">
+        {vibes.length > 0 && <div className="rot-index-vibes">{vibes.map(a => <VibePill key={a} aff={a} size="sm" />)}</div>}
+        <h3>{r.title || "Sem nome"}</h3>
+        {r.desc && <p>{r.desc}</p>}
+        <ul className="rot-index-meta">
+          {r.stats?.tempo && <li><Icon name="clock" size={14} /> {r.stats.tempo}</li>}
+          <li><Icon name="pin" size={14} /> {paradas} parada{paradas === 1 ? "" : "s"}</li>
+          {invest && <li><Icon name="coins" size={14} /> {invest}</li>}
+        </ul>
+        {mine && r.from && <span className="my-rot-from">Baseado em “{r.from.title}”</span>}
+        {actions && <div className="my-rot-actions" onClick={(e) => e.stopPropagation()}>{actions}</div>}
       </div>
     </article>
   );

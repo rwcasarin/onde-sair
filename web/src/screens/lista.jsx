@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import {
-  PLACES, VIBE_ORDER, VIBE_PAGE, PRICE_BUCKETS, MOMENTOS, AMBIENTES, TESTIMONIALS, vibeImg,
+  PLACES, VIBE_ORDER, VIBE_PAGE, PRICE_BUCKETS, MOMENTOS, AMBIENTES, vibeImg,
 } from "../data.js";
-import { CITIES } from "../data.js";
+import { CITIES, TYPES } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
@@ -25,7 +25,7 @@ function CheckRow({ checked, onChange, children, count, boxed }) {
   );
 }
 
-export function Lista({ aff = null, q = "" }) {
+export function Lista({ aff = null, q = "", tipo = "" }) {
   const nav = useNav();
   const { id: globalCity, name: city, set: setGlobalCity } = useCity();
   const [vibe, setVibe] = useState(aff);
@@ -37,12 +37,12 @@ export function Lista({ aff = null, q = "" }) {
   const [prices, setPrices] = useState(new Set());
   const [momentos, setMomentos] = useState(new Set());
   const [ambientes, setAmbientes] = useState(new Set());
-  const [reserva, setReserva] = useState(new Set());
   const [sort, setSort] = useState("relevancia");
   const [view, setView] = useState("lista");
   const [activePin, setActivePin] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState(q);
+  const [typeF, setTypeF] = useState(() => TYPES.find(t => t.slug === tipo)?.label || "");   // /lugares?tipo=bares
 
   const a = vibe ? affById(vibe) : null;
   const page = vibe ? VIBE_PAGE[vibe] : null;
@@ -50,12 +50,13 @@ export function Lista({ aff = null, q = "" }) {
   // vibe + busca (sem cidade): base das contagens por cidade
   const anyCity = useMemo(() => PLACES.filter(p => {
     if (vibe && !p.affs.includes(vibe)) return false;
+    if (typeF && p.type !== typeF) return false;
     if (query) {
       const hay = [p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" ").toLowerCase();
       if (!hay.includes(query.toLowerCase())) return false;
     }
     return true;
-  }), [vibe, query]);
+  }), [vibe, query, typeF]);
   const cityCounts = useMemo(() => anyCity.reduce((m, p) => ({ ...m, [p.city]: (m[p.city] || 0) + 1 }), {}), [anyCity]);
   // base: vibe + busca + cidade (as contagens dos outros filtros partem daqui)
   const base = useMemo(() => anyCity.filter(p => !cityF || p.city === cityF), [anyCity, cityF]);
@@ -71,19 +72,18 @@ export function Lista({ aff = null, q = "" }) {
     if (prices.size && !prices.has(p.priceLevel)) return false;
     if (momentos.size && !p.momento.some(m => momentos.has(m))) return false;
     if (ambientes.size && !p.ambiente.some(m => ambientes.has(m))) return false;
-    if (reserva.size && !reserva.has(p.reserva ? "sim" : "nao")) return false;
     return true;
   });
   if (sort === "preco") results = [...results].sort((x, y) => x.priceLevel - y.priceLevel);
 
   const count = (fn) => base.filter(fn).length;
-  const filterCount = (bairroSel ? 1 : 0) + bairros.size + prices.size + momentos.size + ambientes.size + reserva.size;
+  const filterCount = (bairroSel ? 1 : 0) + bairros.size + prices.size + momentos.size + ambientes.size;
   function clearAll() {
     setBairroSel(""); setBairros(new Set()); setPrices(new Set());
-    setMomentos(new Set()); setAmbientes(new Set()); setReserva(new Set());
+    setMomentos(new Set()); setAmbientes(new Set());
   }
 
-  const title = a ? a.label : query ? "Resultados da busca" : "Lugares";
+  const title = a ? a.label : query ? "Resultados da busca" : typeF || "Lugares";
   const lede = page ? page.lede : query
     ? <>Tudo o que encontramos para “{query}”. Refine pelos filtros ao lado.</>
     : "Todos os endereços que passaram pelo crivo. Escolha uma vibe ou use os filtros.";
@@ -101,6 +101,7 @@ export function Lista({ aff = null, q = "" }) {
         <div className="hero2-copy">
           <Crumbs items={[["Início", "home"], ...(a ? [["Vibes", "home", { anchor: "vibes" }], [a.label]] : [["Lugares"]])]} />
           <h1 className="page-title">{title}</h1>
+          {typeF && <button type="button" className="type-chip" onClick={() => { setTypeF(""); history.replaceState(null, "", location.pathname); }} aria-label={"Remover filtro " + typeF}>Tipo: {typeF} <Icon name="x" size={14} /></button>}
           <p className="hero2-lede">{lede}</p>
           {page ? (
             <ul className="feature-row">
@@ -167,12 +168,6 @@ export function Lista({ aff = null, q = "" }) {
             ))}
           </div>
 
-          <div className="filter-block">
-            <h3>Reserva</h3>
-            <CheckRow checked={reserva.has("sim")} onChange={() => setReserva(toggleIn(reserva, "sim"))} count={count(p => p.reserva)}>Aceita reserva</CheckRow>
-            <CheckRow checked={reserva.has("nao")} onChange={() => setReserva(toggleIn(reserva, "nao"))} count={count(p => !p.reserva)}>Sem necessidade</CheckRow>
-          </div>
-
           <button
             className="btn-pill btn-block"
             onClick={() => { setFiltersOpen(false); document.getElementById("resultados")?.scrollIntoView({ behavior: "smooth" }); }}
@@ -226,24 +221,6 @@ export function Lista({ aff = null, q = "" }) {
               items={results.map(p => ({ id: p.id, place: p }))} />
           )}
 
-          {/* Seleção de quem já foi */}
-          <div className="selection-strip">
-            <div className="selection-intro">
-              <h2>Seleção de quem já foi</h2>
-              <span className="rule" />
-              <p>Lugares que realmente impressionam, segundo a nossa comunidade.</p>
-            </div>
-            {TESTIMONIALS.map(t => (
-              <figure key={t.name} className="testimonial">
-                <ImageSlot className="avatar-slot" src={`images/pessoas/${t.name.split(" ")[0].toLowerCase()}.jpg`} compact />
-                <div>
-                  <blockquote>“{t.text}”</blockquote>
-                  <figcaption><strong>{t.name}</strong><span>{t.when}</span></figcaption>
-                </div>
-              </figure>
-            ))}
-            <GeoCard className="selection-geo" />
-          </div>
         </section>
       </div>
 

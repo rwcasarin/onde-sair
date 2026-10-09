@@ -44,17 +44,16 @@ export function HomePage() {
         </Card>
       </div>
 
-      <Card title="Dicas para hoje" subtitle="Seis lugares, cada um com a vibe que aparece na etiqueta. Só lugares publicados.">
-        <Repeater items={draft.tips} max={6} addLabel="Adicionar dica" newItem={() => ({ place: livePlaces[0]?.id, aff: livePlaces[0]?.affs[0] })}
+      <Card title="Dicas para hoje" subtitle="Até seis lugares publicados, na ordem abaixo.">
+        <Repeater items={draft.tips} max={6} addLabel="Adicionar dica" newItem={() => ({ place: livePlaces.find(x => !draft.tips.some(t => t.place === x.id))?.id || livePlaces[0]?.id })}
           onChange={(tips) => set({ tips })}
           render={(t, upd) => {
             const p = db.places.find(x => x.id === t.place);
             return (
               <div className="a-home-tip">
                 <ImageSlot className="a-thumb" src={placeImg(t.place)} compact />
-                <Select label="Lugar" value={t.place} onChange={(place) => { const np = db.places.find(x => x.id === place); upd({ place, aff: np?.affs.includes(t.aff) ? t.aff : np?.affs[0] }); }}
+                <Select label="Lugar" value={t.place} onChange={(place) => upd(() => ({ place }))}
                   options={livePlaces.map(x => [x.id, `${x.name} · ${x.bairro}`])} error={p && !isLive(p) ? "Este lugar não está publicado." : null} />
-                <Select label="Vibe da etiqueta" value={t.aff} onChange={(aff) => upd({ aff })} options={db.vibes.filter(v => v.active).map(v => [v.id, v.label + (p?.affs.includes(v.id) ? "" : " (não marcada no lugar)")])} />
               </div>
             );
           }} />

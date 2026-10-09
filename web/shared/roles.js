@@ -35,6 +35,7 @@ export function publicView(db) {
     ...(db.pages ? { pages: live(db.pages) } : {}),   // sem páginas/menus salvos, o site usa os iniciais
     ...(db.menus ? { menus: db.menus } : {}),
     ...(db.radarCategories ? { radarCategories: db.radarCategories } : {}),
+    ...(db.types ? { types: db.types } : {}),
     vibes: db.vibes || [],
     home: db.home,
     cities: db.cities || [],

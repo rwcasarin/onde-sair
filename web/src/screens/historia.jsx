@@ -6,14 +6,17 @@ import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, PriceDots, FaveButton } from "../components/site.jsx";
 import { useNav } from "../nav.js";
-import { href, storyPath, placePath, currentPath, HASH_MODE } from "../router.js";
+import { href, storyPath, placePath, currentPath, HASH_MODE, canGoBack } from "../router.js";
 import { slugify } from "../admin/store.js";
 import { sanitizeHtml, asHtml } from "../richtext.js";
 import { resolveMedia } from "../admin/store.js";
 import { mountEmbeds } from "../embeds.js";
 
+const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }); } catch { return ""; } };
+
 function StoryCard({ s }) {
   const nav = useNav();
+  const when = s.publishAt || s.updatedAt;
   return (
     <article className="story-card" onClick={() => nav("historia", { id: s.id })} style={{ cursor: "pointer" }}>
       <ImageSlot className="story-img" src={s.img} alt="" hint="3:4">
@@ -23,7 +26,10 @@ function StoryCard({ s }) {
         <span className={"story-tag tone-" + s.tone}>{s.tag}</span>
         <h3>{s.title}</h3>
         <p>{s.desc}</p>
-        <a href={href(storyPath(s))} className="h2-link" onClick={(e) => { e.preventDefault(); e.stopPropagation(); nav("historia", { id: s.id }); }}>Ler mais <Icon name="arrow" size={16} /></a>
+        <div className="story-foot">
+          {when && <span className="story-date">{fmt(when)}</span>}
+          <a href={href(storyPath(s))} className="h2-link" onClick={(e) => { e.preventDefault(); e.stopPropagation(); nav("historia", { id: s.id }); }}>Ler mais <Icon name="arrow" size={16} /></a>
+        </div>
       </div>
     </article>
   );
@@ -54,12 +60,13 @@ export function Historias() {
             <div className="radar-filters" role="group" aria-label="Filtrar por categoria">
               <button type="button" className={"radar-chip" + (!cat ? " on" : "")} aria-pressed={!cat} onClick={() => pick(null)}>Todos</button>
               {cats.map(c => (
-                <button key={c.label} type="button" className={"radar-chip" + (cat === c.label ? " on" : "")} aria-pressed={cat === c.label} onClick={() => pick(c.label)}>{c.label}</button>
+                <button key={c.label} type="button" className={"radar-chip tone-" + (c.tone || "purple") + (cat === c.label ? " on" : "")} aria-pressed={cat === c.label} onClick={() => pick(c.label)}>{c.label}</button>
               ))}
             </div>
           )}
         </PageHead>
-        <div className="stories-grid stories-all">
+        <p className="radar-count">{list.length} {list.length === 1 ? "post" : "posts"}{cat && <> em <strong>{cat}</strong></>}</p>
+        <div className="stories-grid stories-2 stories-all">
           {list.map(s => <StoryCard key={s.id} s={s} />)}
         </div>
       </div>
@@ -97,7 +104,6 @@ export function PostPlaceCard({ p, n }) {
   );
 }
 
-const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }); } catch { return ""; } };
 const PLACE_RE = /<figure class="place" data-place="([\w-]+)"><\/figure>/g;
 
 // Texto do post: trechos de HTML intercalados com os cards de lugar
@@ -129,15 +135,15 @@ export function Historia({ id }) {
   const s = ALL_STORIES.find(x => x.id === id);
   if (!s) return null;
   const inline = [...String(s.body || "").matchAll(/data-place="([\w-]+)"/g)].map(m => m[1]);
-  const places = (s.places || []).filter(pid => !inline.includes(pid)).map(pid => PLACES.find(p => p.id === pid)).filter(Boolean);
-  const more = ALL_STORIES.filter(x => x.id !== s.id).slice(0, 3);
+  const places = (s.places || []).filter(pid => !inline.includes(pid)).map(pid => PLACES.find(p => p.id === pid)).filter(Boolean).slice(0, 4);   // no máximo 4
+  const more = ALL_STORIES.filter(x => x.id !== s.id).slice(0, 2);
   const when = s.publishAt || s.updatedAt;
   return (
     <main className="home2">
-      <article className="shell story-article">
-        <PageHead crumbs={[["Início", "home"], ["Radar", "historias"], [s.title]]} title={s.title} lede={s.desc}>
-          <span className={"story-tag tone-" + s.tone}>{s.tag}</span>
-        </PageHead>
+      <article className="shell narrow story-article">
+        <PageHead crumbs={[["Início", "home"], ["Radar", "historias"], [s.title]]}
+          back={<a href={href("/radar")} className="back-link" onClick={(e) => { e.preventDefault(); canGoBack() ? history.back() : nav("historias"); }}><Icon name="left" size={16} /> Voltar</a>} title={s.title} lede={s.desc}
+          eyebrow={s.tag && <span className={"story-tag tone-" + s.tone}>{s.tag}</span>} />
         {(s.author || when) && <p className="story-byline">{s.author && <>Por <strong>{s.author}</strong></>}{s.author && when && " · "}{when && fmt(when)}</p>}
         <ImageSlot className="story-hero" src={s.img} alt="" hint="Foto de capa · 16:9" />
         <PostBody s={s} />
@@ -150,7 +156,7 @@ export function Historia({ id }) {
         {more.length > 0 && (
           <section className="h2-section">
             <SectionHead title="Mais no Radar" link="Ver todos os posts" onLink={() => nav("historias")} />
-            <div className="stories-grid">{more.map(x => <StoryCard key={x.id} s={x} />)}</div>
+            <div className="stories-grid stories-2">{more.map(x => <StoryCard key={x.id} s={x} />)}</div>
           </section>
         )}
       </article>

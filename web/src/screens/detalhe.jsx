@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { CITIES, PLACES, ROTEIROS, VIBE_STYLE, PRICE_RANGE, placeImg, placeGallery, roteiroImg } from "../data.js";
+import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, placeGallery, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, PriceDots, Tag, MapArt, MiniPlaceCard, FaveButton, Footer, affById,
+  HeroMedia, Crumbs, VibePill, PriceDots, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, affById,
 } from "../components/site.jsx";
 import { useNav, useCity, useFaves } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
+import { roteiroVibes } from "../vibes.js";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -27,6 +28,13 @@ const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${
 
 const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["confira", "Confira também"]];
 
+// WhatsApp do lugar (campo próprio no painel): número com DDD, celular ou fixo (WhatsApp Business)
+function whatsappLink(phone = "") {
+  let d = String(phone).replace(/\D/g, "");
+  if (d.startsWith("55") && d.length >= 12) d = d.slice(2);
+  return /^\d{10,11}$/.test(d) ? `https://wa.me/55${d}` : null;
+}
+
 export function Detalhe({ id }) {
   const nav = useNav();
   const { name: city } = useCity();
@@ -40,7 +48,8 @@ export function Detalhe({ id }) {
   const [shared, setShared] = useState(false);
   const [mapSel, setMapSel] = useState(null);       // pin selecionado no mapa "Onde fica"
   const saved = faves.has(p.id);
-  const firstAff = affById(p.affs[0]);
+  const insta = instaProfile(p.insta);
+  const whats = whatsappLink(p.whatsapp);
 
   const gallery = placeGallery(p.id);
   const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
@@ -52,7 +61,7 @@ export function Detalhe({ id }) {
     .slice(0, 2).map(s => s.x);
 
   const rots = ROTEIROS
-    .map(r => ({ r, score: (r.steps.some(st => st.place === p.id) ? 10 : 0) + r.vibes.filter(a => p.affs.includes(a)).length }))
+    .map(r => ({ r, score: (r.steps.some(st => st.place === p.id) ? 10 : 0) + roteiroVibes(r).filter(a => p.affs.includes(a)).length }))
     .sort((m, n) => n.score - m.score)
     .slice(0, 2).map(s => s.r);
 
@@ -76,7 +85,10 @@ export function Detalhe({ id }) {
         <HeroMedia img={placeImg(p.id)} note={p.note} shape="diagonal" hint="Foto do lugar · ~1400×800" />
         <div className="hero2-copy">
           <Crumbs items={[["Início", "home"], ["Lugares", "lista"], [p.bairro, "lista", { q: p.bairro }], [p.name]]} />
-          <span className={"eyebrow-tag " + VIBE_STYLE[p.affs[0]].cls}>{firstAff?.label}</span>
+          {/* vibes (pequenas) → nome → descrição → informações → ações */}
+          <div className="place-vibes place-vibes-sm">
+            {p.affs.map(a => <VibePill key={a} aff={a} size="sm" />)}
+          </div>
           <h1 className="page-title">{p.name}</h1>
           <p className="hero2-lede">{p.tagline}</p>
 
@@ -86,24 +98,20 @@ export function Detalhe({ id }) {
             <li><Icon name="utensils" size={18} /> {p.cuisine}</li>
           </ul>
 
-          {/* hierarquia: vibes (médio) → tags (pequeno, discreto) → ações (pequeno, mesmo tamanho) */}
-          <div className="hero2-vibes place-vibes">
-            {p.affs.map(a => <VibePill key={a} aff={a} />)}
-          </div>
-          {p.tags?.length > 0 && (
-            <ul className="place-tags" aria-label="Tags">
-              {p.tags.map(t => <li key={t}>{t}</li>)}
-            </ul>
-          )}
-
-          {/* ações: só ícones; o texto aparece no hover/foco */}
-          <div className="place-actions act-row">
-            <button className="act-btn primary" onClick={() => goTab("chegar")} aria-label="Como chegar"><Icon name="send" size={18} /><span className="act-label">Como chegar</span></button>
-            <button className={"act-btn" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
-              <Icon name="heart" size={18} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
-            </button>
-            <AddToRoteiro place={p} className="act-btn" iconSize={18} compact />
-            <button className={"act-btn" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={18} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+          {/* ações: 1ª linha — chegar e falar com o lugar; 2ª linha — ações do visitante (só ícone, texto no hover) */}
+          <div className="place-actions">
+            <div className="act-row act-main">
+              <button className="act-cta" onClick={() => goTab("chegar")}><Icon name="send" size={18} /> Como chegar</button>
+              {insta && <a className="act-btn act-round act-insta" href={insta} target="_blank" rel="noreferrer" aria-label={"Instagram " + p.insta} title={"Instagram " + p.insta}><Icon name="instagram" size={19} /></a>}
+              {whats && <a className="act-btn act-round act-whats" href={whats} target="_blank" rel="noreferrer" aria-label="Conversar no WhatsApp" title="WhatsApp"><Icon name="whatsapp" size={19} /></a>}
+            </div>
+            <div className="act-row act-sub">
+              <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
+                <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
+              </button>
+              <AddToRoteiro place={p} className="act-btn act-sm" iconSize={17} compact />
+              <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+            </div>
           </div>
         </div>
       </section>
@@ -127,6 +135,11 @@ export function Detalhe({ id }) {
               É o tipo de lugar que faz você querer ficar mais um pouco: a gente indica
               pra {p.affs.map(a => affById(a).label.toLowerCase().replace(/^(para|pra) /, "")).join(", ")}.
             </p>
+            {p.tags?.length > 0 && (
+              <ul className="place-tags" aria-label="Tags">
+                {p.tags.map(t => <li key={t}>{t}</li>)}
+              </ul>
+            )}
           </div>
           <blockquote className="big-quote">
             <span className="big-quote-mark">“</span>
@@ -185,7 +198,7 @@ export function Detalhe({ id }) {
             <h2 className="h2t">Informações úteis</h2>
             <dl>
               <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>
-              <div><Icon name="dollar" size={20} /><dt>Faixa de preço</dt><dd><PriceDots level={p.priceLevel} /> ({PRICE_RANGE[p.priceLevel]} por pessoa)</dd></div>
+              <div><Icon name="dollar" size={20} /><dt>Faixa de preço</dt><dd><PriceDots level={p.priceLevel} /></dd></div>
               <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{fullAddress(p)}{p.cep && <><br />CEP {p.cep}</>}</dd></div>
               <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{p.phone}</dd></div>
               <div><Icon name="link" size={20} /><dt>Site</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.site}</a></dd></div>
@@ -200,18 +213,16 @@ export function Detalhe({ id }) {
             <div className="h2-head">
               <h2>Confira também</h2>
               <p>Lugares e roteiros com a mesma vibe em {city}.</p>
-              <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("lista", { aff: p.affs[0] }); }}>Ver mais <Icon name="arrow" size={16} /></a>
+              <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("lista", { tipo: TYPES.find(t => t.label === p.type)?.slug }); }}>Ver mais <Icon name="arrow" size={16} /></a>
             </div>
             <div className="related-grid">
               {similar.map(x => (
                 <div key={x.id} className="related-item">
-                  <span className="related-kind">Lugar</span>
-                  <MiniPlaceCard p={x} aff={x.affs.find(a => p.affs.includes(a)) || x.affs[0]} />
+                  <MiniPlaceCard p={x} />
                 </div>
               ))}
               {rots.map(r => (
                 <div key={r.id} className="related-item">
-                  <span className="related-kind kind-rot">Roteiro</span>
                   <RoteiroCard r={r} />
                 </div>
               ))}
@@ -225,21 +236,3 @@ export function Detalhe({ id }) {
   );
 }
 
-// Card de roteiro no mesmo formato do card compacto de lugar
-function RoteiroCard({ r }) {
-  const nav = useNav();
-  return (
-    <article className="tip-card" onClick={() => nav("roteiro", { id: r.id })}>
-      <ImageSlot className="tip-img" src={roteiroImg(r.id)} alt="" hint="5:4" />
-      <div className="tip-body">
-        <VibePill aff={r.aff} size="sm" />
-        <div className="tip-title">
-          <h3>{r.title}</h3>
-          <FaveButton id={r.id} />
-        </div>
-        <span className="tip-where"><Icon name="clock" size={13} /> {r.stats.tempo} · {r.paradas} paradas</span>
-        <p>{r.desc.split(".")[0]}.</p>
-      </div>
-    </article>
-  );
-}

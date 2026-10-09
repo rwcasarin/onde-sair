@@ -9,6 +9,7 @@ import { PlacesList, PlaceEditor } from "./pages/Places.jsx";
 import { RoteirosList, RoteiroEditor } from "./pages/Roteiros.jsx";
 import { StoriesList, StoryEditor } from "./pages/Stories.jsx";
 import { RadarCategoriesPage } from "./pages/RadarCategories.jsx";
+import { TypesPage } from "./pages/Types.jsx";
 import { PagesList, PageEditor } from "./pages/Pages.jsx";
 import { MenusPage } from "./pages/Menus.jsx";
 import { VibesPage } from "./pages/Vibes.jsx";
@@ -115,7 +116,7 @@ export default function AdminApp() {
   else page = {
     "": <Dashboard />,
     atividade: <ActivityPage />,
-    lugares: id ? <PlaceEditor key={id} id={id} /> : <PlacesList />,
+    lugares: id === "tipos" ? <TypesPage /> : id ? <PlaceEditor key={id} id={id} /> : <PlacesList />,
     roteiros: id ? <RoteiroEditor key={id} id={id} /> : <RoteirosList />,
     radar: id === "categorias" ? <RadarCategoriesPage /> : id ? <StoryEditor key={id} id={id} /> : <StoriesList />,
     historias: id ? <StoryEditor key={id} id={id} /> : <StoriesList />,   // endereço antigo

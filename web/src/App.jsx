@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, cityName } from "./data.js";
+import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, cityName } from "./data.js";
 import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
 import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
@@ -29,7 +29,8 @@ function titleFor(screen, params) {
     case "home": return SITE.seoTitle || "Onde Sair · O lugar certo pra cada vibe";
     case "lista": {
       const v = AFFINITIES.find(a => a.id === params.aff);
-      return t(params.q ? `Busca: ${params.q}` : v ? v.label : "Lugares");
+      const tp = TYPES.find(x => x.slug === params.tipo);
+      return t(params.q ? `Busca: ${params.q}` : v ? v.label : tp ? tp.label : "Lugares");
     }
     case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
     case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return r?.seo?.title || t(r ? r.title : "Roteiro"); }
@@ -187,7 +188,7 @@ export default function App() {
         )}
         <TopNav current={screen} params={params} unread={unread} user={user} />
         {screen === "home"         && <Home />}
-        {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} />}
+        {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
         {screen === "roteiros"     && <Roteiros />}
         {screen === "roteiro"      && <Roteiro key={key} id={params.id} />}

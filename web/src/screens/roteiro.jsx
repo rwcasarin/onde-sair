@@ -3,8 +3,9 @@ import { ROTEIROS, roteiroImg, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroMini, SectionHead, PageHead, FaveButton, Footer, placeById, affById,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, TypePill,
 } from "../components/site.jsx";
+import { roteiroVibes } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { findMyRoteiro, myRoteiros, deleteMyRoteiro } from "../account.js";
 import { INVEST_LABELS } from "../../shared/myroteiros.js";
@@ -32,14 +33,16 @@ function RoteiroView({ r, mine = false }) {
   const { ask, user } = useAccount();
   const [confirmDel, setConfirmDel] = useState(false);
   const [mapSel, setMapSel] = useState(null);
+  const [tab, setTab] = useState("visao");
+  const [shared, setShared] = useState(false);
   const saved = faves.has(r.id);
   const others = ROTEIROS.filter(x => x.id !== r.id).slice(0, 5);
   const firstPlace = r.steps.find(s => s.place)?.place;
   const heroImg = mine ? (firstPlace ? placeImg(firstPlace) : undefined) : roteiroImg(r.id);
-  const stepImg = (s, i) => mine ? (s.place ? placeImg(s.place) : undefined) : roteiroImg(r.id, i + 1);
-  const vibes = [...new Set([r.aff, ...(r.vibes || [])].filter(Boolean))];
+  // parada com lugar usa a foto do lugar; parada livre usa a foto enviada no painel
+  const stepImg = (s, i) => s.place ? placeImg(s.place) : mine ? undefined : roteiroImg(r.id, s.img || i + 1);
+  const vibes = roteiroVibes(r);
   const investLabel = r.stats.investLabel || INVEST_LABELS[r.stats.invest] || "";
-  const vibeWords = r.stats.vibe || affById(r.aff)?.label || "";
   const copy = () => user ? nav("meuRoteiroEditar", { id: "novo", copiar: r.id }) : ask({ type: "copiar", id: r.id });
   const tips = r.tips || {};
 
@@ -51,51 +54,86 @@ function RoteiroView({ r, mine = false }) {
   });
   const mapItems = r.steps.map((s, i) => ({ id: "s" + i, place: s.place ? placeById(s.place) : null, title: s.title, num: i + 1, art: pins[i] }));
 
+  const tags = (r.tags || []).map(t => Array.isArray(t) ? t[0] : t).filter(Boolean);
+  const hasTips = tips.dica || tips.horario || tips.epoca || tips.comoChegar || tips.lembrete;
+  const TABS = [["visao", "Visão geral"], ["paradas", "Paradas"], ["mapa", "Mapa"], ...(hasTips ? [["dicas", "Dicas"]] : []), ["confira", "Confira também"]];
+  function goTab(t) { setTab(t); document.getElementById("sec-" + t)?.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  async function share() {
+    try {
+      if (navigator.share) await navigator.share({ title: r.title, text: r.desc });
+      else await navigator.clipboard?.writeText(`${r.title} — ${location.href}`);
+      setShared(true); setTimeout(() => setShared(false), 1800);
+    } catch { /* cancelado */ }
+  }
+
   return (
     <main className="home2">
-      {/* ================= HERO ================= */}
-      <section className="hero2 hero2-page hero2-roteiro">
+      {/* ================= HERO (mesma estrutura da página do lugar) ================= */}
+      <section className="hero2 hero2-page hero2-place hero2-roteiro">
         <HeroMedia img={heroImg} note={r.note} words={["Cultura", "Natureza", "Pessoas", "Boas saídas"]} hint={mine ? "Foto da primeira parada" : "Foto do roteiro · ~1400×800"} />
         <div className="hero2-copy">
           <Crumbs items={mine ? [["Início", "home"], ["Meus roteiros", "perfil", { tab: "meus" }], [r.title]] : [["Início", "home"], ["Roteiros", "roteiros"], [r.title]]} />
-          {mine && <span className="mine-badge"><Icon name="bookmark" size={14} fill /> Meu roteiro{r.from ? ` · baseado em “${r.from.title}”` : ""}</span>}
+          <div className="place-vibes place-vibes-sm">
+            {mine && <span className="mine-badge"><Icon name="bookmark" size={13} fill /> Meu roteiro{r.from ? ` · baseado em “${r.from.title}”` : ""}</span>}
+            {vibes.map(a => <VibePill key={a} aff={a} size="sm" onClick={() => nav("lista", { aff: a })} />)}
+          </div>
           <h1 className={"page-title " + (r.title.length > 30 ? "page-title-sm" : "page-title-md")}>{r.title}</h1>
           <p className="hero2-lede">{r.desc}</p>
 
-          <ul className="rot-stats">
-            {r.stats.tempo && <li><Icon name="clock" size={24} /><div><span>Tempo total</span>{r.stats.tempo}</div></li>}
-            <li><Icon name="coins" size={24} /><div><span>Investimento</span><b>{INVEST[r.stats.invest]}</b> {investLabel}</div></li>
-            {r.stats.ideal && <li><Icon name="users" size={24} fill /><div><span>Ideal para</span>{r.stats.ideal}</div></li>}
-            {vibeWords && <li><Icon name="leaf" size={24} /><div><span>Vibe principal</span>{vibeWords}</div></li>}
+          <ul className="place-meta">
+            {r.stats.tempo && <li><Icon name="clock" size={18} /> {r.stats.tempo}</li>}
+            <li><Icon name="pin" size={18} fill /> {r.steps.length} parada{r.steps.length === 1 ? "" : "s"}</li>
+            <li><Icon name="coins" size={18} /> {INVEST[r.stats.invest]}{investLabel ? " · " + investLabel : ""}</li>
+            {r.stats.ideal && <li><Icon name="users" size={18} fill /> {r.stats.ideal}</li>}
           </ul>
 
-          <div className="hero2-vibes">
-            {vibes.map(a => <VibePill key={a} aff={a} onClick={() => nav("lista", { aff: a })} />)}
-          </div>
-
+          {/* ações: 1ª linha — ação principal; 2ª linha — ações do visitante (só ícone, texto no hover) */}
           <div className="place-actions">
             {mine ? <>
-              <button className="btn-pill btn-lg" onClick={() => nav("meuRoteiroEditar", { id: r.id })}><Icon name="list" size={18} /> Editar roteiro</button>
-              <button className="btn-outline btn-lg" onClick={() => nav("meuRoteiroEditar", { id: "novo", copiar: r.id })}><Icon name="share" size={18} /> Duplicar</button>
-              {confirmDel
-                ? <span className="inline-confirm">Excluir este roteiro?
-                    <button className="btn-danger" onClick={async () => { await deleteMyRoteiro(r.id); nav("perfil", { tab: "meus" }); }}>Excluir</button>
-                    <button className="btn-outline" onClick={() => setConfirmDel(false)}>Cancelar</button></span>
-                : <button className="btn-outline btn-lg" onClick={() => setConfirmDel(true)}><Icon name="x" size={18} /> Excluir</button>}
-            </> : <>
-              <button className={"btn-outline btn-lg" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved}><Icon name="heart" size={18} fill={saved} /> {saved ? "Salvo" : "Salvar"}</button>
-              <button className="btn-pill btn-lg" onClick={copy}><Icon name="list" size={18} /> Copiar e adaptar</button>
-            </>}
+              <div className="act-row act-main">
+                <button className="act-cta" onClick={() => nav("meuRoteiroEditar", { id: r.id })}><Icon name="list" size={18} /> Editar roteiro</button>
+              </div>
+              <div className="act-row act-sub">
+                <button className="act-btn act-sm" onClick={() => nav("meuRoteiroEditar", { id: "novo", copiar: r.id })} aria-label="Duplicar"><Icon name="copy" size={17} /><span className="act-label">Duplicar</span></button>
+                <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+                {confirmDel
+                  ? <span className="inline-confirm">Excluir este roteiro?
+                      <button className="btn-danger" onClick={async () => { await deleteMyRoteiro(r.id); nav("perfil", { tab: "meus" }); }}>Excluir</button>
+                      <button className="btn-outline" onClick={() => setConfirmDel(false)}>Cancelar</button></span>
+                  : <button className="act-btn act-sm" onClick={() => setConfirmDel(true)} aria-label="Excluir"><Icon name="x" size={17} /><span className="act-label">Excluir</span></button>}
+              </div>
+            </> : (
+              // favoritar, copiar e adaptar, compartilhar: mesmo estilo (só ícone, texto no hover)
+              <div className="act-row act-sub">
+                <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
+                  <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
+                </button>
+                <button className="act-btn act-sm" onClick={copy} aria-label="Copiar e adaptar"><Icon name="copy" size={17} /><span className="act-label">Copiar e adaptar</span></button>
+                <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
+      {/* ================= ABAS ================= */}
+      <nav className="page-tabs" aria-label="Seções">
+        <div className="shell">
+          {TABS.map(([t, label]) => <button key={t} className={tab === t ? "on" : ""} onClick={() => goTab(t)}>{label}</button>)}
+        </div>
+      </nav>
+
       <div className="shell place-body">
-        {/* Sobre · citação · mapa */}
-        <section className="place-row row-rot-about">
+        {/* 1 · Sobre este roteiro (60%) + citação (30%) */}
+        <section className="place-row split-60-30" id="sec-visao">
           <div className="about-text">
             <h2 className="h2t">Sobre este roteiro</h2>
             <p>{r.about || r.desc || (mine ? "Escreva um texto sobre o roteiro em “Editar roteiro”." : "")}</p>
+            {tags.length > 0 && (
+              <ul className="place-tags" aria-label="Tags">
+                {tags.map(t => <li key={t}>{t}</li>)}
+              </ul>
+            )}
             {mine
               ? <div className="author">
                   <div className="profile-avatar author-avatar" aria-hidden="true">{(user?.name || "?").charAt(0).toUpperCase()}</div>
@@ -108,120 +146,114 @@ function RoteiroView({ r, mine = false }) {
                 </div>}
           </div>
           {r.quote
-            ? <blockquote className="big-quote big-quote-lg">
+            ? <blockquote className="big-quote">
                 <span className="big-quote-mark">“</span>
                 <p>{r.quote}</p>
-                <span className="rule" />
+                <footer>Equipe Onde Sair</footer>
               </blockquote>
             : <div className="mine-summary"><strong>{r.steps.length}</strong><span>parada{r.steps.length === 1 ? "" : "s"}</span>
                 <strong>{r.steps.filter(s => s.place).length}</strong><span>lugar{r.steps.filter(s => s.place).length === 1 ? "" : "es"} da curadoria</span></div>}
-          <div className="rot-map-box">
+        </section>
+
+        {/* 2 · Passo a passo */}
+        <section className="place-row" id="sec-paradas">
+          <div>
+            <div className="h2-head">
+              <h2>O roteiro passo a passo</h2>
+              <span className="h2-sub">{mine ? "Do seu jeito. Use “Editar roteiro” para mudar a ordem ou as paradas." : "Uma sugestão de dia para inspirar o seu. Sinta-se livre para adaptar!"}</span>
+            </div>
+            <div className="steps-grid">
+              {r.steps.map((s, i) => {
+                const p = s.place && placeById(s.place);
+                const open = p ? () => nav("detalhe", { id: p.id }) : undefined;
+                return (
+                  <article key={i} className={"rot-index-card step-card" + (p ? "" : " is-free")} onClick={open}>
+                    <ImageSlot className="rot-index-img" src={stepImg(s, i)} alt={s.title} hint={p ? "16:10" : "Parada livre"}>
+                      <span className="step-time"><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>{s.time}</span>
+                      {s.optional && <span className="step-optional">Opcional</span>}
+                      {p && <FaveButton id={p.id} className="fave fave-float" />}
+                    </ImageSlot>
+                    <div className="rot-index-body">
+                      {p?.type && <div className="rot-index-vibes"><TypePill type={p.type} /></div>}
+                      <h3>{s.title}</h3>
+                      {s.desc && <p>{s.desc}</p>}
+                      <ul className="rot-index-meta">
+                        {p ? <li><Icon name="pin" size={14} /> {p.bairro}</li> : <li className="step-free">Parada livre</li>}
+                      </ul>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* 3 · Mapa (70%) + Informações úteis (30%) */}
+        <section className="place-row split-70-30" id="sec-mapa">
+          <div className="where-box">
             <div className="h2-head">
               <h2>Veja o roteiro no mapa</h2>
               <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("mapa"); }}>Ver mapa completo <Icon name="arrow" size={16} /></a>
             </div>
-            <div className="rot-map-inner">
-              <PlaceMap className="rot-map" route activeId={mapSel} onSelect={setMapSel} items={mapItems} />
-              <ol className="rot-map-list">
-                <li className="rot-map-list-title">Neste roteiro</li>
-                {r.steps.map((s, i) => (
-                  <li key={i}><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>{s.title}{s.optional && " (opcional)"}</li>
-                ))}
-              </ol>
-            </div>
+            <PlaceMap className="where-map where-map-lg rot-map" route activeId={mapSel} onSelect={setMapSel} items={mapItems} />
+          </div>
+          <div className="info-box">
+            <h2 className="h2t">Informações úteis</h2>
+            <dl>
+              {r.stats.tempo && <div><Icon name="clock" size={20} /><dt>Tempo total</dt><dd>{r.stats.tempo}</dd></div>}
+              <div><Icon name="dollar" size={20} /><dt>Investimento</dt><dd><b>{INVEST[r.stats.invest]}</b> {investLabel}</dd></div>
+              {r.stats.ideal && <div><Icon name="users" size={20} /><dt>Ideal para</dt><dd>{r.stats.ideal}</dd></div>}
+              {tips.horario && <div><Icon name="sun" size={20} /><dt>Melhor horário</dt><dd>{tips.horario}</dd></div>}
+              {tips.epoca && <div><Icon name="calendar" size={20} /><dt>Melhor época</dt><dd>{tips.epoca}</dd></div>}
+              {tips.comoChegar && <div><Icon name="shoe" size={20} /><dt>Como chegar</dt><dd>{tips.comoChegar}</dd></div>}
+            </dl>
+            <ol className="rot-map-list">
+              <li className="rot-map-list-title">Neste roteiro</li>
+              {r.steps.map((s, i) => (
+                <li key={i}><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>{s.title}{s.optional && " (opcional)"}</li>
+              ))}
+            </ol>
           </div>
         </section>
 
-        {/* Passo a passo */}
-        <section className="h2-section">
-          <SectionHead title="O roteiro passo a passo" sub={mine ? "Do seu jeito. Toque em “Editar roteiro” para mudar a ordem ou as paradas." : "Uma sugestão de dia para inspirar o seu. Sinta-se livre para adaptar!"} />
-          <div className="steps-grid">
-            {r.steps.map((s, i) => (
-              <article key={i} className="step-card">
-                <ImageSlot className="step-img" src={stepImg(s, i)} alt={s.title} hint={mine && !s.place ? "Parada livre" : "16:9"}>
-                  <span className="step-time"><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>{s.time}</span>
-                  {s.optional && <span className="step-optional">Opcional</span>}
-                  {s.place && <FaveButton id={s.place} className="fave fave-float" />}
-                </ImageSlot>
-                <div className="step-body">
-                  <h3>{s.title}</h3>
-                  <span className="step-sub">{s.sub}</span>
-                  {s.tags?.length > 0 && <div className="step-tags">{s.tags.map(([l, c]) => <Tag key={l} cls={c}>{l}</Tag>)}</div>}
-                  <p>{s.desc}</p>
-                  {s.place
-                    ? <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("detalhe", { id: s.place }); }}>Ver mais <Icon name="arrow" size={16} /></a>
-                    : <span className="step-free">Parada livre</span>}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Faixa de dicas */}
-        <section className="rot-extras">
-          <div className="save-card">
-            <Icon name="bookmark" size={30} fill />
-            <div>
-              {mine ? <>
-                <h3>Quer mudar alguma coisa?</h3>
-                <p>Troque a ordem, inclua paradas dos seus favoritos ou anote dicas para quem vai junto.</p>
-                <button className="btn-white" onClick={() => nav("meuRoteiroEditar", { id: r.id })}><Icon name="list" size={16} /> Editar roteiro</button>
-              </> : <>
-                <h3>Gostou deste roteiro?</h3>
-                <p>Salve na sua conta ou faça uma cópia para adaptar do seu jeito.</p>
-                <div className="row gap-12 wrap">
-                  <button className={"btn-white" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved}>
-                    <Icon name="heart" size={16} fill={saved} /> {saved ? "Roteiro salvo" : "Salvar roteiro"}
-                  </button>
-                  <button className="btn-white" onClick={copy}><Icon name="list" size={16} /> Copiar e adaptar</button>
-                </div>
-              </>}
-            </div>
-            <svg className="save-geo" viewBox="0 0 100 120" aria-hidden="true">
-              <polygon points="30,0 100,0 100,50" fill="var(--c-magenta)" />
-              <path d="M100,50 A50,50 0 0 0 50,100 L100,100 Z" fill="var(--c-teal)" />
-              <path d="M0,120 A60,60 0 0 1 60,60 L100,60 L100,120 Z" fill="var(--c-yellow)" opacity=".95" />
-            </svg>
-          </div>
-          {tips.dica && (
-            <div className="team-tip">
-              <h3><Icon name="bulb" size={22} /> {mine ? "Minhas anotações" : "Dica do time"}</h3>
-              <p>{tips.dica}</p>
-            </div>
-          )}
-          {(tips.horario || tips.epoca || tips.comoChegar) && (
-            <ul className="rot-facts">
-              {tips.horario && <li><Icon name="sun" size={24} /><div><span>Melhor horário</span>{tips.horario}</div></li>}
-              {tips.epoca && <li><Icon name="calendar" size={24} /><div><span>Melhor época</span>{tips.epoca}</div></li>}
-              {tips.comoChegar && <li><Icon name="shoe" size={24} /><div><span>Como chegar</span>{tips.comoChegar}</div></li>}
-            </ul>
-          )}
-          {tips.lembrete && (
-            <div className="dont-forget">
-              <div>
-                <h3><Icon name="camera" size={22} /> Não esqueça</h3>
-                <p>{tips.lembrete}</p>
+        {/* 4 · Dicas */}
+        {hasTips && (
+          <section className="place-row rot-extras" id="sec-dicas">
+            {tips.dica && (
+              <div className="team-tip">
+                <h3><Icon name="bulb" size={22} /> {mine ? "Minhas anotações" : "Dica do time"}</h3>
+                <p>{tips.dica}</p>
               </div>
-              {!mine && <ImageSlot className="dont-forget-img" src={roteiroImg(r.id, "lembrete")} compact />}
-            </div>
-          )}
-        </section>
+            )}
+            {tips.lembrete && (
+              <div className="dont-forget">
+                <div>
+                  <h3><Icon name="camera" size={22} /> Não esqueça</h3>
+                  <p>{tips.lembrete}</p>
+                </div>
+                {!mine && <ImageSlot className="dont-forget-img" src={roteiroImg(r.id, "lembrete")} compact />}
+              </div>
+            )}
+          </section>
+        )}
 
-        {/* Continue explorando */}
-        <section className="h2-section">
-          {mine && myRoteiros().length > 1 && (
-            <>
-              <SectionHead title="Seus outros roteiros" link="Ver todos" onLink={() => nav("perfil", { tab: "meus" })} />
-              <div className="my-rot-grid">{myRoteiros().filter(x => x.id !== r.id).slice(0, 3).map(x => <MyRoteiroCard key={x.id} r={x} />)}</div>
-            </>
-          )}
-          <SectionHead
-            title="Continue explorando"
-            sub={`Mais roteiros para viver ${city} por outras perspectivas.`}
-            link="Ver todos os roteiros" onLink={() => nav("roteiros")}
-          />
-          <div className="rot-mini-grid">
-            {others.map(o => <RoteiroMini key={o.id} r={o} />)}
+        {/* 5 · Confira também */}
+        <section className="place-row" id="sec-confira">
+          <div>
+            {mine && myRoteiros().length > 1 && (
+              <>
+                <SectionHead title="Seus outros roteiros" link="Ver todos" onLink={() => nav("perfil", { tab: "meus" })} />
+                <div className="rot-index">{myRoteiros().filter(x => x.id !== r.id).slice(0, 3).map(x => <MyRoteiroCard key={x.id} r={x} />)}</div>
+              </>
+            )}
+            <SectionHead
+              title="Continue explorando"
+              sub={`Mais roteiros para viver ${city} por outras perspectivas.`}
+              link="Ver todos os roteiros" onLink={() => nav("roteiros")}
+            />
+            <div className="rot-index">
+              {others.map(o => <RoteiroCard key={o.id} r={o} />)}
+            </div>
           </div>
         </section>
       </div>
@@ -244,23 +276,7 @@ export function Roteiros() {
           lede={`Curadorias prontas para viver ${city} do seu jeito. Cada roteiro tem propósito, ordem e dicas de quem já foi.`}
         />
         <div className="rot-index">
-          {ROTEIROS.map(r => (
-            <article key={r.id} className="rot-index-card" onClick={() => nav("roteiro", { id: r.id })}>
-              <ImageSlot className="rot-index-img" src={roteiroImg(r.id)} alt="" hint="16:10">
-                <FaveButton id={r.id} className="fave fave-float" />
-              </ImageSlot>
-              <div className="rot-index-body">
-                <VibePill aff={r.aff} size="sm" />
-                <h3>{r.title}</h3>
-                <p>{r.desc}</p>
-                <ul className="rot-index-meta">
-                  <li><Icon name="clock" size={14} /> {r.stats.tempo}</li>
-                  <li><Icon name="pin" size={14} /> {r.paradas} paradas</li>
-                  <li><Icon name="coins" size={14} /> {r.stats.investLabel}</li>
-                </ul>
-              </div>
-            </article>
-          ))}
+          {ROTEIROS.map(r => <RoteiroCard key={r.id} r={r} />)}
         </div>
       </div>
       <Footer />
@@ -268,22 +284,5 @@ export function Roteiros() {
   );
 }
 
-// Card de um roteiro meu (perfil e página do roteiro)
-export function MyRoteiroCard({ r, actions }) {
-  const nav = useNav();
-  const places = r.steps.filter(s => s.place);
-  const thumb = places[0]?.place;
-  return (
-    <article className="my-rot-card" onClick={() => nav("meuRoteiro", { id: r.id })}>
-      <ImageSlot className="my-rot-img" src={thumb ? placeImg(thumb) : undefined} hint={thumb ? "16:10" : "Sem foto"} compact />
-      <div className="my-rot-body">
-        {r.aff && <VibePill aff={r.aff} size="sm" />}
-        <h3>{r.title || "Sem nome"}</h3>
-        <p className="my-rot-meta">{r.steps.length} parada{r.steps.length === 1 ? "" : "s"}{r.stats.tempo ? " · " + r.stats.tempo : ""}</p>
-        <p className="my-rot-stops">{r.steps.map(s => s.title).filter(Boolean).join(" → ") || "Sem paradas ainda"}</p>
-        {r.from && <span className="my-rot-from">Baseado em “{r.from.title}”</span>}
-        {actions && <div className="my-rot-actions" onClick={(e) => e.stopPropagation()}>{actions}</div>}
-      </div>
-    </article>
-  );
-}
+// Card de um roteiro meu (perfil e página do roteiro): mesmo card dos roteiros do site
+export const MyRoteiroCard = ({ r, actions }) => <RoteiroCard r={r} mine actions={actions} />;

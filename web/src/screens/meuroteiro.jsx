@@ -1,9 +1,10 @@
 // Editor de roteiros do usuário — criar do zero, a partir de um lugar ou copiando outro roteiro
 import { useEffect, useMemo, useRef, useState } from "react";
+import { vibesFromPlaces } from "../vibes.js";
 import { PLACES, ROTEIROS, AFFINITIES, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { Crumbs, VibePill, MapArt, Footer } from "../components/site.jsx";
+import { Crumbs, VibePill, MapArt, Footer, RoteiroCard } from "../components/site.jsx";
 import { useNav, useFaves } from "../nav.js";
 import { findMyRoteiro, saveMyRoteiro, copyOf } from "../account.js";
 import { bySlug } from "../router.js";
@@ -14,7 +15,41 @@ import { PlaceMap } from "../components/placemap.jsx";
 const STEP_COLORS = ["var(--c-magenta)", "var(--primary)", "#F58220", "var(--c-teal)", "var(--c-yellow)"];
 const plain = (s = "") => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const placeById = (id) => PLACES.find(p => p.id === id);
-const stepFromPlace = (p) => blankStep({ place: p.id, title: p.name, sub: p.sub || "" });
+// Vibes do roteiro: lista ordenada (sem vibe principal); começa pelas vibes das paradas
+function VibeOrder({ value, onChange, auto, onAuto, canAuto, error }) {
+  const move = (i, k) => { const n = [...value]; [n[i], n[i + k]] = [n[i + k], n[i]]; onChange(n); };
+  const rest = AFFINITIES.filter(a => !value.includes(a.id));
+  return (
+    <div className="rot-field">
+      <span className="rot-label">Vibes <i>*</i></span>
+      <p className="rot-hint">{auto
+        ? "Seguem os lugares das paradas, da mais presente para a menos presente. Edite à vontade."
+        : <>A ordem é a que aparece no roteiro. {canAuto && <button type="button" className="link-btn" onClick={onAuto}>Usar as vibes das paradas</button>}</>}</p>
+      {value.length > 0 ? (
+        <ol className="vibe-order">
+          {value.map((a, i) => (
+            <li key={a}>
+              <VibePill aff={a} size="sm" />
+              <span className="vibe-order-tools">
+                <button type="button" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}><Icon name="left" size={14} style={{ transform: "rotate(90deg)" }} /></button>
+                <button type="button" aria-label="Descer" disabled={i === value.length - 1} onClick={() => move(i, 1)}><Icon name="right" size={14} style={{ transform: "rotate(90deg)" }} /></button>
+                <button type="button" aria-label="Remover" onClick={() => onChange(value.filter(x => x !== a))}><Icon name="x" size={14} /></button>
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : <p className="rot-hint">Adicione paradas com lugares ou escolha as vibes abaixo.</p>}
+      {rest.length > 0 && (
+        <div className="hero2-vibes rot-vibes vibe-order-add">
+          {rest.map(a => <VibePill key={a.id} aff={a.id} size="sm" onClick={() => onChange([...value, a.id])} />)}
+        </div>
+      )}
+      {error && <span className="auth-error" role="alert">{error}</span>}
+    </div>
+  );
+}
+
+const stepFromPlace = (p) => blankStep({ place: p.id, title: p.name });
 
 // Monta o rascunho inicial: edição, cópia (?copiar=) ou novo com um lugar (?lugar=)
 function initialDraft({ id, lugar, copiar }) {
@@ -26,7 +61,7 @@ function initialDraft({ id, lugar, copiar }) {
   }
   const d = blankRoteiro();
   const p = lugar && placeById(lugar);
-  if (p) { d.steps = [stepFromPlace(p)]; d.aff = p.affs?.[0] || ""; }
+  if (p) { d.steps = [stepFromPlace(p)]; d.vibes = vibesFromPlaces([p]); }
   return d;
 }
 
@@ -58,6 +93,10 @@ function Editor({ start, isNew }) {
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
   useEffect(() => { if (Object.keys(errors).length) setErrors(roteiroErrors(d)); }, [d]); // eslint-disable-line
+  // vibes automáticas: seguem os lugares das paradas até a pessoa editar a lista
+  const suggested = vibesFromPlaces(d.steps.map(s => s.place && placeById(s.place)));
+  const sugKey = suggested.join(",");
+  useEffect(() => { if (d.vibesAuto && d.vibes.join(",") !== sugKey) set({ vibes: suggested }); }, [sugKey, d.vibesAuto]); // eslint-disable-line
 
   function move(i, dir) {
     const j = i + dir; if (j < 0 || j >= d.steps.length) return;
@@ -74,7 +113,7 @@ function Editor({ start, isNew }) {
   async function save() {
     const e = roteiroErrors(d);
     setErrors(e);
-    if (Object.keys(e).length) { setTab(e.title || e.aff ? "info" : "paradas"); return; }
+    if (Object.keys(e).length) { setTab(e.title ? "info" : e.vibes ? "vibes" : "paradas"); return; }
     setBusy(true); setMsg("");
     try {
       const saved = await saveMyRoteiro(d);
@@ -112,7 +151,7 @@ function Editor({ start, isNew }) {
         <div className="rot-editor-grid">
           <div>
             <div className="underline-tabs" role="tablist">
-              {[["info", "Informações", errors.title || errors.aff], ["paradas", `Paradas (${d.steps.length})`, errors.steps], ["dicas", "Dicas e anotações"]].map(([k, l, err]) => (
+              {[["info", "Conteúdo", errors.title], ["detalhes", "Detalhes práticos"], ["vibes", "Vibes", errors.vibes], ["paradas", `Paradas (${d.steps.length})`, errors.steps]].map(([k, l, err]) => (
                 <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}{err && <span className="tab-err" aria-label="com erro">!</span>}</button>
               ))}
             </div>
@@ -125,23 +164,14 @@ function Editor({ start, isNew }) {
                 <F label="Resumo" hint="Uma ou duas frases sobre o clima do roteiro.">
                   {(id) => <textarea id={id} rows={2} maxLength={240} value={d.desc} onChange={(e) => set({ desc: e.target.value })} />}
                 </F>
-                <div className="rot-field">
-                  <span className="rot-label">Vibe principal <i>*</i></span>
-                  <div className="hero2-vibes rot-vibes" role="radiogroup" aria-label="Vibe principal">
-                    {AFFINITIES.map(a => <VibePill key={a.id} aff={a.id} active={d.aff === a.id} onClick={() => set({ aff: a.id, vibes: d.vibes.filter(v => v !== a.id) })} />)}
-                  </div>
-                  {errors.aff && <span className="auth-error" role="alert">{errors.aff}</span>}
-                </div>
-                <div className="rot-field">
-                  <span className="rot-label">Outras vibes</span>
-                  <div className="hero2-vibes rot-vibes">
-                    {AFFINITIES.filter(a => a.id !== d.aff).map(a => <VibePill key={a.id} aff={a.id} size="sm" active={d.vibes.includes(a.id)}
-                      onClick={() => set({ vibes: d.vibes.includes(a.id) ? d.vibes.filter(v => v !== a.id) : [...d.vibes, a.id] })} />)}
-                  </div>
-                </div>
                 <F label="Sobre este roteiro" hint="Opcional. Conte o que torna esse dia especial.">
                   {(id) => <textarea id={id} rows={4} maxLength={1500} value={d.about} onChange={(e) => set({ about: e.target.value })} />}
                 </F>
+              </section>
+            )}
+
+            {tab === "detalhes" && (
+              <section className="rot-form">
                 <div className="rot-form-2">
                   <F label="Tempo total">{(id) => <input id={id} value={d.stats.tempo} maxLength={40} onChange={(e) => setStats({ tempo: e.target.value })} placeholder="4 a 6 horas" />}</F>
                   <F label="Ideal para">{(id) => <input id={id} value={d.stats.ideal} maxLength={60} onChange={(e) => setStats({ ideal: e.target.value })} placeholder="Casal, amigos, família…" />}</F>
@@ -152,6 +182,20 @@ function Editor({ start, isNew }) {
                     {INVEST_LABELS.map((l, i) => <button key={l} type="button" role="radio" aria-checked={d.stats.invest === i} className={d.stats.invest === i ? "on" : ""} onClick={() => setStats({ invest: i })}>{i ? "$".repeat(i) + " " : ""}{l}</button>)}
                   </div>
                 </div>
+                <div className="rot-form-2">
+                  <F label="Melhor horário">{(id) => <input id={id} value={d.tips.horario} maxLength={60} onChange={(e) => setTips({ horario: e.target.value })} placeholder="Sábado de manhã" />}</F>
+                  <F label="Como chegar">{(id) => <input id={id} value={d.tips.comoChegar} maxLength={120} onChange={(e) => setTips({ comoChegar: e.target.value })} placeholder="Metrô até a primeira parada, depois a pé" />}</F>
+                </div>
+                <F label="Minhas anotações" hint="Aparece em destaque na página do roteiro.">{(id) => <textarea id={id} rows={3} maxLength={300} value={d.tips.dica} onChange={(e) => setTips({ dica: e.target.value })} />}</F>
+                <F label="Não esqueça">{(id) => <textarea id={id} rows={2} maxLength={200} value={d.tips.lembrete} onChange={(e) => setTips({ lembrete: e.target.value })} placeholder="Protetor solar, canga, dinheiro para a feira…" />}</F>
+              </section>
+            )}
+
+            {tab === "vibes" && (
+              <section className="rot-form">
+                <VibeOrder value={d.vibes} auto={d.vibesAuto} error={errors.vibes}
+                  onChange={(vibes) => set({ vibes, vibesAuto: false })}
+                  onAuto={() => set({ vibes: suggested, vibesAuto: true })} canAuto={suggested.length > 0} />
               </section>
             )}
 
@@ -171,11 +215,10 @@ function Editor({ start, isNew }) {
                         </div>
                       </div>
                       <PlacePicker value={s.place} exclude={usedPlaces}
-                        onChange={(pid) => { const p = placeById(pid); setStep(i, p ? { place: pid, title: !s.title || placeById(s.place)?.name === s.title ? p.name : s.title, sub: s.sub || p.sub || "" } : { place: "" }); }} />
-                      <div className="rot-form-3">
+                        onChange={(pid) => { const p = placeById(pid); setStep(i, p ? { place: pid, title: !s.title || placeById(s.place)?.name === s.title ? p.name : s.title } : { place: "" }); }} />
+                      <div className="rot-form-2">
                         <F label="Horário">{(id) => <input id={id} value={s.time} maxLength={30} onChange={(e) => setStep(i, { time: e.target.value })} placeholder="10h – 12h" />}</F>
                         <F label="Título da parada" required>{(id) => <input id={id} value={s.title} maxLength={90} onChange={(e) => setStep(i, { title: e.target.value })} placeholder={s.place ? "" : "Ex.: Piquenique no parque"} />}</F>
-                        <F label="Subtítulo">{(id) => <input id={id} value={s.sub} maxLength={90} onChange={(e) => setStep(i, { sub: e.target.value })} placeholder="Café da manhã sem pressa" />}</F>
                       </div>
                       <F label="Anotação">{(id) => <textarea id={id} rows={2} maxLength={400} value={s.desc} onChange={(e) => setStep(i, { desc: e.target.value })} placeholder="O que pedir, onde sentar, quanto tempo ficar…" />}</F>
                       <label className="auth-check"><input type="checkbox" checked={s.optional} onChange={(e) => setStep(i, { optional: e.target.checked })} /><span>Parada opcional</span></label>
@@ -201,21 +244,15 @@ function Editor({ start, isNew }) {
               </section>
             )}
 
-            {tab === "dicas" && (
-              <section className="rot-form">
-                <F label="Minhas anotações" hint="Aparece em destaque na página do roteiro.">{(id) => <textarea id={id} rows={3} maxLength={300} value={d.tips.dica} onChange={(e) => setTips({ dica: e.target.value })} />}</F>
-                <div className="rot-form-2">
-                  <F label="Melhor horário">{(id) => <input id={id} value={d.tips.horario} maxLength={60} onChange={(e) => setTips({ horario: e.target.value })} placeholder="Sábado de manhã" />}</F>
-                  <F label="Como chegar">{(id) => <input id={id} value={d.tips.comoChegar} maxLength={120} onChange={(e) => setTips({ comoChegar: e.target.value })} placeholder="Metrô até a primeira parada, depois a pé" />}</F>
-                </div>
-                <F label="Não esqueça">{(id) => <textarea id={id} rows={2} maxLength={200} value={d.tips.lembrete} onChange={(e) => setTips({ lembrete: e.target.value })} placeholder="Protetor solar, canga, dinheiro para a feira…" />}</F>
-              </section>
-            )}
           </div>
 
           <aside className="rot-editor-side">
             <div className="rot-side-card">
-              <h2 className="h2t">Resumo</h2>
+              <h2 className="h2t">Prévia do card</h2>
+              <div className="rot-side-preview" aria-hidden="true">
+                <RoteiroCard r={{ ...d, title: d.title || "Nome do roteiro" }} mine />
+              </div>
+              <h2 className="h2t">Paradas</h2>
               <ol className="rot-side-steps">
                 {d.steps.map((s, i) => (
                   <li key={i}><span className="step-num" style={{ "--pin": STEP_COLORS[i % STEP_COLORS.length] }}>{i + 1}</span>
