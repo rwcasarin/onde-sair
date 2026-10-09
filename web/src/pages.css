@@ -992,3 +992,23 @@ a.btn-pill { text-decoration: none; }
 .radar-chip { padding: 7px 14px; border: 1px solid transparent; border-radius: 999px; background: #fff; color: var(--heading); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(30,21,80,.15); }
 .radar-chip:hover { box-shadow: inset 0 0 0 1px var(--heading); }
 .radar-chip.on, .radar-chip.on:hover { background: var(--heading); color: #fff; box-shadow: none; }
+
+/* ---------- Topo do lugar: vibes pequenas, tags e ações em dois níveis ---------- */
+.hero2-place .place-vibes-sm { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+.hero2-place .place-tags { margin: 12px 0 0; }
+.hero2-place .place-meta { margin: 16px 0 0; }
+.place-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 22px; }
+.place-actions .act-row { margin-top: 0; }
+/* 1ª linha: ação principal com texto + canais do lugar */
+.act-cta { display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--heading); color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: box-shadow .25s ease, transform .25s ease; }
+.act-cta:hover { box-shadow: 0 10px 24px -12px rgba(42,28,94,.7); transform: translateY(-1px); }
+.act-cta:focus-visible { outline: 3px solid var(--c-teal); outline-offset: 2px; }
+.act-btn.act-round { width: 48px; height: 48px; padding: 0; justify-content: center; text-decoration: none; }
+/* 2ª linha: ações do visitante, menores e mais leves */
+.act-sub { gap: 8px; }
+.act-btn.act-sm { height: 40px; min-width: 40px; padding: 0 11px; border-width: 1px; border-color: var(--line-strong); color: var(--heading); }
+.act-btn.act-sm:hover { border-color: var(--heading); }
+.act-btn.act-sm.on { border-color: var(--c-magenta); }
+/* Por que ir: texto ao lado do ícone */
+.why-row li { flex-direction: row; align-items: center; gap: 12px; }
+.why-row .why-icon { flex: none; }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CITIES, PLACES, ROTEIROS, VIBE_STYLE, PRICE_RANGE, placeImg, placeGallery, roteiroImg } from "../data.js";
+import { CITIES, PLACES, ROTEIROS, VIBE_STYLE, placeImg, placeGallery, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
@@ -27,6 +27,13 @@ const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${
 
 const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["confira", "Confira também"]];
 
+// WhatsApp: só para celular brasileiro (DDD + 9 dígitos começando com 9)
+function whatsappLink(phone = "") {
+  let d = String(phone).replace(/\D/g, "");
+  if (d.startsWith("55") && d.length >= 12) d = d.slice(2);
+  return /^\d{2}9\d{8}$/.test(d) ? `https://wa.me/55${d}` : null;
+}
+
 export function Detalhe({ id }) {
   const nav = useNav();
   const { name: city } = useCity();
@@ -40,7 +47,8 @@ export function Detalhe({ id }) {
   const [shared, setShared] = useState(false);
   const [mapSel, setMapSel] = useState(null);       // pin selecionado no mapa "Onde fica"
   const saved = faves.has(p.id);
-  const firstAff = affById(p.affs[0]);
+  const insta = instaProfile(p.insta);
+  const whats = whatsappLink(p.phone);
 
   const gallery = placeGallery(p.id);
   const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
@@ -76,9 +84,17 @@ export function Detalhe({ id }) {
         <HeroMedia img={placeImg(p.id)} note={p.note} shape="diagonal" hint="Foto do lugar · ~1400×800" />
         <div className="hero2-copy">
           <Crumbs items={[["Início", "home"], ["Lugares", "lista"], [p.bairro, "lista", { q: p.bairro }], [p.name]]} />
-          <span className={"eyebrow-tag " + VIBE_STYLE[p.affs[0]].cls}>{firstAff?.label}</span>
+          {/* vibes (pequenas) → nome → descrição → tags → informações → ações */}
+          <div className="place-vibes place-vibes-sm">
+            {p.affs.map(a => <VibePill key={a} aff={a} size="sm" />)}
+          </div>
           <h1 className="page-title">{p.name}</h1>
           <p className="hero2-lede">{p.tagline}</p>
+          {p.tags?.length > 0 && (
+            <ul className="place-tags" aria-label="Tags">
+              {p.tags.map(t => <li key={t}>{t}</li>)}
+            </ul>
+          )}
 
           <ul className="place-meta">
             <li><Icon name="pin" size={18} fill /> {p.bairro}</li>
@@ -86,24 +102,20 @@ export function Detalhe({ id }) {
             <li><Icon name="utensils" size={18} /> {p.cuisine}</li>
           </ul>
 
-          {/* hierarquia: vibes (médio) → tags (pequeno, discreto) → ações (pequeno, mesmo tamanho) */}
-          <div className="hero2-vibes place-vibes">
-            {p.affs.map(a => <VibePill key={a} aff={a} />)}
-          </div>
-          {p.tags?.length > 0 && (
-            <ul className="place-tags" aria-label="Tags">
-              {p.tags.map(t => <li key={t}>{t}</li>)}
-            </ul>
-          )}
-
-          {/* ações: só ícones; o texto aparece no hover/foco */}
-          <div className="place-actions act-row">
-            <button className="act-btn primary" onClick={() => goTab("chegar")} aria-label="Como chegar"><Icon name="send" size={18} /><span className="act-label">Como chegar</span></button>
-            <button className={"act-btn" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
-              <Icon name="heart" size={18} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
-            </button>
-            <AddToRoteiro place={p} className="act-btn" iconSize={18} compact />
-            <button className={"act-btn" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={18} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+          {/* ações: 1ª linha — chegar e falar com o lugar; 2ª linha — ações do visitante (só ícone, texto no hover) */}
+          <div className="place-actions">
+            <div className="act-row act-main">
+              <button className="act-cta" onClick={() => goTab("chegar")}><Icon name="send" size={18} /> Como chegar</button>
+              {insta && <a className="act-btn act-round" href={insta} target="_blank" rel="noreferrer" aria-label={"Instagram " + p.insta} title={"Instagram " + p.insta}><Icon name="instagram" size={19} /></a>}
+              {whats && <a className="act-btn act-round" href={whats} target="_blank" rel="noreferrer" aria-label="Conversar no WhatsApp" title="WhatsApp"><Icon name="whatsapp" size={19} /></a>}
+            </div>
+            <div className="act-row act-sub">
+              <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
+                <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
+              </button>
+              <AddToRoteiro place={p} className="act-btn act-sm" iconSize={17} compact />
+              <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+            </div>
           </div>
         </div>
       </section>
@@ -185,7 +197,7 @@ export function Detalhe({ id }) {
             <h2 className="h2t">Informações úteis</h2>
             <dl>
               <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>
-              <div><Icon name="dollar" size={20} /><dt>Faixa de preço</dt><dd><PriceDots level={p.priceLevel} /> ({PRICE_RANGE[p.priceLevel]} por pessoa)</dd></div>
+              <div><Icon name="dollar" size={20} /><dt>Faixa de preço</dt><dd><PriceDots level={p.priceLevel} /></dd></div>
               <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{fullAddress(p)}{p.cep && <><br />CEP {p.cep}</>}</dd></div>
               <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{p.phone}</dd></div>
               <div><Icon name="link" size={20} /><dt>Site</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.site}</a></dd></div>
