@@ -2,7 +2,8 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { STATUS, setMedia, removeMedia, getDB } from "./store.js";
+import { STATUS, setMedia, removeMedia, getDB, can } from "./store.js";
+import { currentPath, href } from "../router.js";
 
 // ---------------------------------------------------------------------
 // Contexto do painel: usuário, navegação, toasts, confirmação
@@ -76,7 +77,7 @@ export function Badge({ tone = "gray", children }) { return <span className={"a-
 // ---------------------------------------------------------------------
 // Estrutura de página
 // ---------------------------------------------------------------------
-export function PageHeader({ title, subtitle, crumbs, actions, children }) {
+export function PageHeader({ title, subtitle, crumbs, actions, children, nav }) {
   const { go } = useAdmin();
   return (
     <header className="a-page-head">
@@ -93,6 +94,7 @@ export function PageHeader({ title, subtitle, crumbs, actions, children }) {
         {children}
       </div>
       {actions && <div className="a-page-actions">{actions}</div>}
+      {nav && <SectionNav items={nav} />}
     </header>
   );
 }
@@ -119,6 +121,31 @@ export function Empty({ icon = "info", title, text, action }) {
       {text && <p>{text}</p>}
       {action}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Menu interno de uma área do painel (padrão para seções com mais de uma tela,
+// ex.: Radar › Posts | Categorias). Cada item é uma rota; o item ativo é o da URL.
+// items: [{ path, label, badge?, perm? }] — itens com perm só aparecem para quem tem a permissão.
+// Use PageHeader nav={…} (ou ContentList nav={…}) com a mesma lista em todas as telas da área.
+// ---------------------------------------------------------------------
+export function SectionNav({ items }) {
+  const { go, user } = useAdmin();
+  const here = currentPath().split("?")[0].replace(/^\/admin\/?/, "").replace(/\/$/, "");
+  const vis = items.filter(i => !i.perm || can(user, i.perm));
+  if (vis.length < 2) return null;
+  // ativo: o item cujo caminho é o mais longo que bate com a URL (radar/categorias vence radar)
+  const active = vis.filter(i => here === i.path || here.startsWith(i.path + "/")).sort((a, b) => b.path.length - a.path.length)[0];
+  return (
+    <div className="a-subnav-row"><nav className="a-subnav" aria-label="Seções desta área">
+      {vis.map(i => (
+        <a key={i.path} href={href("/admin/" + i.path)} aria-current={active === i ? "page" : undefined} className={active === i ? "on" : ""}
+          onClick={(e) => { e.preventDefault(); if (active !== i) go(i.path); }}>
+          {i.label}{i.badge != null && i.badge !== 0 && <span className="a-tab-badge">{i.badge}</span>}
+        </a>
+      ))}
+    </nav></div>
   );
 }
 

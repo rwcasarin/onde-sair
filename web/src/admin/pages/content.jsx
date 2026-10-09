@@ -22,7 +22,7 @@ export function openOnSite(screen, params = {}) {
 // ---------------------------------------------------------------------
 // Lista com abas de status, busca, filtros e ações em lote
 // ---------------------------------------------------------------------
-export function ContentList({ coll, title, subtitle, columns, filters = [], searchText, newLabel, actions }) {
+export function ContentList({ coll, title, subtitle, columns, filters = [], searchText, newLabel, actions, nav }) {
   const { db, user, go, toast, saved, confirm } = useAdmin();
   const meta = COLL[coll];
   const [tab, setTab] = useState("todos");
@@ -63,7 +63,7 @@ export function ContentList({ coll, title, subtitle, columns, filters = [], sear
 
   return (
     <>
-      <PageHeader title={title} subtitle={subtitle} crumbs={[["Painel", "/"], [title]]}
+      <PageHeader title={title} subtitle={subtitle} crumbs={[["Painel", "/"], [title]]} nav={nav}
         actions={<>{actions}<Btn kind="primary" icon="plus" onClick={() => go(`${meta.path}/novo`)}>{newLabel}</Btn></>} />
       <Card pad={false}>
         <div className="a-card-pad a-card-pad-tight">

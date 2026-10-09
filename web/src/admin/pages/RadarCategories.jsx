@@ -1,12 +1,20 @@
 // Categorias do Radar: nome e cor da etiqueta. A ordem aqui é a ordem dos filtros em /radar.
 import { useEffect, useState } from "react";
 import { AIcon, Btn, Card, Input, Select, PageHeader, Modal, useAdmin, useDraft, Empty } from "../kit.jsx";
-import { saveRadarCategories, slugify } from "../store.js";
+import { saveRadarCategories, slugify, can } from "../store.js";
+import { radarNav } from "./Stories.jsx";
 
 export const TONES = [["purple", "Roxo"], ["pink", "Rosa"], ["orange", "Laranja"], ["yellow", "Amarelo"], ["green", "Verde"], ["teal", "Turquesa"], ["sky", "Azul"], ["lavender", "Lavanda"]];
 const norm = (s = "") => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 export function RadarCategoriesPage() {
+  const { user } = useAdmin();
+  if (!can(user, "content.publish")) return <><PageHeader title="Radar" crumbs={[["Painel", "/"], ["Radar", "radar"], ["Categorias"]]} />
+    <Empty title="Sem acesso às categorias" text="Só quem publica conteúdo gerencia as categorias do Radar." /></>;
+  return <CategoriesEditor />;
+}
+
+function CategoriesEditor() {
   const { db, user, toast, saved, setDirty } = useAdmin();
   const { draft, set, dirty, commit } = useDraft({ cats: db.radarCategories || [], moves: {} });
   const [removing, setRemoving] = useState(null);   // categoria em uso sendo excluída
@@ -41,8 +49,8 @@ export function RadarCategoriesPage() {
 
   return (
     <>
-      <PageHeader title="Categorias do Radar" crumbs={[["Painel", "/"], ["Radar", "radar"], ["Categorias"]]}
-        subtitle="As etiquetas dos posts e os filtros da página do Radar. Renomear ou trocar a cor atualiza todos os posts da categoria."
+      <PageHeader title="Radar" crumbs={[["Painel", "/"], ["Radar", "radar"], ["Categorias"]]} nav={radarNav(db)}
+        subtitle="Categorias: as etiquetas dos posts e os filtros da página do Radar. Renomear ou trocar a cor atualiza todos os posts da categoria."
         actions={<><Btn icon="plus" onClick={add}>Nova categoria</Btn><Btn kind="primary" icon="check" disabled={!dirty} onClick={save}>Salvar categorias</Btn></>} />
       {dirty && <p className="a-dirty a-dirty-bar"><i /> Alterações não salvas</p>}
       {!cats.length && <Empty title="Nenhuma categoria" action={<Btn onClick={add}>Criar a primeira</Btn>} />}
