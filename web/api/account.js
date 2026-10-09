@@ -10,21 +10,29 @@ import { hashPassword, verifyPassword } from "./_lib/auth.js";
 import { loadUsers, updateUsers, publicUser, userCookie, clearUserCookie, currentUser, newUserId } from "./_lib/users.js";
 import { json, fail, body, handle, isCmsCall } from "./_lib/http.js";
 import { cleanRoteiros } from "../shared/myroteiros.js";
+import { readJSON } from "./_lib/storage.js";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map();
 const action = (request) => new URL(request.url).searchParams.get("action");
 const clean = (s, max = 80) => String(s || "").trim().slice(0, max);
+// pausa de contas e interações (Configurações › Contas e interações): só sair continua liberado
+async function accountsPaused() {
+  const c = await readJSON("content").catch(() => null);
+  return !!c?.data?.settings?.accounts?.paused;
+}
+const pausedFail = () => fail(503, "paused", { message: "Contas e interações estão pausadas por alguns instantes." });
 
 export const GET = handle(async (request) => {
   if (action(request) !== "me") return fail(404, "Ação desconhecida");
-  const u = await currentUser(request);
-  return json({ user: u ? publicUser(u) : null });
+  const [u, paused] = await Promise.all([currentUser(request), accountsPaused()]);
+  return json({ user: u && !paused ? publicUser(u) : null, paused });
 });
 
 export const POST = handle(async (request) => {
   if (!isCmsCall(request)) return fail(403, "Requisição inválida");
   const a = action(request);
+  if (a !== "logout" && await accountsPaused()) return pausedFail();
 
   if (a === "signup") {
     const { name, email, password, city, marketing } = await body(request);
@@ -83,6 +91,7 @@ export const POST = handle(async (request) => {
 
 export const PATCH = handle(async (request) => {
   if (!isCmsCall(request) || action(request) !== "update") return fail(403, "Requisição inválida");
+  if (await accountsPaused()) return pausedFail();
   const me = await currentUser(request);
   if (!me) return fail(401, "Entre na sua conta.");
   const p = await body(request);
@@ -103,6 +112,7 @@ export const PATCH = handle(async (request) => {
 
 export const DELETE = handle(async (request) => {
   if (!isCmsCall(request) || action(request) !== "delete") return fail(403, "Requisição inválida");
+  if (await accountsPaused()) return pausedFail();
   const me = await currentUser(request);
   if (!me) return fail(401, "Entre na sua conta.");
   await updateUsers(users => { const i = users.findIndex(y => y.id === me.id); if (i >= 0) users.splice(i, 1); });

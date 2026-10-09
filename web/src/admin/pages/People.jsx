@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AIcon, Badge, Btn, Card, DataTable, Input, Modal, PageHeader, Select, Toolbar, FilterSelect, useAdmin } from "../kit.jsx";
-import { updateMembers, inviteMember, updateTeamMember, removeTeamMember, ROLES, PERMISSIONS, rolePerms, relTime, fmtDate } from "../store.js";
+import { updateMembers, inviteMember, updateTeamMember, removeTeamMember, ROLES, PERMISSIONS, rolePerms, relTime, fmtDate, can } from "../store.js";
+import { href } from "../../router.js";
 
 const MTONE = { ativo: "green", pendente: "amber", bloqueado: "red" };
 
@@ -8,7 +9,7 @@ const MTONE = { ativo: "green", pendente: "amber", bloqueado: "red" };
 // Usuários do site
 // ---------------------------------------------------------------------
 export function MembersPage() {
-  const { db, user, toast, confirm } = useAdmin();
+  const { db, user, toast, confirm, go } = useAdmin();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
   const [city, setCity] = useState("");
@@ -35,6 +36,13 @@ export function MembersPage() {
     <>
       <PageHeader title="Usuários" crumbs={[["Painel", "/"], ["Usuários"]]} subtitle="Pessoas cadastradas no site."
         actions={<Btn icon="download" onClick={exportCsv}>Exportar CSV</Btn>} />
+      {db.settings.accounts?.paused && (
+        <div className="a-alert tone-warn" role="status">
+          <AIcon name="alert" size={16} />
+          <div><strong>Contas e interações estão pausadas.</strong> Login, cadastro, favoritos e roteiros dos usuários estão indisponíveis no site.{" "}
+            {can(user, "settings.edit") && <a href={href("/admin/configuracoes/contas")} onClick={(e) => { e.preventDefault(); go("configuracoes/contas"); }}>Gerenciar a pausa</a>}</div>
+        </div>
+      )}
       <div className="a-kpis a-kpis-4">
         <div className="a-kpi static"><span className="a-kpi-label">Cadastrados</span><strong className="a-kpi-value">{db.members.length}</strong></div>
         <div className="a-kpi static"><span className="a-kpi-label">Ativos</span><strong className="a-kpi-value">{db.members.filter(x => x.status === "ativo").length}</strong></div>

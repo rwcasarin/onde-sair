@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useContext } from "react";
 import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, cityName } from "./data.js";
 import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
@@ -19,6 +19,20 @@ import { NotFound } from "./screens/notfound.jsx";
 import { Pagina } from "./screens/pagina.jsx";
 import { htmlToText } from "./richtext.js";
 import { account, loadAccount, subscribeAccount, updateAccount, setIntent, takeIntent, findMyRoteiro } from "./account.js";
+
+const NO_FAVES = new Set();
+
+// tela das áreas de conta enquanto contas e interações estão pausadas
+function AccountsPaused() {
+  const nav = useContext(NavContext);
+  return (
+    <main className="accounts-paused">
+      <h1>Pausa rápida.</h1>
+      <p>{SITE.accountsMessage}</p>
+      <button className="btn-pill" onClick={() => nav("home")}>Voltar para o início</button>
+    </main>
+  );
+}
 
 // telas que exigem conta (sem sessão, levam para /entrar)
 const PRIVATE = new Set(["perfil", "notificacoes", "meuRoteiro", "meuRoteiroEditar"]);
@@ -127,9 +141,11 @@ export default function App() {
   }, []);
 
   // ação que exige conta: guarda a intenção, leva ao login e volta para onde estava
-  const ask = useCallback((intent) => { setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
+  const ask = useCallback((intent) => {
+    if (SITE.accountsPaused) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
 
   const toggleFave = useCallback((id) => {
+    if (SITE.accountsPaused) return;
     if (!account.user) return ask({ type: "fave", id });
     const next = new Set(favesRef.current);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -138,7 +154,9 @@ export default function App() {
   }, []);
 
   // páginas da conta exigem login; quem já entrou não vê /entrar
-  const blocked = ready && !user && PRIVATE.has(screen);
+  // pausa de contas (manutenção): o site segue navegável, sem sessão, favoritos nem roteiros próprios
+  const paused = !!SITE.accountsPaused;
+  const blocked = !paused && ready && !user && PRIVATE.has(screen);
   useEffect(() => { if (blocked) { setIntent({ type: "voltar", back: path }); go("/entrar", { replace: true }); } }, [blocked]); // eslint-disable-line
 
   // depois de entrar: conclui o que a pessoa tentou fazer sem conta
@@ -180,13 +198,14 @@ export default function App() {
   return (
     <NavContext.Provider value={nav}>
     <CityContext.Provider value={{ id: city, name: cityName(city), set: changeCity, onCityClick: () => nav("onboarding") }}>
-    <FavContext.Provider value={{ faves, toggle: toggleFave }}>
-    <AccountContext.Provider value={{ user, ask }}>
+    <FavContext.Provider value={{ faves: paused ? NO_FAVES : faves, toggle: toggleFave }}>
+    <AccountContext.Provider value={{ user: paused ? null : user, ask, paused }}>
       <div className="app">
         {SITE.announcement?.enabled && SITE.announcement.text && (
           <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
         )}
-        <TopNav current={screen} params={params} unread={unread} user={user} />
+        {paused && SITE.accountsBar && <div className="site-announce tone-yellow accounts-paused-bar" role="status">{SITE.accountsMessage}</div>}
+        <TopNav current={screen} params={params} unread={unread} user={paused ? null : user} paused={paused} />
         {screen === "home"         && <Home />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
@@ -195,11 +214,12 @@ export default function App() {
         {screen === "historias"    && <Historias />}
         {screen === "historia"     && <Historia key={key} id={params.id} />}
         {screen === "mapa"         && <Mapa key={key} id={params.id} />}
-        {screen === "perfil"       && user && <Perfil key={params.tab} user={user} tab={params.tab} />}
-        {screen === "meuRoteiro"   && user && <MeuRoteiro key={key} id={params.id} />}
-        {screen === "meuRoteiroEditar" && user && <MeuRoteiroEditor key={key} id={params.id} lugar={params.lugar} copiar={params.copiar} />}
-        {screen === "notificacoes" && user && <Notificacoes onMarkAllRead={() => setUnread(0)} />}
-        {screen === "entrar"       && <Entrar key={key} mode={params.mode} onDone={afterLogin} />}
+        {paused && (PRIVATE.has(screen) || screen === "entrar") && <AccountsPaused />}
+        {screen === "perfil"       && !paused && user && <Perfil key={params.tab} user={user} tab={params.tab} />}
+        {screen === "meuRoteiro"   && !paused && user && <MeuRoteiro key={key} id={params.id} />}
+        {screen === "meuRoteiroEditar" && !paused && user && <MeuRoteiroEditor key={key} id={params.id} lugar={params.lugar} copiar={params.copiar} />}
+        {screen === "notificacoes" && !paused && user && <Notificacoes onMarkAllRead={() => setUnread(0)} />}
+        {screen === "entrar"       && !paused && <Entrar key={key} mode={params.mode} onDone={afterLogin} />}
         {screen === "pagina"       && <Pagina key={key} id={params.id} />}
         {screen === "404"          && <NotFound />}
       </div>

@@ -129,7 +129,7 @@ export default function AdminApp() {
     notificacoes: <CampaignsPage />,
     cidades: <CitiesPage />,
     equipe: <TeamPage />,
-    configuracoes: <SettingsPage />,
+    configuracoes: <SettingsPage key={id || "geral"} initialTab={id} />,
   }[section];
 
   async function doLogout() {
@@ -183,6 +183,10 @@ export default function AdminApp() {
             <span className="a-top-mark" aria-hidden="true"><OSIcon /></span>
             <QuickSearch db={db} go={go} />
             <div className="a-top-right">
+              {db.settings.accounts?.paused && (
+                <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/contas")} onClick={(e) => { e.preventDefault(); go("configuracoes/contas"); }}
+                  title="Login, cadastro e interações dos usuários estão pausados"><i /> Contas pausadas</a>
+              )}
               <SyncPill />
               <a className="a-btn a-btn-ghost a-btn-sm a-hide-sm" href="#" onClick={(e) => { e.preventDefault(); goPath("/"); }}><AIcon name="ext" size={15} /> Ver site</a>
               <div className="a-user">
