@@ -996,7 +996,7 @@ a.btn-pill { text-decoration: none; }
 .radar-chip:not([class*="tone-"]).on { background: var(--heading); color: #fff; }
 .radar-filters:has(.radar-chip.on[class*="tone-"]) .radar-chip:not(.on) { opacity: .55; }
 .radar-filters:has(.radar-chip.on[class*="tone-"]) .radar-chip:not(.on):hover { opacity: 1; }
-.back-link { display: inline-flex; align-items: center; gap: 4px; margin: 22px 0 -8px; color: var(--heading); font-size: 14px; font-weight: 600; text-decoration: none; }
+.back-link { display: inline-flex; align-items: center; gap: 4px; margin: -6px 0 0; color: var(--heading); font-size: 14px; font-weight: 600; text-decoration: none; }
 .back-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- Topo do lugar: vibes pequenas, tags e ações em dois níveis ---------- */
