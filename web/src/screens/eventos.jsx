@@ -216,6 +216,9 @@ export function Evento({ id }) {
   const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
   const tabs = [["visao", "Visão geral"], ...(reasons.length ? [["porque", "Por que ir"]] : []), ...(showFotos ? [["fotos", "Fotos"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
   const calWhere = [where, address].filter(Boolean).join(", ");
+  // selo de situação (mesmas cores do bloco de data dos cards): acontecendo agora ou encerrado
+  const status = live ? <span className="event-status is-live"><i aria-hidden="true" />Agora</span>
+    : past ? <span className="event-status is-past">Encerrado</span> : null;
 
   // outros eventos: mesma categoria ou vibes em comum, os próximos primeiro
   const more = EVENTS.filter(x => x.id !== e.id && !isPast(x))
@@ -245,9 +248,8 @@ export function Evento({ id }) {
           </div>
           <h1 className="page-title">{e.title}</h1>
           {e.tagline && <p className="hero2-lede">{e.tagline}</p>}
-          {(past || live) && <p className={"event-status" + (live ? " is-live" : "")}>{live ? "Acontecendo agora" : "Este evento já aconteceu"}</p>}
           <ul className="place-meta">
-            <li><Icon name="calendar" size={18} /> {whenLabel(e)}</li>
+            <li><Icon name="calendar" size={18} /> {whenLabel(e)}{status}</li>
             {where && <li><Icon name="pin" size={18} fill /> {where}{e.bairro ? ` · ${e.bairro}` : ""}</li>}
           </ul>
           <div className="place-actions">
@@ -284,6 +286,7 @@ export function Evento({ id }) {
             {e.tags?.length > 0 && <ul className="place-tags" aria-label="Assuntos">{e.tags.map(t => <li key={t}>{t}</li>)}</ul>}
           </div>
           <aside className="event-box" aria-label="Data, valor e ingressos">
+            {status && <div className="event-box-status">{status}</div>}
             <div className="event-box-row">
               <Icon name="calendar" size={20} />
               <div>

@@ -213,7 +213,7 @@ export function EventCard({ e }) {
       <ImageSlot className="rot-index-img" src={eventImg(e.id)} alt={e.title} hint="16:10">
         {tag && (
           <span className={"event-date is-" + tag.kind} role="img" aria-label={tag.text} title={tag.text}>
-            <em>{tag.top}</em><strong>{tag.day}</strong><em>{tag.month}</em><b>{tag.hour}</b>
+            <em>{tag.kind === "live" && <i aria-hidden="true" />}{tag.top}</em><strong>{tag.day}</strong><em>{tag.month}</em><b>{tag.hour}</b>
           </span>
         )}
         <FaveButton id={e.id} className="fave fave-float" />
