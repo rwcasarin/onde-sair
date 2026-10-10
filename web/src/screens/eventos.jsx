@@ -309,6 +309,7 @@ export function Evento({ id }) {
                     )}
                     <strong className="event-day-hours">{hoursLabel(day)}</strong>
                   </div>
+                  {!sameHours && <span className="event-hours-note">Os horários mudam conforme o dia.</span>}
                 </div>
               </div>
             )}

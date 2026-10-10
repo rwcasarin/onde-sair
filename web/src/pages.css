@@ -1160,3 +1160,4 @@ a.btn-pill { text-decoration: none; }
 .event-day-pick > svg { position: absolute; right: 10px; pointer-events: none; color: var(--heading); }
 .event-box-row .event-hours-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 2px; }
 .event-box-row .event-when-line + .event-when-line { margin-top: 0; }
+.event-box-row span.event-hours-note { margin-top: 4px; font-size: 12.5px; color: var(--ink-3); }

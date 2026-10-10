@@ -128,20 +128,21 @@ export function periodLabel(e) {
 }
 export const dayLabel = (date) => fmtDay(parseLocal(date));
 const hmLabel = (t) => { if (!t) return ""; const [h, m] = t.split(":"); return +m ? `${+h}h${m}` : `${+h}h`; };
-export const hoursLabel = (day) => day.from && day.to ? `${hmLabel(day.from)} às ${hmLabel(day.to)}` : hmLabel(day.from) ? `a partir das ${hmLabel(day.from)}` : "Horário a confirmar";
+export const hoursLabel = (day) => day.from && day.to ? `Das ${hmLabel(day.from)} às ${hmLabel(day.to)}` : hmLabel(day.from) ? `A partir das ${hmLabel(day.from)}` : "Horário a confirmar";
 // dia mostrado por padrão: hoje (se o evento acontece hoje), senão o próximo dia, senão o primeiro
 export function defaultDay(days, now = new Date()) {
   const today = ymd(now);
   return days.find(d => d.date === today) || days.find(d => d.date > today) || days[0];
 }
 export const todayYmd = (now = new Date()) => ymd(now);
-// "De sexta 11 dez 26" / "Até domingo 13 dez 26" (um dia só: "Sexta 11 dez 26")
+// "De sexta, 11/12" / "até domingo, 13/12" (um dia só: "Sexta, 11/12")
 const WEEK_LONG = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
-export const fmtDayShortYear = (date) => { const d = parseLocal(date); return d ? `${WEEK_LONG[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]} ${String(d.getFullYear()).slice(2)}` : ""; };
+const pad2 = (n) => String(n).padStart(2, "0");
+export const fmtWeekDayMonth = (date) => { const d = parseLocal(date); return d ? `${WEEK_LONG[d.getDay()]}, ${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}` : ""; };
 export function periodLines(e) {
   const s = schedOf(e);
   if (!s.dateFrom) return [];
-  return s.dateTo && s.dateTo !== s.dateFrom ? [`De ${fmtDayShortYear(s.dateFrom)}`, `Até ${fmtDayShortYear(s.dateTo)}`] : [cap(fmtDayShortYear(s.dateFrom))];
+  return s.dateTo && s.dateTo !== s.dateFrom ? [`De ${fmtWeekDayMonth(s.dateFrom)}`, `até ${fmtWeekDayMonth(s.dateTo)}`] : [cap(fmtWeekDayMonth(s.dateFrom))];
 }
 // todos os dias do período com o mesmo horário?
 export const sameHoursAllDays = (days) => days.every(d => d.from === days[0]?.from && d.to === days[0]?.to);
