@@ -8,6 +8,7 @@ import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
+import { whatsappLink } from "./detalhe.jsx";
 import { slugify } from "../admin/store.js";
 import { currentPath, HASH_MODE } from "../router.js";
 import { CheckRow, toggleIn } from "./lista.jsx";
@@ -66,7 +67,7 @@ export function EventosLista() {
     history.replaceState(null, "", HASH_MODE ? "#" + url : url);
   }
 
-  const text = (e) => plain([e.title, e.tagline, e.desc, venueName(e), e.bairro, e.organizer, ...(e.tags || [])].join(" "));
+  const text = (e) => plain([e.title, e.tagline, e.desc, venueName(e), e.bairro, ...(e.tags || [])].join(" "));
   const anyCity = useMemo(() => all.filter(e => (showPast || !isPast(e, now)) && (!vibe || (e.affs || []).includes(vibe)) && (!query || text(e).includes(plain(query)))), [all, vibe, query, showPast]); // eslint-disable-line
   const cityCounts = useMemo(() => anyCity.reduce((m, e) => (e.city ? { ...m, [e.city]: (m[e.city] || 0) + 1 } : m), {}), [anyCity]);
   const base = useMemo(() => anyCity.filter(e => !cityF || e.city === cityF), [anyCity, cityF]);
@@ -203,6 +204,7 @@ export function Evento({ id }) {
   const sameDay = s && f && s.toDateString() === f.toDateString();
   const saved = faves.has(e.id);
   const insta = instaProfile(e.insta);
+  const whats = whatsappLink(e.whatsapp);
   const ticketUrl = e.ticket?.url && /^https?:\/\//.test(e.ticket.url) ? e.ticket.url : null;
   const ticketLabel = e.ticket?.label || (e.price?.free ? "Garantir ingresso" : "Comprar ingresso");
   const reasons = (e.reasons || []).filter(r => r[1]);
@@ -252,6 +254,7 @@ export function Evento({ id }) {
                 ? <a className="act-cta" href={ticketUrl} target="_blank" rel="noreferrer"><Icon name="star" size={18} /> {ticketLabel}</a>
                 : <button className="act-cta" onClick={() => goTab("chegar")}><Icon name="send" size={18} /> Como chegar</button>}
               {insta && <a className="act-btn act-round act-insta" href={insta} target="_blank" rel="noreferrer" aria-label={"Instagram " + e.insta} title={"Instagram " + e.insta}><Icon name="instagram" size={19} /></a>}
+              {whats && <a className="act-btn act-round act-whats" href={whats} target="_blank" rel="noreferrer" aria-label="Conversar no WhatsApp" title="WhatsApp"><Icon name="whatsapp" size={19} /></a>}
             </div>
             <div className="act-row act-sub">
               {!paused && <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(e.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
@@ -296,6 +299,12 @@ export function Evento({ id }) {
             {e.doors && (
               <div className="event-box-row"><Icon name="clock" size={20} /><div><span className="event-box-label">Abertura da casa</span><strong>{e.doors}</strong></div></div>
             )}
+            {(where || address) && (
+              <div className="event-box-row">
+                <Icon name="pin" size={20} />
+                <div><span className="event-box-label">Local</span>{where && <strong>{where}</strong>}{address && <span>{address}</span>}</div>
+              </div>
+            )}
             <div className="event-box-row">
               <Icon name="coins" size={20} />
               <div><span className="event-box-label">Valor</span><strong>{priceLabel(e)}</strong>{e.price?.note && <span>{e.price.note}</span>}</div>
@@ -307,7 +316,6 @@ export function Evento({ id }) {
                 : <p className="event-box-note">{e.ticket?.required ? "Ingressos na bilheteria do local." : e.price?.free ? "Entrada livre, sem necessidade de ingresso." : "Pagamento no local."}</p>}
             <dl className="event-box-facts">
               {e.age && <div><dt>Classificação</dt><dd>{ageLabel(e.age)}</dd></div>}
-              {e.organizer && <div><dt>Organização</dt><dd>{e.organizer}{insta && <> · <a href={insta} target="_blank" rel="noreferrer">{e.insta}</a></>}</dd></div>}
             </dl>
             {!past && (
               <p className="event-box-cal"><Icon name="calendar" size={14} /> Adicionar à agenda:{" "}

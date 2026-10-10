@@ -199,7 +199,7 @@ function seedEvents(d, at) {
       status: "publicado", city: p?.city || "sorocaba", venueName: "", end: "", bairro: "", cep: "", geo: null, placeId: "",
       ...(p ? { end: p.end, bairro: p.bairro, city: p.city, cep: p.cep || "", geo: p.geo || null, placeId: p.placeId || "", map: p.map } : { map: { x: 50, y: 50, label: "" } }),
       ...e, startAt: `${ymd(day)}T${from}`, endAt: `${ymd(last)}T${to}`,
-      organizer: p ? p.name : "Coletivo Vinil Sorocaba", insta: p?.insta || "", site: "", doors: "", showGallery: true,
+      insta: p?.insta || "", whatsapp: p?.whatsapp || "", site: "", doors: "", showGallery: true,
       reasons: [], seo: { title: "", desc: "" }, tint: p?.tint || "tint-eco",
       createdAt: at, updatedAt: at, updatedBy: "Curadoria · Onde Sair",
     };

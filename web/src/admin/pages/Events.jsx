@@ -24,7 +24,7 @@ export function EventsList() {
     <ContentList
       coll="events" title="Eventos" newLabel="Novo evento" nav={eventsNav(db)}
       subtitle="A agenda da cidade. Só os publicados aparecem no site; eventos encerrados saem da agenda sozinhos."
-      searchText={(e) => `${e.title} ${e.venueName || ""} ${e.bairro} ${e.organizer || ""} ${(e.tags || []).join(" ")}`}
+      searchText={(e) => `${e.title} ${e.venueName || ""} ${e.bairro} ${(e.tags || []).join(" ")}`}
       filters={[
         { key: "when", label: "Quando", options: [["proximos", "Próximos"], ["encerrados", "Encerrados"]], test: (e, v) => v === "encerrados" ? isPast(e) : !isPast(e) },
         { key: "cat", label: "Categoria", options: cats.map(c => [c.id, c.label]), test: (e, v) => e.category === v },
@@ -57,7 +57,7 @@ const blank = () => {
     title: "", slug: "", tagline: "", desc: "", note: "", category: "", affs: [], tags: [],
     startAt: toLocal(s), endAt: toLocal(f), doors: "",
     price: { free: false, from: "", to: "", note: "" }, ticket: { required: false, url: "", label: "" },
-    organizer: "", insta: "", site: "", age: "livre", reasons: [], showGallery: true,
+    insta: "", whatsapp: "", site: "", age: "livre", reasons: [], showGallery: true,
     venue: "", venueName: "", end: "", bairro: "", city: "sorocaba", cep: "", geo: null, placeId: "", map: { x: 50, y: 50, label: "" },
     tint: "tint-eco", seo: { title: "", desc: "" }, status: "rascunho",
   };
@@ -67,6 +67,7 @@ const RULES = [
   ["title", (d) => d.title.trim().length >= 3, "Dê um nome ao evento."],
   ["startAt", (d) => !!parseLocal(d.startAt), "Informe a data e a hora de início."],
   ["endAt", (d) => !!parseLocal(d.endAt) && parseLocal(d.endAt) > parseLocal(d.startAt), "O término precisa ser depois do início."],
+  ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
   ["ticketUrl", (d) => !d.ticket?.url || /^https?:\/\/\S+\.\S+/.test(d.ticket.url), "Use o link completo da venda (https://…)."],
   ["category", (d) => !!d.category, "Escolha a categoria.", true],
   ["desc", (d) => d.desc.trim().length >= 40, "Escreva pelo menos 40 caracteres.", true],
@@ -100,10 +101,10 @@ function EventForm({ initial, isNew }) {
     const p = db.places.find(x => x.id === id);
     if (!p) return set({ venue: "" });
     set({ venue: p.id, venueName: "", end: p.end || "", bairro: p.bairro || "", city: p.city || draft.city, cep: p.cep || "", geo: p.geo || null, placeId: p.placeId || "",
-      map: p.map || draft.map, insta: draft.insta || p.insta || "", organizer: draft.organizer || p.name });
+      map: p.map || draft.map, insta: draft.insta || p.insta || "", whatsapp: p.whatsapp || "" });
   }
   const venue = db.places.find(p => p.id === draft.venue);
-  const changedAddress = venue && (draft.end !== (venue.end || "") || draft.bairro !== (venue.bairro || ""));
+  const changedAddress = venue && (draft.end !== (venue.end || "") || draft.bairro !== (venue.bairro || "") || (draft.whatsapp || "") !== (venue.whatsapp || ""));
 
   const checklist = [
     ["Nome e frase de destaque", !!draft.title && !!draft.tagline],
@@ -127,7 +128,7 @@ function EventForm({ initial, isNew }) {
           ["conteudo", "Conteúdo", tabErr(["title", "desc"])],
           ["data", "Data e ingressos", tabErr(["startAt", "endAt", "ticketUrl"])],
           ["classificacao", "Classificação", tabErr(["category", "affs"])],
-          ["local", "Local", tabErr(["end", "city"])],
+          ["local", "Local", tabErr(["end", "city", "whatsapp"])],
           ["imagens", "Fotos"],
           ["seo", "SEO"],
         ]} />
@@ -189,8 +190,7 @@ function EventForm({ initial, isNew }) {
           <Card title="Mais informações">
             <div className="a-form-grid">
               <Select label="Classificação etária" value={draft.age} onChange={(age) => set({ age })} options={AGE_RATINGS} />
-              <Input label="Organização" value={draft.organizer} onChange={(organizer) => set({ organizer })} placeholder="Quem produz o evento" />
-              <Input label="Instagram do evento" value={draft.insta} onChange={(v) => set({ insta: v.startsWith("@") || !v ? v : "@" + v })} />
+              <Input label="Instagram do evento" value={draft.insta} onChange={(v) => set({ insta: v.startsWith("@") || !v ? v : "@" + v })} hint="Vira o botão do Instagram no topo da página." />
             </div>
           </Card>
         </>)}
@@ -212,9 +212,11 @@ function EventForm({ initial, isNew }) {
               options={db.places.filter(p => p.status !== "arquivado").map(p => [p.id, `${p.name} · ${p.bairro}`])}
               hint={venue ? "A página do evento mostra o card deste lugar na seção Onde fica." : "Sem lugar do catálogo, informe o nome do local e o endereço abaixo."} />
             {!venue && <Input label="Nome do local" value={draft.venueName} onChange={(venueName) => set({ venueName })} placeholder="Ex.: Praça Coronel Fernando Prestes" />}
+            <Input label="WhatsApp" type="tel" value={draft.whatsapp || ""} onChange={(whatsapp) => set({ whatsapp })} placeholder="(15) 99999-9999" error={errors.whatsapp}
+              hint={venue ? `Preenchido com o WhatsApp de ${venue.name}${venue.whatsapp ? "" : " (o lugar não tem WhatsApp cadastrado)"}. Edite se o contato do evento for outro.` : "Número com DDD (celular ou fixo do WhatsApp Business). Vira o botão de WhatsApp na página do evento."} />
             {changedAddress && (
-              <p className="a-hint a-menu-warn">Endereço diferente do cadastro de {venue.name}.{" "}
-                <button type="button" className="a-link" onClick={() => pickVenue(venue.id)}>Usar o endereço do lugar</button></p>
+              <p className="a-hint a-menu-warn">Endereço ou WhatsApp diferente do cadastro de {venue.name}.{" "}
+                <button type="button" className="a-link" onClick={() => pickVenue(venue.id)}>Usar os dados do lugar</button></p>
             )}
           </Card>
           <LocationTab draft={draft} set={set} errors={errors} title="Endereço do evento" pinLabel={venue?.name || draft.venueName || draft.title || "Local do evento"}
