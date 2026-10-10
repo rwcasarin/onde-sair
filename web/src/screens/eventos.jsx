@@ -1,6 +1,7 @@
 // Eventos — agenda (/eventos) no modelo da lista de lugares, e página do evento (/eventos/{slug})
 import { useMemo, useState } from "react";
-import { EVENTS, EVENT_CATEGORIES, VIBE_ORDER, CITIES, PLACES, eventImg } from "../data.js";
+import { EVENTS, EVENT_CATEGORIES, VIBE_ORDER, CITIES, PLACES, eventImg, eventGallery } from "../data.js";
+import { ImageSlot } from "../components/image-slot.jsx";
 import { Icon } from "../components/icons.jsx";
 import { HeroMedia, Crumbs, VibePill, EventCard, PlaceCard, CategoryPill, FaveButton, Footer, affById } from "../components/site.jsx";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
@@ -192,6 +193,7 @@ export function Evento({ id }) {
   const e = EVENTS.find(x => x.id === id) || EVENTS[0];
   const [tab, setTab] = useState("visao");
   const [shared, setShared] = useState(false);
+  const [shift, setShift] = useState(0);
   if (!e) return null;
   const venue = eventVenue(e);
   const where = venueName(e);
@@ -203,9 +205,12 @@ export function Evento({ id }) {
   const insta = instaProfile(e.insta);
   const ticketUrl = e.ticket?.url && /^https?:\/\//.test(e.ticket.url) ? e.ticket.url : null;
   const ticketLabel = e.ticket?.label || (e.price?.free ? "Garantir ingresso" : "Comprar ingresso");
-  const program = (e.program || []).filter(p => p[1]);
   const reasons = (e.reasons || []).filter(r => r[1]);
-  const tabs = [["visao", "Visão geral"], ...(program.length ? [["programacao", "Programação"]] : []), ...(reasons.length ? [["porque", "Por que ir"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
+  // fotos do evento (a seção pode ser escondida no painel)
+  const showFotos = e.showGallery !== false;
+  const gallery = eventGallery(e.id);
+  const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
+  const tabs = [["visao", "Visão geral"], ...(reasons.length ? [["porque", "Por que ir"]] : []), ...(showFotos ? [["fotos", "Fotos"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
   const calWhere = [where, address].filter(Boolean).join(", ");
 
   // outros eventos: mesma categoria ou vibes em comum, os próximos primeiro
@@ -240,7 +245,6 @@ export function Evento({ id }) {
           <ul className="place-meta">
             <li><Icon name="calendar" size={18} /> {whenLabel(e)}</li>
             {where && <li><Icon name="pin" size={18} fill /> {where}{e.bairro ? ` · ${e.bairro}` : ""}</li>}
-            <li><Icon name="coins" size={18} /> {priceLabel(e)}</li>
           </ul>
           <div className="place-actions">
             <div className="act-row act-main">
@@ -303,7 +307,6 @@ export function Evento({ id }) {
                 : <p className="event-box-note">{e.ticket?.required ? "Ingressos na bilheteria do local." : e.price?.free ? "Entrada livre, sem necessidade de ingresso." : "Pagamento no local."}</p>}
             <dl className="event-box-facts">
               {e.age && <div><dt>Classificação</dt><dd>{ageLabel(e.age)}</dd></div>}
-              {e.accessible && <div><dt>Acessibilidade</dt><dd>Local acessível para pessoas com mobilidade reduzida</dd></div>}
               {e.organizer && <div><dt>Organização</dt><dd>{e.organizer}{insta && <> · <a href={insta} target="_blank" rel="noreferrer">{e.insta}</a></>}</dd></div>}
             </dl>
             {!past && (
@@ -314,20 +317,32 @@ export function Evento({ id }) {
           </aside>
         </section>
 
-        {program.length > 0 && (
-          <section className="place-row" id="sec-programacao">
-            <div className="why-box">
-              <h2 className="h2t">Programação</h2>
-              <ol className="event-program">{program.map(([t, txt], i) => <li key={i}><span>{t}</span>{txt}</li>)}</ol>
-            </div>
-          </section>
-        )}
-
         {reasons.length > 0 && (
           <section className="place-row" id="sec-porque">
             <div className="why-box why-row">
               <h2 className="h2t">Por que ir?</h2>
               <ul>{reasons.map(([icon, txt]) => <li key={txt}><span className="why-icon"><Icon name={icon} size={18} fill={icon === "star" || icon === "heart"} /></span>{txt}</li>)}</ul>
+            </div>
+          </section>
+        )}
+
+        {/* Fotos do evento */}
+        {showFotos && (
+          <section className="place-row" id="sec-fotos">
+            <div>
+              <div className="h2-head"><h2>Fotos do evento</h2></div>
+              <div className="gallery gallery-wide">
+                {shown.map((src, i) => (
+                  <ImageSlot key={src} className="gallery-img" src={src} alt={`${e.title} — foto ${i + 1}`} hint="3:4">
+                    {i === 0 && (
+                      <div className="gallery-nav">
+                        <button aria-label="Foto anterior" onClick={() => setShift((shift + gallery.length - 1) % gallery.length)}><Icon name="left" size={16} /></button>
+                        <button aria-label="Próxima foto" onClick={() => setShift((shift + 1) % gallery.length)}><Icon name="right" size={16} /></button>
+                      </div>
+                    )}
+                  </ImageSlot>
+                ))}
+              </div>
             </div>
           </section>
         )}

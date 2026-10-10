@@ -615,4 +615,5 @@ export const SEED_EVENT_CATEGORIES = [
 export const EVENT_CATEGORIES = SEED_EVENT_CATEGORIES.map(c => ({ ...c }));
 export const EVENTS = [];                                   // publicados (preenchido pelo painel)
 export const eventImg = (id) => `images/eventos/${id}.jpg`;
+export const eventGallery = (id) => [1, 2, 3, 4].map(n => `images/eventos/${id}-${n}.jpg`);
 export const AGE_RATINGS = [["livre", "Livre"], ["10", "10 anos"], ["12", "12 anos"], ["14", "14 anos"], ["16", "16 anos"], ["18", "18 anos"]];

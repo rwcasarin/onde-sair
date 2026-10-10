@@ -1,6 +1,6 @@
 // Eventos no painel: lista (Eventos | Categorias) e editor no modelo do cadastro de lugar
 import { useState } from "react";
-import { SEED_EVENT_CATEGORIES, AGE_RATINGS, eventImg } from "../../data.js";
+import { SEED_EVENT_CATEGORIES, AGE_RATINGS, eventImg, eventGallery } from "../../data.js";
 import { EventCard } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
@@ -57,8 +57,7 @@ const blank = () => {
     title: "", slug: "", tagline: "", desc: "", note: "", category: "", affs: [], tags: [],
     startAt: toLocal(s), endAt: toLocal(f), doors: "",
     price: { free: false, from: "", to: "", note: "" }, ticket: { required: false, url: "", label: "" },
-    organizer: "", insta: "", site: "", age: "livre", accessible: false,
-    program: [], reasons: [],
+    organizer: "", insta: "", site: "", age: "livre", reasons: [], showGallery: true,
     venue: "", venueName: "", end: "", bairro: "", city: "sorocaba", cep: "", geo: null, placeId: "", map: { x: 50, y: 50, label: "" },
     tint: "tint-eco", seo: { title: "", desc: "" }, status: "rascunho",
   };
@@ -129,7 +128,7 @@ function EventForm({ initial, isNew }) {
           ["data", "Data e ingressos", tabErr(["startAt", "endAt", "ticketUrl"])],
           ["classificacao", "Classificação", tabErr(["category", "affs"])],
           ["local", "Local", tabErr(["end", "city"])],
-          ["imagens", "Imagens"],
+          ["imagens", "Fotos"],
           ["seo", "SEO"],
         ]} />
 
@@ -141,17 +140,8 @@ function EventForm({ initial, isNew }) {
             </div>
             <Input label="Frase de destaque" value={draft.tagline} onChange={(tagline) => set({ tagline })} maxCount={120} hint="Linha fina abaixo do nome e resumo dos cards." />
             <Textarea label="Sobre o evento" required value={draft.desc} onChange={(desc) => set({ desc })} error={errors.desc} rows={6} maxCount={900}
-              hint="Atrações, o que esperar e o que levar. Separe parágrafos com uma linha em branco." />
+              hint="Atrações, programação, o que esperar e o que levar. Separe parágrafos com uma linha em branco." />
             <Input label="Frase manuscrita da foto" value={draft.note} onChange={(note) => set({ note })} maxCount={60} hint="Texto à mão sobre a foto do topo." />
-            <Field label="Programação" hint="Opcional. Horário e atração, na ordem do evento.">
-              <Repeater items={draft.program} max={12} addLabel="Adicionar atração" newItem={() => ["", ""]} onChange={(program) => set({ program })}
-                render={(r, upd) => (
-                  <div className="a-reason">
-                    <input className="a-input a-program-time" value={r[0]} placeholder="20h" onChange={(e) => upd(() => [e.target.value, r[1]])} aria-label="Horário" />
-                    <input className="a-input" value={r[1]} placeholder="Ex.: Show de abertura" onChange={(e) => upd(() => [r[0], e.target.value])} aria-label="Atração" />
-                  </div>
-                )} />
-            </Field>
             <Field label="Por que ir?" hint="Opcional. Até 5 motivos curtos, com ícone.">
               <Repeater items={draft.reasons} max={5} addLabel="Adicionar motivo" newItem={() => ["star", ""]} onChange={(reasons) => set({ reasons })}
                 render={(r, upd) => (
@@ -202,7 +192,6 @@ function EventForm({ initial, isNew }) {
               <Input label="Organização" value={draft.organizer} onChange={(organizer) => set({ organizer })} placeholder="Quem produz o evento" />
               <Input label="Instagram do evento" value={draft.insta} onChange={(v) => set({ insta: v.startsWith("@") || !v ? v : "@" + v })} />
             </div>
-            <Toggle label="Local acessível para pessoas com mobilidade reduzida" checked={!!draft.accessible} onChange={(accessible) => set({ accessible })} />
           </Card>
         </>)}
 
@@ -233,8 +222,17 @@ function EventForm({ initial, isNew }) {
         </>)}
 
         {tab === "imagens" && (
-          <Card title="Imagem do evento" subtitle="Foto ou arte horizontal, sem textos pequenos. Ela é comprimida automaticamente.">
+          <Card title="Fotos do evento" subtitle="Foto ou arte horizontal, sem textos pequenos. As imagens são comprimidas automaticamente.">
+            <Toggle label="Mostrar a seção Fotos do evento na página" checked={draft.showGallery !== false} onChange={(showGallery) => set({ showGallery })} />
             <ImageField label="Imagem principal (capa e cards)" path={eventImg(previewId)} hint="16:10 · mín. 1400 px" />
+            {isNew ? <p className="a-hint">Salve o evento para liberar o envio da galeria.</p> : (
+              <>
+                <span className="a-label">Galeria (4 fotos)</span>
+                <div className="a-gallery-grid">
+                  {eventGallery(previewId).map((g, i) => <ImageField key={g} path={g} hint={`Foto ${i + 1} · 3:4`} ratio="3 / 4" compact />)}
+                </div>
+              </>
+            )}
           </Card>
         )}
 

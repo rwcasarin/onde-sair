@@ -713,6 +713,3 @@ a.a-paused-pill { text-decoration: none; }
 .a-menu-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; margin-top: 4px; }
 .a-menu-opts .a-toggle { margin: 0; }
 .a-menu-item.is-hidden .a-menu-row { opacity: .5; }
-
-/* Eventos: horário curto na programação */
-.a-reason .a-program-time { flex: 0 0 90px; }

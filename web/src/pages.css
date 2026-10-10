@@ -1153,9 +1153,5 @@ a.btn-pill { text-decoration: none; }
 .event-box-facts dd { margin: 0; font-size: 12.5px; color: var(--ink-2); }
 .event-box-facts a, .event-box-cal a { color: var(--heading); text-decoration: underline; text-underline-offset: 2px; }
 .event-box-cal { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12.5px; color: var(--ink-2); }
-.event-program { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.event-program li { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: baseline; font-size: 14px; color: var(--heading); }
-.event-program li span { font-weight: 700; font-variant-numeric: tabular-nums; }
 .event-venue { display: grid; align-content: start; gap: 12px; }
 .event-venue .h2t { margin: 0; }
-@media (max-width: 560px) { .event-program li { grid-template-columns: 56px 1fr; } }
