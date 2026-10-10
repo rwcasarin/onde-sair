@@ -18,8 +18,6 @@ const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
 export const fmtTime = (d) => d ? (d.getMinutes() ? `${d.getHours()}h${String(d.getMinutes()).padStart(2, "0")}` : `${d.getHours()}h`) : "";
 export const fmtDay = (d) => d ? `${cap(WEEK[d.getDay()])}, ${d.getDate()} ${MONTH[d.getMonth()]}` : "";
 export const fmtDayLong = (d) => d ? `${cap(WEEK[d.getDay()])}, ${d.getDate()} de ${MONTH_LONG[d.getMonth()]} de ${d.getFullYear()}` : "";
-// selo da data na foto do card: { week: "SÁB", day: "18", month: "OUT" }
-export const dateBadge = (e) => { const d = parseLocal(e.startAt); return d ? { week: WEEK[d.getDay()].toUpperCase(), day: String(d.getDate()), month: MONTH[d.getMonth()].toUpperCase() } : null; };
 
 // "Sáb, 18 out · 20h – 23h30" | "Sáb, 18 out 12h – Dom, 19 out 22h"
 export function whenLabel(e) {
@@ -146,3 +144,35 @@ export function periodLines(e) {
 }
 // todos os dias do período com o mesmo horário?
 export const sameHoursAllDays = (days) => days.every(d => d.from === days[0]?.from && d.to === days[0]?.to);
+
+// Selo de data do card: { kind: "future" | "today" | "live" | "past", text }
+//  futuro: "Sáb, 10/10 às 10h" · hoje (ainda vai começar): "Hoje, 10/10 às 10h"
+//  acontecendo: "Acontecendo até as 10h" · encerrado: "Sáb, 10/10/26 às 10h"
+const WEEK_CAP = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const ddmm = (d) => `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}`;
+// sessões reais de cada dia (o fim passa para o dia seguinte quando fecha depois da meia-noite)
+function sessions(e) {
+  return eventDays(e).map(d => {
+    const start = parseLocal(`${d.date}T${d.from || "00:00"}`);
+    let end = parseLocal(`${d.date}T${d.to || "23:59"}`);
+    if (d.to && d.from && d.to <= d.from) end = new Date(end.getTime() + 864e5);
+    return { ...d, start, end };
+  });
+}
+export function cardWhen(e, now = new Date()) {
+  const list = sessions(e);
+  if (!list.length) return null;
+  // bloco do calendário: dia da semana (ou HOJE/AGORA), dia, mês (com o ano se já passou) e a faixa do horário
+  const block = (d, kind, top, hour, text) => ({ kind, top, day: pad2(d.getDate()), month: MONTH[d.getMonth()].toUpperCase() + (kind === "past" ? " " + String(d.getFullYear()).slice(2) : ""), hour, text });
+  const live = list.find(s => s.start <= now && now < s.end);
+  if (live) return block(now, "live", "AGORA", `até ${hmLabel(live.to) || fmtTime(live.end)}`, `Acontecendo até as ${hmLabel(live.to) || fmtTime(live.end)}`);
+  const next = list.find(s => s.start > now);
+  if (next) {
+    const today = next.date === ymd(now);
+    return block(next.start, today ? "today" : "future", today ? "HOJE" : WEEK_CAP[next.start.getDay()].toUpperCase(), `às ${hmLabel(next.from)}`,
+      `${today ? "Hoje" : WEEK_CAP[next.start.getDay()]}, ${ddmm(next.start)} às ${hmLabel(next.from)}`);
+  }
+  const first = list[0];
+  return block(first.start, "past", WEEK_CAP[first.start.getDay()].toUpperCase(), `às ${hmLabel(first.from)}`,
+    `${WEEK_CAP[first.start.getDay()]}, ${ddmm(first.start)}/${String(first.start.getFullYear()).slice(2)} às ${hmLabel(first.from)}`);
+}

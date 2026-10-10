@@ -1,6 +1,6 @@
 // Componentes compartilhados do site (v3)
 import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, PRICE_RANGE, EVENT_CATEGORIES, placeImg, roteiroImg, eventImg } from "../data.js";
-import { dateBadge, whenLabel, isPast, venueName } from "../events.js";
+import { whenLabel, isPast, venueName, cardWhen } from "../events.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
@@ -206,13 +206,16 @@ export function CategoryPill({ id }) {
 // Card de evento — mesmo formato dos cards de lugar e roteiro, com a data em destaque sobre a foto
 export function EventCard({ e }) {
   const nav = useNav();
-  const b = dateBadge(e);
+  const tag = cardWhen(e);
   const where = [venueName(e), e.bairro].filter(Boolean).join(" · ");
   return (
     <article className={"rot-index-card event-card" + (isPast(e) ? " is-past" : "")} onClick={() => nav("evento", { id: e.id })}>
       <ImageSlot className="rot-index-img" src={eventImg(e.id)} alt={e.title} hint="16:10">
-        {b && <span className="event-date" aria-hidden="true"><em>{b.week}</em><strong>{b.day}</strong><em>{b.month}</em></span>}
-        {isPast(e) && <span className="event-past">Encerrado</span>}
+        {tag && (
+          <span className={"event-date is-" + tag.kind} role="img" aria-label={tag.text} title={tag.text}>
+            <em>{tag.top}</em><strong>{tag.day}</strong><em>{tag.month}</em><b>{tag.hour}</b>
+          </span>
+        )}
         <FaveButton id={e.id} className="fave fave-float" />
       </ImageSlot>
       <div className="rot-index-body">

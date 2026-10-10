@@ -1123,14 +1123,25 @@ a.btn-pill { text-decoration: none; }
 .rot-index-card .my-rot-actions { margin-top: 12px; }
 /* ================= Eventos ================= */
 /* card: selo de data sobre a foto e informações empilhadas abaixo do nome */
+/* selo de data do card (bloco de calendário + faixa do horário), com cor por situação */
 .event-date {
-  position: absolute; top: 10px; left: 10px; z-index: 1; display: grid; justify-items: center; min-width: 52px; padding: 6px 8px 7px;
-  border-radius: 10px; background: #fff; color: var(--heading); line-height: 1; box-shadow: 0 6px 16px -10px rgba(30,21,80,.6);
+  position: absolute; top: 12px; left: 12px; z-index: 1; display: grid; justify-items: center; min-width: 66px; overflow: hidden;
+  border-radius: 14px; background: #fff; color: var(--heading); line-height: 1; box-shadow: 0 8px 20px -10px rgba(30,21,80,.7);
 }
-.event-date em { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: .12em; color: var(--c-magenta); }
-.event-date strong { margin: 3px 0 2px; font-family: var(--serif); font-size: 24px; font-weight: 700; letter-spacing: -0.03em; }
-.event-date em:last-child { color: var(--ink-3); }
-.event-past { position: absolute; left: 10px; bottom: 26px; z-index: 1; padding: 3px 10px; border-radius: 999px; background: var(--heading); color: #fff; font-size: 11px; font-weight: 700; }
+.event-date em { font-style: normal; font-size: 11.5px; font-weight: 800; letter-spacing: .12em; }
+.event-date em:first-child { padding: 8px 8px 0; color: var(--c-magenta); }
+.event-date strong { margin: 3px 0 2px; font-family: var(--serif); font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+.event-date em:nth-child(3) { padding: 0 8px 7px; color: var(--ink-3); white-space: nowrap; }
+.event-date b { justify-self: stretch; padding: 5px 8px; background: #F1EEF9; font-size: 12px; font-weight: 700; text-align: center; white-space: nowrap; }
+.event-date.is-today { box-shadow: 0 0 0 3px var(--c-yellow), 0 8px 20px -10px rgba(30,21,80,.7); }
+.event-date.is-today em:first-child { color: #8A6A00; }
+.event-date.is-today b { background: var(--c-yellow); }
+.event-date.is-live { background: var(--c-magenta); color: #fff; }
+.event-date.is-live em, .event-date.is-live em:nth-child(3) { color: #fff; }
+.event-date.is-live b { background: rgba(0,0,0,.18); }
+.event-date.is-past { background: #EDEBF2; color: #5E5873; }
+.event-date.is-past em:first-child, .event-date.is-past em:nth-child(3) { color: #5E5873; }
+.event-date.is-past b { background: #5E5873; color: #fff; }
 .event-card.is-past .rot-index-img { filter: grayscale(.6); }
 .rot-index-card .card-sub-stack { flex-direction: column; gap: 4px; }
 /* detalhe */
