@@ -1177,3 +1177,7 @@ a.btn-pill { text-decoration: none; }
 .event-hours-list li strong { font-size: 13px; white-space: nowrap; }
 .event-hours-list li.is-today { background: #FFF4C7; }
 .event-hours-list li.is-today span { color: var(--heading); font-weight: 700; }
+/* Home: eventos em uma única linha (rola de lado quando a tela é estreita) */
+.events-row { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 6px; scrollbar-width: thin; }
+.events-row > .rot-index-card { flex: 1 0 190px; min-width: 190px; scroll-snap-align: start; }
+@media (max-width: 900px) { .events-row > .rot-index-card { flex-basis: 250px; min-width: 250px; } }

@@ -6,7 +6,9 @@ import { PAGES,
 import { OSLogo } from "../components/brand.jsx";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { HeroMedia, VibePill, SectionHead, MiniPlaceCard, GeoCard, Footer } from "../components/site.jsx";
+import { HeroMedia, VibePill, SectionHead, MiniPlaceCard, EventCard, GeoCard, Footer } from "../components/site.jsx";
+import { EVENTS } from "../data.js";
+import { upcoming } from "../events.js";
 import { href, storyPath } from "../router.js";
 import { useNav, useCity } from "../nav.js";
 import { SITE } from "../admin/store.js";
@@ -16,6 +18,8 @@ export function Home() {
   const nav = useNav();
   const { id: cityId, name, set: setCity } = useCity();
   const [q, setQ] = useState("");
+  // próximos e atuais (até 6), da cidade escolhida, numa linha só
+  const events = upcoming(EVENTS.filter(e => !cityId || e.city === cityId)).slice(0, 6);
 
   return (
     <main className="home2">
@@ -61,6 +65,16 @@ export function Home() {
             ))}
           </div>
         </section>
+
+        {/* ================= EVENTOS ================= */}
+        {events.length > 0 && (
+          <section className="h2-section" id="eventos">
+            <SectionHead title={`Eventos em ${name}`} sub="O que está rolando e o que vem por aí." link="Ver a agenda" onLink={() => nav("eventos")} />
+            <div className="events-row">
+              {events.map(e => <EventCard key={e.id} e={e} />)}
+            </div>
+          </section>
+        )}
 
         {/* ================= RADAR (blog) ================= */}
         <section className="h2-section" id="radar">
