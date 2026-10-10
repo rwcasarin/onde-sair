@@ -286,7 +286,6 @@ export function Evento({ id }) {
             {e.tags?.length > 0 && <ul className="place-tags" aria-label="Assuntos">{e.tags.map(t => <li key={t}>{t}</li>)}</ul>}
           </div>
           <aside className="event-box" aria-label="Data, valor e ingressos">
-            {status && <div className="event-box-status">{status}</div>}
             <div className="event-box-row">
               <Icon name="calendar" size={20} />
               <div>
