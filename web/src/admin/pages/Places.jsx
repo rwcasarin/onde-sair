@@ -234,7 +234,8 @@ function PlaceForm({ initial, isNew }) {
 // ---------------------------------------------------------------------
 // Aba Localização: endereço (Google), cidade e bairro relacionados, pino no mapa
 // ---------------------------------------------------------------------
-function LocationTab({ draft, set, errors }) {
+export function LocationTab({ draft, set, errors, pinLabel, title = "Endereço", subtitle = "Escolha o endereço nas sugestões do Google: cidade e bairro são preenchidos sozinhos." }) {
+  const pinName = pinLabel || draft.name || "Novo lugar";
   const { db, user, toast } = useAdmin();
   const [pending, setPending] = useState(null);       // cidade/bairro vindos do Google que ainda não existem
   const [newUf, setNewUf] = useState(null);           // cadastro manual de cidade: falta a UF
@@ -296,7 +297,7 @@ function LocationTab({ draft, set, errors }) {
 
   return (
     <>
-      <Card title="Endereço" subtitle="Escolha o endereço nas sugestões do Google: cidade e bairro são preenchidos sozinhos.">
+      <Card title={title} subtitle={subtitle}>
         <AddressAutocomplete label="Endereço" required apiKey={apiKey} value={draft.end} error={errors.end}
           onChange={(end) => { set({ end, geo: null, placeId: "" }); setPending(null); }} onPick={onPick} />
         {pendingText && (
@@ -344,7 +345,7 @@ function LocationTab({ draft, set, errors }) {
             {!draft.geo && <span className="a-hint">Sem coordenadas ainda: o site tenta achar pelo endereço.</span>}
           </div>
           <PlaceMap className="a-map-art" card={false} mainId="__draft" onPick={(geo) => set({ geo })}
-            items={[{ id: "__draft", place: { ...draft, id: draft.id || "__draft", name: draft.name || "Novo lugar" } },
+            items={[{ id: "__draft", place: { ...draft, id: draft.id || "__draft", name: pinName } },
               ...db.places.filter(p => p.id !== draft.id && p.city === draft.city).map(p => ({ id: p.id, place: p }))]} />
         </Card>
       ) : (
@@ -353,7 +354,7 @@ function LocationTab({ draft, set, errors }) {
             const r = e.currentTarget.getBoundingClientRect();
             set({ map: { ...draft.map, x: Math.round(((e.clientX - r.left) / r.width) * 100), y: Math.round(((e.clientY - r.top) / r.height) * 100) } });
           }}>
-            <MapArt className="a-map-art" pins={[...db.places.filter(p => p.id !== draft.id).map(p => ({ x: p.map.x, y: p.map.y, color: "#C9C3DB", title: p.name })), { x: draft.map.x, y: draft.map.y, label: draft.name || "Novo lugar", color: "var(--c-magenta)" }]} />
+            <MapArt className="a-map-art" pins={[...db.places.filter(p => p.id !== draft.id).map(p => ({ x: p.map.x, y: p.map.y, color: "#C9C3DB", title: p.name })), { x: draft.map.x, y: draft.map.y, label: pinName, color: "var(--c-magenta)" }]} />
           </div>
           <div className="a-form-grid a-form-grid-3">
             <Input label="Posição X (%)" type="number" min={0} max={100} value={draft.map.x} onChange={(v) => set({ map: { ...draft.map, x: +v } })} />

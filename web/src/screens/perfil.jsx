@@ -1,18 +1,19 @@
-import { useState } from "react";
-import { PLACES, ROTEIROS, VIBE_ORDER, CITIES, cityName } from "../data.js";
+import { useEffect, useState } from "react";
+import { PLACES, ROTEIROS, EVENTS, VIBE_ORDER, CITIES, cityName } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, VibePill, MiniPlaceCard, RoteiroCard, ListingCard, SectionHead, Footer } from "../components/site.jsx";
+import { PageHead, VibePill, MiniPlaceCard, RoteiroCard, EventCard, ListingCard, SectionHead, Footer } from "../components/site.jsx";
 import { useNav, useFaves } from "../nav.js";
 import { href, toPath } from "../router.js";
-import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword, deleteMyRoteiro } from "../account.js";
+import { updateAccount, logoutAccount, deleteAccount, changeAccountPassword, deleteMyRoteiro, myEvents } from "../account.js";
+import { whenLabel } from "../events.js";
 import { MyRoteiroCard } from "./roteiro.jsx";
 import { roteiroVibes } from "../vibes.js";
 import { SITE } from "../admin/store.js";
 
 const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); } catch { return ""; } };
 
-const TABS = [["favoritos", "Lugares favoritos"], ["favRoteiros", "Roteiros favoritos"], ["meus", "Meus roteiros"], ["conta", "Dados da conta"]];
+const TABS = [["favoritos", "Lugares favoritos"], ["favRoteiros", "Roteiros favoritos"], ["favEventos", "Eventos favoritos"], ["meus", "Meus roteiros"], ["meusEventos", "Meus eventos"], ["conta", "Dados da conta"]];
 
 export function Perfil({ user, tab = "favoritos" }) {
   const nav = useNav();
@@ -22,10 +23,11 @@ export function Perfil({ user, tab = "favoritos" }) {
 
   const favPlaces = PLACES.filter(p => faves.has(p.id));
   const favRoteiros = ROTEIROS.filter(r => faves.has(r.id));
+  const favEventos = EVENTS.filter(e => faves.has(e.id));
   const mine = user.roteiros || [];
-  const count = { favoritos: favPlaces.length, favRoteiros: favRoteiros.length, meus: mine.length };
+  const count = { favoritos: favPlaces.length, favRoteiros: favRoteiros.length, favEventos: favEventos.length, meus: mine.length };
   // roteiros pausados: some "Meus roteiros" (e "Roteiros favoritos", se os roteiros saíram do site)
-  const off = new Set([...(SITE.roteirosPaused ? ["meus"] : []), ...(SITE.roteirosHidden ? ["favRoteiros"] : [])]);
+  const off = new Set([...(SITE.roteirosPaused ? ["meus"] : []), ...(SITE.roteirosHidden ? ["favRoteiros"] : []), ...(SITE.eventsHidden ? ["favEventos"] : [])]);
   const tabs = TABS.filter(([id]) => !off.has(id));
   const stats = [[favPlaces.length, "Lugares favoritos", "favoritos"], [favRoteiros.length, "Roteiros favoritos", "favRoteiros"], [mine.length, "Meus roteiros", "meus"], [affs.size, "Vibes", null]].filter(([, , t]) => !off.has(t));
 
@@ -75,7 +77,7 @@ export function Perfil({ user, tab = "favoritos" }) {
             </Filtered>
           )}
 
-          {off.has(tab) && <Empty icon="list" text="Roteiros em pausa." sub={SITE.roteirosMessage} cta="Ver lugares favoritos" onClick={() => nav("perfil", { tab: "favoritos" })} />}
+          {off.has(tab) && <Empty icon="list" text={tab === "favEventos" ? "Eventos em pausa." : "Roteiros em pausa."} sub={tab === "favEventos" ? SITE.eventsMessage : SITE.roteirosMessage} cta="Ver lugares favoritos" onClick={() => nav("perfil", { tab: "favoritos" })} />}
 
           {tab === "favRoteiros" && !off.has(tab) && (
             <Filtered items={favRoteiros} vibesOf={roteiroVibes} empty={
@@ -84,7 +86,15 @@ export function Perfil({ user, tab = "favoritos" }) {
             </Filtered>
           )}
 
+          {tab === "favEventos" && !off.has(tab) && (
+            favEventos.length
+              ? <div className="rot-index">{favEventos.map(e => <EventCard key={e.id} e={e} />)}</div>
+              : <Empty icon="heart" text="Nenhum evento favorito por enquanto." sub="Salve eventos da agenda para lembrar de ir." cta="Ver a agenda" onClick={() => nav("eventos")} />
+          )}
+
           {tab === "meus" && !off.has(tab) && <MyRoteiros list={mine} />}
+
+          {tab === "meusEventos" && <MyEvents />}
 
           {tab === "conta" && <AccountData user={user} onGone={() => nav("home")} />}
         </section>
@@ -229,5 +239,34 @@ function AccountData({ user, onGone }) {
           : <button className="btn-outline" onClick={() => setConfirmDel(true)}>Excluir minha conta</button>}
       </div>
     </div>
+  );
+}
+
+// Eventos enviados pelo usuário e a situação de cada um na revisão da equipe
+const EV_STATUS = { revisao: ["Em análise", "is-review"], rascunho: ["Em análise", "is-review"], agendado: ["Aprovado", "is-ok"], publicado: ["Publicado", "is-ok"], arquivado: ["Não aprovado", "is-no"] };
+function MyEvents() {
+  const nav = useNav();
+  const [list, setList] = useState(null);
+  useEffect(() => { let on = true; myEvents().then(l => on && setList(l)); return () => { on = false; }; }, []);
+  const send = SITE.eventsPaused ? <span className="auth-hint">{SITE.eventsMessage}</span> : <button className="btn-pill" onClick={() => nav("enviarEvento")}><Icon name="calendar" size={16} /> Enviar evento</button>;
+  if (!list) return <p className="auth-hint">Carregando…</p>;
+  if (!list.length && SITE.eventsPaused) return <Empty icon="calendar" text="Envio de eventos em pausa." sub={SITE.eventsMessage} />;
+  if (!list.length) return <Empty icon="calendar" text="Você ainda não enviou nenhum evento." sub="Conhece um evento que tem a cara da cidade? Envie para a agenda: a equipe revisa e publica." cta="Enviar evento" onClick={() => nav("enviarEvento")} />;
+  return (
+    <>
+      <div className="my-rot-bar"><p>{list.length} evento{list.length === 1 ? "" : "s"} enviado{list.length === 1 ? "" : "s"}. A equipe revisa antes de publicar.</p>{send}</div>
+      <ul className="my-events">
+        {list.map(e => {
+          const [label, cls] = EV_STATUS[e.status] || EV_STATUS.revisao;
+          return (
+            <li key={e.id}>
+              <div><strong>{e.title}</strong><span>{whenLabel(e)}</span></div>
+              <span className={"my-ev-status " + cls}>{label}</span>
+              {e.status === "publicado" && <button className="auth-link" onClick={() => nav("evento", { id: e.id })}>Ver na agenda</button>}
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }

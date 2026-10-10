@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, useAdmin, useDraft } from "../kit.jsx";
-import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT, ROTEIROS_PAUSED_TEXT } from "../store.js";
+import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT, ROTEIROS_PAUSED_TEXT, EVENTS_PAUSED_TEXT } from "../store.js";
 
 const TABS = [["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["pausas", "Pausas"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["avancado", "Avançado"], ["dados", "Dados"]];
 
@@ -16,6 +16,8 @@ export function SettingsPage({ initialTab }) {
   const setAcc = (patch) => set({ accounts: { ...acc, ...patch } });
   const rot = { paused: false, hideCatalog: true, showBar: true, message: "", ...(draft.roteirosPause || {}) };
   const setRot = (patch) => set({ roteirosPause: { ...rot, ...patch } });
+  const evp = { paused: false, hideCatalog: true, showBar: true, message: "", ...(draft.eventsPause || {}) };
+  const setEvp = (patch) => set({ eventsPause: { ...evp, ...patch } });
 
   function save() {
     if (!draft.siteName.trim()) return toast("O nome do site não pode ficar vazio.", "error");
@@ -105,6 +107,18 @@ export function SettingsPage({ initialTab }) {
           ]}>
           <Toggle label="Esconder também os roteiros da curadoria" checked={rot.hideCatalog} onChange={(hideCatalog) => setRot({ hideCatalog })}
             hint={rot.hideCatalog ? "Ligado: nenhum roteiro aparece no site durante a pausa." : "Desligado: só os roteiros dos usuários ficam pausados."} />
+        </PauseCard>
+        <PauseCard title="Pausar eventos" label="Pausar eventos" value={evp} onChange={setEvp} defaultText={EVENTS_PAUSED_TEXT}
+          noBarHint="Sem faixa: o aviso aparece só na tela de pausa das páginas de eventos."
+          effects={[
+            "O envio de eventos pelo site fica indisponível (o servidor também recusa); os eventos já enviados continuam em Meus eventos.",
+            evp.hideCatalog
+              ? "A agenda também sai do site: menu, seção da home e eventos favoritos. Os endereços de eventos mostram a tela de pausa."
+              : "A agenda continua visível para leitura.",
+            "O painel continua funcionando normalmente, inclusive o cadastro e a aprovação de eventos.",
+          ]}>
+          <Toggle label="Esconder também a agenda de eventos" checked={evp.hideCatalog} onChange={(hideCatalog) => setEvp({ hideCatalog })}
+            hint={evp.hideCatalog ? "Ligado: nenhum evento aparece no site durante a pausa." : "Desligado: só o envio pelo site fica pausado."} />
         </PauseCard>
       </>)}
 

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useContext } from "react";
-import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, cityName } from "./data.js";
+import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, EVENTS, cityName } from "./data.js";
+import { whenLabel } from "./events.js";
 import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
 import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
@@ -9,6 +10,8 @@ import { Home } from "./screens/home.jsx";
 import { Lista } from "./screens/lista.jsx";
 import { VibesView } from "./screens/vibesview.jsx";
 import { RoteirosLista } from "./screens/roteiroslista.jsx";
+import { EventosLista, Evento } from "./screens/eventos.jsx";
+import { EnviarEvento } from "./screens/enviarevento.jsx";
 import { Detalhe } from "./screens/detalhe.jsx";
 import { Roteiro, MeuRoteiro } from "./screens/roteiro.jsx";
 import { MeuRoteiroEditor } from "./screens/meuroteiro.jsx";
@@ -37,7 +40,7 @@ function PausedScreen({ message }) {
 }
 
 // telas que exigem conta (sem sessão, levam para /entrar)
-const PRIVATE = new Set(["perfil", "notificacoes", "meuRoteiro", "meuRoteiroEditar"]);
+const PRIVATE = new Set(["perfil", "notificacoes", "meuRoteiro", "meuRoteiroEditar", "enviarEvento"]);
 
 function titleFor(screen, params) {
   const t = (s) => s + " · Onde Sair";
@@ -49,26 +52,28 @@ function titleFor(screen, params) {
       return t(params.q ? `Busca: ${params.q}` : v ? v.label : tp ? tp.label : "Lugares");
     }
     case "vibes": { const v = AFFINITIES.find(a => a.id === params.aff); return t(v ? `${v.label} · Vibes` : "Vibes · Lugares e roteiros por clima"); }
+    case "evento": { const e = EVENTS.find(x => x.id === params.id); return e?.seo?.title || t(e ? `${e.title} · ${whenLabel(e)}` : "Evento"); }
     case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
     case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return r?.seo?.title || t(r ? r.title : "Roteiro"); }
     case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return s?.seo?.title || t(s ? `${s.title} · Radar` : "Radar"); }
-    case "perfil": return t({ favoritos: "Lugares favoritos", favRoteiros: "Roteiros favoritos", meus: "Meus roteiros", conta: "Dados da conta" }[params.tab] || "Meu perfil");
+    case "perfil": return t({ favoritos: "Lugares favoritos", favRoteiros: "Roteiros favoritos", favEventos: "Eventos favoritos", meusEventos: "Meus eventos", meus: "Meus roteiros", conta: "Dados da conta" }[params.tab] || "Meu perfil");
     case "meuRoteiro": return t(findMyRoteiro(params.id)?.title || "Meu roteiro");
+    case "enviarEvento": return t("Enviar evento");
     case "meuRoteiroEditar": return t(params.id === "novo" ? "Novo roteiro" : "Editar roteiro");
     case "entrar": return t({ cadastro: "Criar conta", "boas-vindas": "Boas-vindas" }[params.mode] || "Entrar");
     case "pagina": { const pg = PAGES.find(x => x.id === params.id); return pg?.seo?.title || t(pg ? pg.title : "Página"); }
     case "404": return t("Página não encontrada");
-    default: return t({ roteiros: "Roteiros", historias: "Radar · Novidades e listas", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
+    default: return t({ eventos: "Eventos · Agenda da cidade", roteiros: "Roteiros", historias: "Radar · Novidades e listas", mapa: "Guia da cidade", favoritos: "Favoritos", perfil: "Meu perfil", notificacoes: "Notificações", onboarding: "Escolha sua cidade" }[screen] || "");
   }
 }
 
 // Descrição e indexação de cada tela (SEO preenchido no painel; senão, o padrão do site)
 function metaFor(screen, params) {
-  const item = { detalhe: PLACES, roteiro: ROTEIROS, historia: ALL_STORIES, pagina: PAGES }[screen]?.find(x => x.id === params.id);
+  const item = { detalhe: PLACES, roteiro: ROTEIROS, historia: ALL_STORIES, pagina: PAGES, evento: EVENTS }[screen]?.find(x => x.id === params.id);
   const desc = item?.seo?.desc || (screen === "pagina" && item ? item.excerpt || htmlToText(item.body).slice(0, 160) : "") ||
     (screen === "vibes" ? (VIBE_PAGE[params.aff]?.lede || "Lugares e roteiros reunidos pela vibe do rolê: dates, impressionar, relaxar, turistar, economizar e programas com criança.") : "") ||
     (screen === "historias" ? "Radar Onde Sair: novidades, atualizações e listas de lugares da cidade, por quem vive ela." : "") ||
-    (screen === "detalhe" ? item?.tagline : screen === "historia" ? item?.desc : "") || SITE.seoDesc || "";
+    (screen === "detalhe" || screen === "evento" ? item?.tagline : screen === "historia" ? item?.desc : "") || SITE.seoDesc || "";
   return { desc, noindex: !!item?.seo?.noindex || screen === "404" || PRIVATE.has(screen) || screen === "entrar" };
 }
 function setTag(attr, key, content) {
@@ -146,7 +151,7 @@ export default function App() {
 
   // ação que exige conta: guarda a intenção, leva ao login e volta para onde estava
   const ask = useCallback((intent) => {
-    if (SITE.accountsPaused || (SITE.roteirosPaused && (intent.type === "roteiro" || intent.type === "copiar"))) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
+    if (SITE.accountsPaused || (SITE.roteirosPaused && (intent.type === "roteiro" || intent.type === "copiar")) || (SITE.eventsPaused && intent.type === "enviarEvento")) return; setIntent({ ...intent, back: currentPath() }); go("/entrar"); window.scrollTo(0, 0); }, []);
 
   const toggleFave = useCallback((id) => {
     if (SITE.accountsPaused) return;
@@ -161,6 +166,9 @@ export default function App() {
   // pausa de contas (manutenção): o site segue navegável, sem sessão, favoritos nem roteiros próprios
   const paused = !!SITE.accountsPaused;
   const rotPaused = !!SITE.roteirosPaused, rotHidden = !!SITE.roteirosHidden;
+  // pausa de eventos: sem envio pelo site; com a agenda escondida, sem /eventos
+  const evPaused = !!SITE.eventsPaused, evHidden = !!SITE.eventsHidden;
+  const evOff = evPaused && ((!paused && screen === "enviarEvento") || (evHidden && (screen === "eventos" || screen === "evento")));
   const rotOff = rotPaused && ((!paused && (screen === "meuRoteiro" || screen === "meuRoteiroEditar")) || (rotHidden && (screen === "roteiros" || screen === "roteiro")));
   const blocked = !paused && ready && !user && PRIVATE.has(screen);
   useEffect(() => { if (blocked) { setIntent({ type: "voltar", back: path }); go("/entrar", { replace: true }); } }, [blocked]); // eslint-disable-line
@@ -173,6 +181,7 @@ export default function App() {
       const f = new Set([...(account.user?.faves || []), ...favesRef.current, i.id]);
       setFaves(f); updateAccount({ faves: [...f] }).catch(() => {});
     }
+    if (i?.type === "enviarEvento") return nav("enviarEvento");
     if (i?.type === "copiar") return nav("meuRoteiroEditar", { id: "novo", copiar: i.id });
     if (i?.back && !/^\/(entrar|cadastro|boas-vindas)/.test(i.back)) { go(i.back); window.scrollTo(0, 0); return; }
     nav(isNew ? "home" : "perfil");
@@ -205,19 +214,23 @@ export default function App() {
     <NavContext.Provider value={nav}>
     <CityContext.Provider value={{ id: city, name: cityName(city), set: changeCity, onCityClick: () => nav("onboarding") }}>
     <FavContext.Provider value={{ faves: paused ? NO_FAVES : faves, toggle: toggleFave }}>
-    <AccountContext.Provider value={{ user: paused ? null : user, ask, paused, roteirosPaused: rotPaused, roteirosHidden: rotHidden }}>
+    <AccountContext.Provider value={{ user: paused ? null : user, ask, paused, roteirosPaused: rotPaused, roteirosHidden: rotHidden, eventsPaused: evPaused, eventsHidden: evHidden }}>
       <div className="app">
         {SITE.announcement?.enabled && SITE.announcement.text && (
           <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
         )}
         {paused && SITE.accountsBar && <div className="site-announce tone-yellow accounts-paused-bar" role="status">{SITE.accountsMessage}</div>}
         {rotPaused && SITE.roteirosBar && <div className="site-announce tone-yellow roteiros-paused-bar" role="status">{SITE.roteirosMessage}</div>}
+        {evPaused && SITE.eventsBar && <div className="site-announce tone-yellow events-paused-bar" role="status">{SITE.eventsMessage}</div>}
         <TopNav current={screen} params={params} unread={unread} user={paused ? null : user} paused={paused} />
         {screen === "home"         && <Home />}
         {screen === "vibes"        && <VibesView key={key} aff={params.aff} q={params.q} />}
+        {screen === "eventos"      && !evOff && <EventosLista key={key} />}
+        {screen === "evento"       && !evOff && <Evento key={key} id={params.id} />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
         {rotOff && <PausedScreen message={SITE.roteirosMessage} />}
+        {evOff && <PausedScreen message={SITE.eventsMessage} />}
         {screen === "roteiros"     && !rotOff && <RoteirosLista />}
         {screen === "roteiro"      && !rotOff && <Roteiro key={key} id={params.id} />}
         {screen === "historias"    && <Historias />}
@@ -227,6 +240,7 @@ export default function App() {
         {screen === "perfil"       && !paused && user && <Perfil key={params.tab} user={user} tab={params.tab} />}
         {screen === "meuRoteiro"   && !paused && !rotOff && user && <MeuRoteiro key={key} id={params.id} />}
         {screen === "meuRoteiroEditar" && !paused && !rotOff && user && <MeuRoteiroEditor key={key} id={params.id} lugar={params.lugar} copiar={params.copiar} />}
+        {screen === "enviarEvento" && !paused && !evOff && user && <EnviarEvento key={key} />}
         {screen === "notificacoes" && !paused && user && <Notificacoes onMarkAllRead={() => setUnread(0)} />}
         {screen === "entrar"       && !paused && <Entrar key={key} mode={params.mode} onDone={afterLogin} />}
         {screen === "pagina"       && <Pagina key={key} id={params.id} />}

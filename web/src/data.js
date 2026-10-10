@@ -579,6 +579,7 @@ export const SEED_MENUS = {
     { id: "m-vibes", label: "Vibes", type: "site", target: "vibes" },
     { id: "m3", label: "Lugares", type: "site", target: "lista" },
     { id: "m4", label: "Roteiros", type: "site", target: "roteiros" },
+    { id: "m-eventos", label: "Eventos", type: "site", target: "eventos" },
     { id: "m5", label: "Guia da cidade", type: "site", target: "mapa" },
     { id: "m6", label: "Para parceiros", type: "page", page: "pg-parceiros" },
   ],
@@ -594,3 +595,25 @@ export const SEED_MENUS = {
     { id: "m13", label: "Privacidade", type: "page", page: "pg5" },
   ],
 };
+
+// =====================================================================
+// Eventos — agenda da cidade (cadastrados no painel em Eventos)
+// =====================================================================
+// Categorias iniciais (inspiradas nas da Sympla); gerenciadas em Eventos › Categorias
+export const SEED_EVENT_CATEGORIES = [
+  { id: "shows",       label: "Shows e música",        slug: "shows-e-musica",        cls: "vibe-lavender", icon: "music" },
+  { id: "festas",      label: "Festas e baladas",      slug: "festas-e-baladas",      cls: "vibe-pink",     icon: "sparkle" },
+  { id: "teatro",      label: "Teatro e espetáculos",  slug: "teatro-e-espetaculos",  cls: "vibe-orange",   icon: "star" },
+  { id: "standup",     label: "Stand-up comedy",       slug: "stand-up-comedy",       cls: "vibe-yellow",   icon: "smile" },
+  { id: "gastronomia", label: "Gastronomia",           slug: "gastronomia",           cls: "vibe-orange",   icon: "utensils" },
+  { id: "feiras",      label: "Feiras e exposições",   slug: "feiras-e-exposicoes",   cls: "vibe-mint",     icon: "landmark" },
+  { id: "infantil",    label: "Infantil e família",    slug: "infantil-e-familia",    cls: "vibe-sky",      icon: "heart" },
+  { id: "esportes",    label: "Esportes e bem-estar",  slug: "esportes-e-bem-estar",  cls: "vibe-mint",     icon: "leaf" },
+  { id: "cursos",      label: "Cursos e workshops",    slug: "cursos-e-workshops",    cls: "vibe-sky",      icon: "users" },
+  { id: "passeios",    label: "Passeios e tours",      slug: "passeios-e-tours",      cls: "vibe-lavender", icon: "camera" },
+];
+export const EVENT_CATEGORIES = SEED_EVENT_CATEGORIES.map(c => ({ ...c }));
+export const EVENTS = [];                                   // publicados (preenchido pelo painel)
+export const eventImg = (id) => `images/eventos/${id}.jpg`;
+export const eventGallery = (id) => [1, 2, 3, 4].map(n => `images/eventos/${id}-${n}.jpg`);
+export const AGE_RATINGS = [["livre", "Livre"], ["10", "10 anos"], ["12", "12 anos"], ["14", "14 anos"], ["16", "16 anos"], ["18", "18 anos"]];

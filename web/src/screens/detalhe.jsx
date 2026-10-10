@@ -30,7 +30,7 @@ const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${
 const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["confira", "Confira também"]];
 
 // WhatsApp do lugar (campo próprio no painel): número com DDD, celular ou fixo (WhatsApp Business)
-function whatsappLink(phone = "") {
+export function whatsappLink(phone = "") {
   let d = String(phone).replace(/\D/g, "");
   if (d.startsWith("55") && d.length >= 12) d = d.slice(2);
   return /^\d{10,11}$/.test(d) ? `https://wa.me/55${d}` : null;

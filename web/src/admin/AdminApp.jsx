@@ -9,7 +9,8 @@ import { PlacesList, PlaceEditor } from "./pages/Places.jsx";
 import { RoteirosList, RoteiroEditor } from "./pages/Roteiros.jsx";
 import { StoriesList, StoryEditor } from "./pages/Stories.jsx";
 import { RadarCategoriesPage } from "./pages/RadarCategories.jsx";
-import { TypesPage } from "./pages/Types.jsx";
+import { TypesPage, EventCategoriesPage } from "./pages/Types.jsx";
+import { EventsList, EventEditor } from "./pages/Events.jsx";
 import { PagesList, PageEditor } from "./pages/Pages.jsx";
 import { MenusPage } from "./pages/Menus.jsx";
 import { VibesPage } from "./pages/Vibes.jsx";
@@ -33,6 +34,7 @@ const NAV = [
   ["Conteúdo", [
     { path: "lugares", label: "Lugares", icon: "pin", perm: "content.edit", badge: (db) => db.places.filter(p => p.status === "revisao").length },
     { path: "roteiros", label: "Roteiros", icon: "route", perm: "content.edit", badge: (db) => db.roteiros.filter(p => p.status === "revisao").length },
+    { path: "eventos", label: "Eventos", icon: "calendar", perm: "content.edit", badge: (db) => (db.events || []).filter(p => p.status === "revisao").length },
     { path: "radar", label: "Radar", icon: "file", perm: "content.edit", badge: (db) => db.stories.filter(p => p.status === "revisao").length },
     { path: "paginas", label: "Páginas", icon: "page", perm: "content.edit", badge: (db) => (db.pages || []).filter(p => p.status === "revisao").length },
     { path: "home", label: "Home", icon: "layout", perm: "home.edit" },
@@ -118,6 +120,7 @@ export default function AdminApp() {
     atividade: <ActivityPage />,
     lugares: id === "tipos" ? <TypesPage /> : id ? <PlaceEditor key={id} id={id} /> : <PlacesList />,
     roteiros: id ? <RoteiroEditor key={id} id={id} /> : <RoteirosList />,
+    eventos: id === "categorias" ? <EventCategoriesPage /> : id ? <EventEditor key={id} id={id} /> : <EventsList />,
     radar: id === "categorias" ? <RadarCategoriesPage /> : id ? <StoryEditor key={id} id={id} /> : <StoriesList />,
     historias: id ? <StoryEditor key={id} id={id} /> : <StoriesList />,   // endereço antigo
     paginas: id ? <PageEditor key={id} id={id} /> : <PagesList />,
@@ -183,6 +186,10 @@ export default function AdminApp() {
             <span className="a-top-mark" aria-hidden="true"><OSIcon /></span>
             <QuickSearch db={db} go={go} />
             <div className="a-top-right">
+              {db.settings.eventsPause?.paused && (
+                <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
+                  title="Eventos pausados no site"><i /> Eventos pausados</a>
+              )}
               {db.settings.roteirosPause?.paused && (
                 <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
                   title="Roteiros dos usuários pausados no site"><i /> Roteiros pausados</a>
@@ -281,13 +288,14 @@ function QuickSearch({ db, go }) {
   const results = q.trim().length < 2 ? [] : [
     ...db.places.map(p => ({ t: p.name, s: `Lugar · ${p.bairro}`, path: "lugares/" + p.id })),
     ...db.roteiros.map(r => ({ t: r.title, s: "Roteiro", path: "roteiros/" + r.id })),
+    ...(db.events || []).map(e => ({ t: e.title, s: "Evento", path: "eventos/" + e.id })),
     ...db.stories.map(s => ({ t: s.title, s: "Post do Radar", path: "radar/" + s.id })),
     ...db.members.map(m => ({ t: m.name, s: "Usuário · " + m.email, path: "usuarios" })),
   ].filter(r => (r.t + " " + r.s).toLowerCase().includes(q.toLowerCase())).slice(0, 8);
   return (
     <div className="a-qs">
       <AIcon name="search" size={16} />
-      <input ref={ref} value={q} placeholder="Buscar lugares, roteiros, histórias…" aria-label="Busca rápida"
+      <input ref={ref} value={q} placeholder="Buscar lugares, roteiros, eventos…" aria-label="Busca rápida"
         onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
         onKeyDown={(e) => { if (e.key === "Enter" && results[0]) { go(results[0].path); setQ(""); } if (e.key === "Escape") { setQ(""); e.target.blur(); } }} />
       <kbd className="a-hide-sm">Ctrl K</kbd>
