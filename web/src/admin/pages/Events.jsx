@@ -10,7 +10,7 @@ import { slugify } from "../store.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
 import { eventsNav } from "./Types.jsx";
-import { parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel } from "../../events.js";
+import { parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel, sameHoursAllDays } from "../../events.js";
 
 const catsOf = (db) => db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES;
 
@@ -70,6 +70,7 @@ const RULES = [
   ["dateFrom", (d) => !!parseLocal(d.dateFrom), "Informe o primeiro dia."],
   ["dateTo", (d) => !!parseLocal(d.dateTo) && d.dateTo >= d.dateFrom, "O último dia não pode ser antes do primeiro."],
   ["timeFrom", (d) => !!d.timeFrom && eventDays(d).every(x => !!x.from), "Informe o horário de início de todos os dias."],
+  ["perDay", (d) => !d.perDay || eventDays(d).length < 2 || !sameHoursAllDays(eventDays(d)), "Com “Dias com horários diferentes” ligado, ao menos um dia precisa ter horário diferente dos outros. Ajuste um dia ou desligue a opção."],
   ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
   ["ticketUrl", (d) => !d.ticket?.url || /^https?:\/\/\S+\.\S+/.test(d.ticket.url), "Use o link completo da venda (https://…)."],
   ["category", (d) => !!d.category, "Escolha a categoria.", true],
@@ -142,7 +143,7 @@ function EventForm({ initial, isNew }) {
       main={<>
         <Tabs value={tab} onChange={setTab} tabs={[
           ["conteudo", "Conteúdo", tabErr(["title", "desc"])],
-          ["data", "Data e ingressos", tabErr(["dateFrom", "dateTo", "timeFrom", "ticketUrl"])],
+          ["data", "Data e ingressos", tabErr(["dateFrom", "dateTo", "timeFrom", "perDay", "ticketUrl"])],
           ["classificacao", "Classificação", tabErr(["category", "affs"])],
           ["local", "Local", tabErr(["end", "city", "whatsapp"])],
           ["imagens", "Fotos"],
@@ -192,6 +193,7 @@ function EventForm({ initial, isNew }) {
               <Toggle label="Dias com horários diferentes" checked={!!draft.perDay} onChange={(perDay) => setSched({ perDay })}
                 hint={draft.perDay ? "Ajuste o horário de cada dia abaixo. Os dias que você não mudar seguem o horário padrão." : "Marque para definir um horário próprio em algum dia do período."} />
             )}
+            {errors.perDay && <p className="a-error" role="alert">{errors.perDay}</p>}
             {draft.perDay && schedDays.length > 1 && (
               <ul className="a-day-hours" aria-label="Horário de cada dia">
                 {schedDays.map(d => {

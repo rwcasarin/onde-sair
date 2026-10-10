@@ -1158,4 +1158,5 @@ a.btn-pill { text-decoration: none; }
 .event-day-pick { position: relative; display: inline-flex; align-items: center; width: fit-content; margin: 2px 0; }
 .event-day-pick select { appearance: none; height: 32px; padding: 0 30px 0 12px; border: 1px solid var(--line-strong, rgba(30,21,80,.2)); border-radius: 999px; background: #fff; color: var(--heading); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .event-day-pick > svg { position: absolute; right: 10px; pointer-events: none; color: var(--heading); }
-.event-box-row strong.event-day-hours { margin-top: 2px; }
+.event-box-row .event-hours-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 2px; }
+.event-box-row .event-when-line + .event-when-line { margin-top: 0; }

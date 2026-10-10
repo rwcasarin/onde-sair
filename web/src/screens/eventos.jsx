@@ -14,7 +14,7 @@ import { currentPath, HASH_MODE } from "../router.js";
 import { CheckRow, toggleIn } from "./lista.jsx";
 import {
   WHEN, inRange, isPast, isHappening, byDate, whenLabel, priceLabel,
-  eventVenue, venueName, googleCalendarUrl, icsHref, eventDays, periodLabel, dayLabel, hoursLabel, defaultDay, todayYmd,
+  eventVenue, venueName, googleCalendarUrl, icsHref, eventDays, periodLines, dayLabel, hoursLabel, defaultDay, todayYmd, sameHoursAllDays,
 } from "../events.js";
 
 const SORTS = [["data", "Data (mais próximos)"], ["az", "A–Z"]];
@@ -200,7 +200,7 @@ export function Evento({ id }) {
   // horário: o do dia de hoje (se o evento acontece hoje); dá para escolher outro dia
   const days = eventDays(e);
   const day = days.find(d => d.date === pickedDay) || defaultDay(days);
-  const sameHours = days.every(d => d.from === days[0].from && d.to === days[0].to);
+  const sameHours = sameHoursAllDays(days);
   const venue = eventVenue(e);
   const where = venueName(e);
   const address = fullAddress(e);
@@ -289,7 +289,7 @@ export function Evento({ id }) {
               <Icon name="calendar" size={20} />
               <div>
                 <span className="event-box-label">Quando</span>
-                <strong>{periodLabel(e)}</strong>
+                {periodLines(e).map(l => <strong key={l} className="event-when-line">{l}</strong>)}
               </div>
             </div>
             {day && (
@@ -297,17 +297,18 @@ export function Evento({ id }) {
                 <Icon name="clock" size={20} />
                 <div>
                   <span className="event-box-label">Horário</span>
-                  {days.length > 1 ? (
-                    <label className="event-day-pick">
-                      <span className="sr-only">Escolha o dia</span>
-                      <select value={day.date} onChange={(ev) => setPickedDay(ev.target.value)} aria-label="Ver o horário de outro dia">
-                        {days.map(d => <option key={d.date} value={d.date}>{d.date === todayYmd() ? "Hoje, " + dayLabel(d.date).toLowerCase() : dayLabel(d.date)}</option>)}
-                      </select>
-                      <Icon name="chevron" size={14} />
-                    </label>
-                  ) : <span>{day.date === todayYmd() ? "Hoje" : dayLabel(day.date)}</span>}
-                  <strong className="event-day-hours">{hoursLabel(day)}</strong>
-                  {days.length > 1 && <span>{sameHours ? "Mesmo horário em todos os dias." : "Os horários mudam conforme o dia."}</span>}
+                  {/* o seletor de dia só aparece quando os horários mudam de um dia para outro: seletor > horário */}
+                  <div className="event-hours-line">
+                    {!sameHours && (
+                      <label className="event-day-pick">
+                        <select value={day.date} onChange={(ev) => setPickedDay(ev.target.value)} aria-label="Ver o horário de outro dia">
+                          {days.map(d => <option key={d.date} value={d.date}>{d.date === todayYmd() ? "Hoje, " + dayLabel(d.date).toLowerCase() : dayLabel(d.date)}</option>)}
+                        </select>
+                        <Icon name="chevron" size={14} />
+                      </label>
+                    )}
+                    <strong className="event-day-hours">{hoursLabel(day)}</strong>
+                  </div>
                 </div>
               </div>
             )}

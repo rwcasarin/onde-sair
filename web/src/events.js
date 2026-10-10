@@ -135,3 +135,13 @@ export function defaultDay(days, now = new Date()) {
   return days.find(d => d.date === today) || days.find(d => d.date > today) || days[0];
 }
 export const todayYmd = (now = new Date()) => ymd(now);
+// "De sexta 11 dez 26" / "Até domingo 13 dez 26" (um dia só: "Sexta 11 dez 26")
+const WEEK_LONG = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+export const fmtDayShortYear = (date) => { const d = parseLocal(date); return d ? `${WEEK_LONG[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]} ${String(d.getFullYear()).slice(2)}` : ""; };
+export function periodLines(e) {
+  const s = schedOf(e);
+  if (!s.dateFrom) return [];
+  return s.dateTo && s.dateTo !== s.dateFrom ? [`De ${fmtDayShortYear(s.dateFrom)}`, `Até ${fmtDayShortYear(s.dateTo)}`] : [cap(fmtDayShortYear(s.dateFrom))];
+}
+// todos os dias do período com o mesmo horário?
+export const sameHoursAllDays = (days) => days.every(d => d.from === days[0]?.from && d.to === days[0]?.to);
