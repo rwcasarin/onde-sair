@@ -1,6 +1,6 @@
 // Componentes compartilhados do site (v3)
 import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, PRICE_RANGE, EVENT_CATEGORIES, placeImg, roteiroImg, eventImg } from "../data.js";
-import { whenLabel, isPast, venueName, cardWhen } from "../events.js";
+import { isPast, venueName, cardWhen } from "../events.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
@@ -222,7 +222,6 @@ export function EventCard({ e }) {
         {e.category && <div className="rot-index-vibes"><CategoryPill id={e.category} /></div>}
         <h3>{e.title}</h3>
         <ul className="rot-index-meta card-sub card-sub-stack">
-          <li><Icon name="clock" size={14} /> {whenLabel(e)}</li>
           {where && <li><Icon name="pin" size={14} /> {where}</li>}
         </ul>
         {e.tagline && <p>{e.tagline}</p>}
