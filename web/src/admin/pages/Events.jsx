@@ -10,7 +10,7 @@ import { slugify } from "../store.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
 import { eventsNav } from "./Types.jsx";
-import { parseLocal, toLocal, whenLabel, priceLabel, isPast } from "../../events.js";
+import { parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel } from "../../events.js";
 
 const catsOf = (db) => db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES;
 
@@ -53,7 +53,9 @@ function nextSaturday() {
 }
 const blank = () => {
   const s = nextSaturday(), f = new Date(s.getTime() + 3 * 36e5);
+  const day = toLocal(s).slice(0, 10);
   return {
+    dateFrom: day, dateTo: day, timeFrom: "20:00", timeTo: "23:00", perDay: false, days: {},
     title: "", slug: "", tagline: "", desc: "", note: "", category: "", affs: [], tags: [],
     startAt: toLocal(s), endAt: toLocal(f), doors: "",
     price: { free: false, from: "", to: "", note: "" }, ticket: { required: false, url: "", label: "" },
@@ -65,8 +67,9 @@ const blank = () => {
 
 const RULES = [
   ["title", (d) => d.title.trim().length >= 3, "Dê um nome ao evento."],
-  ["startAt", (d) => !!parseLocal(d.startAt), "Informe a data e a hora de início."],
-  ["endAt", (d) => !!parseLocal(d.endAt) && parseLocal(d.endAt) > parseLocal(d.startAt), "O término precisa ser depois do início."],
+  ["dateFrom", (d) => !!parseLocal(d.dateFrom), "Informe o primeiro dia."],
+  ["dateTo", (d) => !!parseLocal(d.dateTo) && d.dateTo >= d.dateFrom, "O último dia não pode ser antes do primeiro."],
+  ["timeFrom", (d) => !!d.timeFrom && eventDays(d).every(x => !!x.from), "Informe o horário de início de todos os dias."],
   ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
   ["ticketUrl", (d) => !d.ticket?.url || /^https?:\/\/\S+\.\S+/.test(d.ticket.url), "Use o link completo da venda (https://…)."],
   ["category", (d) => !!d.category, "Escolha a categoria.", true],
@@ -82,7 +85,7 @@ export function EventEditor({ id }) {
   const found = (db.events || []).find(e => e.id === id);
   if (!isNew && !found) return <NotFoundItem what="Evento" path="eventos" />;
   const base = blank();
-  return <EventForm initial={isNew ? { ...base, city: db.settings.defaultCity || base.city } : { ...base, ...found, price: { ...base.price, ...found.price }, ticket: { ...base.ticket, ...found.ticket }, seo: { ...base.seo, ...found.seo } }} isNew={isNew} />;
+  return <EventForm initial={isNew ? { ...base, city: db.settings.defaultCity || base.city } : { ...base, ...found, ...schedOf(found), price: { ...base.price, ...found.price }, ticket: { ...base.ticket, ...found.ticket }, seo: { ...base.seo, ...found.seo } }} isNew={isNew} />;
 }
 
 function EventForm({ initial, isNew }) {
@@ -95,6 +98,19 @@ function EventForm({ initial, isNew }) {
   const tabErr = (keys) => keys.some(k => errors[k]) ? "!" : null;
   const setPrice = (patch) => set({ price: { ...draft.price, ...patch } });
   const setTicket = (patch) => set({ ticket: { ...draft.ticket, ...patch } });
+  // período e horários: guarda os dias diferentes só dentro do período e recalcula início/término
+  function setSched(patch) {
+    const next = { ...draft, ...patch };
+    if (next.dateTo < next.dateFrom) next.dateTo = next.dateFrom;
+    const inside = Object.fromEntries(Object.entries(next.days || {}).filter(([d]) => d >= next.dateFrom && d <= next.dateTo));
+    const days = next.perDay ? inside : {};
+    set({ ...patch, dateTo: next.dateTo, days, ...deriveRange({ ...next, days }) });
+  }
+  const schedDays = eventDays(draft);
+  const setDay = (date, patch) => {
+    const cur = schedDays.find(d => d.date === date);
+    setSched({ days: { ...draft.days, [date]: { from: cur.from, to: cur.to, ...patch } } });
+  };
 
   // escolher o lugar do catálogo preenche o local; o endereço continua editável
   function pickVenue(id) {
@@ -109,7 +125,7 @@ function EventForm({ initial, isNew }) {
   const checklist = [
     ["Nome e frase de destaque", !!draft.title && !!draft.tagline],
     ["Descrição com 40+ caracteres", draft.desc.length >= 40],
-    ["Início e término", !!parseLocal(draft.startAt) && !!parseLocal(draft.endAt)],
+    ["Período e horários", !!draft.dateFrom && !!draft.timeFrom],
     ["Valor ou entrada gratuita", draft.price.free || !!draft.price.from],
     ["Categoria e vibes", !!draft.category && draft.affs.length > 0],
     ["Local com endereço", !!draft.end],
@@ -126,7 +142,7 @@ function EventForm({ initial, isNew }) {
       main={<>
         <Tabs value={tab} onChange={setTab} tabs={[
           ["conteudo", "Conteúdo", tabErr(["title", "desc"])],
-          ["data", "Data e ingressos", tabErr(["startAt", "endAt", "ticketUrl"])],
+          ["data", "Data e ingressos", tabErr(["dateFrom", "dateTo", "timeFrom", "ticketUrl"])],
           ["classificacao", "Classificação", tabErr(["category", "affs"])],
           ["local", "Local", tabErr(["end", "city", "whatsapp"])],
           ["imagens", "Fotos"],
@@ -156,18 +172,46 @@ function EventForm({ initial, isNew }) {
         )}
 
         {tab === "data" && (<>
-          <Card title="Data e horário">
+          <Card title="Período e horários" subtitle="Um dia só ou vários dias seguidos. O horário vale para todos os dias, a não ser que você marque dias com horários diferentes.">
             <div className="a-form-grid">
-              <Input label="Início" required type="datetime-local" value={draft.startAt} error={errors.startAt}
-                onChange={(startAt) => {
-                  // mantém a duração ao mudar o início
-                  const s0 = parseLocal(draft.startAt), f0 = parseLocal(draft.endAt), s1 = parseLocal(startAt);
-                  set(s0 && f0 && s1 && f0 > s0 ? { startAt, endAt: toLocal(new Date(s1.getTime() + (f0 - s0))) } : { startAt });
+              <Input label="Primeiro dia" required type="date" value={draft.dateFrom} error={errors.dateFrom}
+                onChange={(dateFrom) => {
+                  // mantém a duração do período ao mudar o primeiro dia
+                  const len = Math.max(0, Math.round((parseLocal(draft.dateTo) - parseLocal(draft.dateFrom)) / 864e5)) || 0;
+                  const d = parseLocal(dateFrom); if (!d) return setSched({ dateFrom });
+                  d.setDate(d.getDate() + len);
+                  setSched({ dateFrom, dateTo: toLocal(d).slice(0, 10) });
                 }} />
-              <Input label="Término" required type="datetime-local" value={draft.endAt} min={draft.startAt} error={errors.endAt} onChange={(endAt) => set({ endAt })} />
-              <Input label="Abertura da casa" value={draft.doors} onChange={(doors) => set({ doors })} placeholder="19h30" hint="Opcional. Quando os portões abrem, se for diferente do início." />
+              <Input label="Último dia" required type="date" value={draft.dateTo} min={draft.dateFrom} error={errors.dateTo}
+                onChange={(dateTo) => setSched({ dateTo })} hint="Igual ao primeiro dia para eventos de um dia só." />
+              <Input label={draft.perDay ? "Abre às (padrão)" : "Abre às"} required type="time" value={draft.timeFrom} error={errors.timeFrom} onChange={(timeFrom) => setSched({ timeFrom })} />
+              <Input label={draft.perDay ? "Fecha às (padrão)" : "Fecha às"} type="time" value={draft.timeTo} onChange={(timeTo) => setSched({ timeTo })}
+                hint="Se terminar depois da meia-noite, use o horário do dia seguinte (ex.: 02:00)." />
             </div>
-            {parseLocal(draft.startAt) && parseLocal(draft.endAt) > parseLocal(draft.startAt) && <p className="a-hint">No site: {whenLabel(draft)}</p>}
+            {schedDays.length > 1 && (
+              <Toggle label="Dias com horários diferentes" checked={!!draft.perDay} onChange={(perDay) => setSched({ perDay })}
+                hint={draft.perDay ? "Ajuste o horário de cada dia abaixo. Os dias que você não mudar seguem o horário padrão." : "Marque para definir um horário próprio em algum dia do período."} />
+            )}
+            {draft.perDay && schedDays.length > 1 && (
+              <ul className="a-day-hours" aria-label="Horário de cada dia">
+                {schedDays.map(d => {
+                  const own = !!draft.days?.[d.date];
+                  return (
+                    <li key={d.date} className={own ? "is-own" : ""}>
+                      <span className="a-day-name">{dayLabel(d.date)}</span>
+                      <input className="a-input" type="time" value={d.from} aria-label={`Abre às · ${dayLabel(d.date)}`} onChange={(ev) => setDay(d.date, { from: ev.target.value })} />
+                      <span className="a-muted">às</span>
+                      <input className="a-input" type="time" value={d.to} aria-label={`Fecha às · ${dayLabel(d.date)}`} onChange={(ev) => setDay(d.date, { to: ev.target.value })} />
+                      {own
+                        ? <button type="button" className="a-link" onClick={() => { const { [d.date]: _, ...rest } = draft.days; setSched({ days: rest }); }}>Usar o padrão</button>
+                        : <span className="a-muted a-day-std">Padrão</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <Input label="Abertura da casa" value={draft.doors} onChange={(doors) => set({ doors })} placeholder="19h30" hint="Opcional. Quando os portões abrem, se for diferente do início." />
+            {draft.dateFrom && <p className="a-hint">No site: {periodLabel(draft)}{schedDays.length === 1 ? ` · ${hoursLabel(schedDays[0])}` : ""}</p>}
           </Card>
           <Card title="Valor">
             <Toggle label="Evento gratuito" checked={!!draft.price.free} onChange={(free) => setPrice({ free })} />

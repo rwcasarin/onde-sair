@@ -13,8 +13,8 @@ import { slugify } from "../admin/store.js";
 import { currentPath, HASH_MODE } from "../router.js";
 import { CheckRow, toggleIn } from "./lista.jsx";
 import {
-  WHEN, inRange, isPast, isHappening, byDate, whenLabel, priceLabel, parseLocal, fmtDayLong, fmtTime,
-  eventVenue, venueName, googleCalendarUrl, icsHref,
+  WHEN, inRange, isPast, isHappening, byDate, whenLabel, priceLabel,
+  eventVenue, venueName, googleCalendarUrl, icsHref, eventDays, periodLabel, dayLabel, hoursLabel, defaultDay, todayYmd,
 } from "../events.js";
 
 const SORTS = [["data", "Data (mais próximos)"], ["az", "A–Z"]];
@@ -195,13 +195,16 @@ export function Evento({ id }) {
   const [tab, setTab] = useState("visao");
   const [shared, setShared] = useState(false);
   const [shift, setShift] = useState(0);
+  const [pickedDay, setPickedDay] = useState(null);
   if (!e) return null;
+  // horário: o do dia de hoje (se o evento acontece hoje); dá para escolher outro dia
+  const days = eventDays(e);
+  const day = days.find(d => d.date === pickedDay) || defaultDay(days);
+  const sameHours = days.every(d => d.from === days[0].from && d.to === days[0].to);
   const venue = eventVenue(e);
   const where = venueName(e);
   const address = fullAddress(e);
   const past = isPast(e), live = isHappening(e);
-  const s = parseLocal(e.startAt), f = parseLocal(e.endAt);
-  const sameDay = s && f && s.toDateString() === f.toDateString();
   const saved = faves.has(e.id);
   const insta = instaProfile(e.insta);
   const whats = whatsappLink(e.whatsapp);
@@ -285,15 +288,27 @@ export function Evento({ id }) {
             <div className="event-box-row">
               <Icon name="calendar" size={20} />
               <div>
-                <span className="event-box-label">{sameDay ? "Data" : "Início"}</span>
-                <strong>{fmtDayLong(s)}</strong>
-                <span>{sameDay ? `${fmtTime(s)} às ${fmtTime(f)}` : `às ${fmtTime(s)}`}</span>
+                <span className="event-box-label">Quando</span>
+                <strong>{periodLabel(e)}</strong>
               </div>
             </div>
-            {!sameDay && f && (
+            {day && (
               <div className="event-box-row">
                 <Icon name="clock" size={20} />
-                <div><span className="event-box-label">Término</span><strong>{fmtDayLong(f)}</strong><span>às {fmtTime(f)}</span></div>
+                <div>
+                  <span className="event-box-label">Horário</span>
+                  {days.length > 1 ? (
+                    <label className="event-day-pick">
+                      <span className="sr-only">Escolha o dia</span>
+                      <select value={day.date} onChange={(ev) => setPickedDay(ev.target.value)} aria-label="Ver o horário de outro dia">
+                        {days.map(d => <option key={d.date} value={d.date}>{d.date === todayYmd() ? "Hoje, " + dayLabel(d.date).toLowerCase() : dayLabel(d.date)}</option>)}
+                      </select>
+                      <Icon name="chevron" size={14} />
+                    </label>
+                  ) : <span>{day.date === todayYmd() ? "Hoje" : dayLabel(day.date)}</span>}
+                  <strong className="event-day-hours">{hoursLabel(day)}</strong>
+                  {days.length > 1 && <span>{sameHours ? "Mesmo horário em todos os dias." : "Os horários mudam conforme o dia."}</span>}
+                </div>
               </div>
             )}
             {e.doors && (

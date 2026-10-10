@@ -80,3 +80,58 @@ export function icsHref(e, where) {
     `SUMMARY:${esc(e.title)}`, `DESCRIPTION:${esc(e.tagline)}`, `LOCATION:${esc(where)}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
   return "data:text/calendar;charset=utf-8," + encodeURIComponent(body);
 }
+
+// ---------------------------------------------------------------------
+// Período e horários por dia
+// O cadastro guarda: dateFrom/dateTo (AAAA-MM-DD), timeFrom/timeTo (HH:MM) e, se perDay,
+// days = { "AAAA-MM-DD": { from, to } } com os dias de horário diferente.
+// startAt/endAt continuam sendo gravados (derivados) para cards, filtros e agenda.
+// ---------------------------------------------------------------------
+const ymd = (d) => toLocal(d).slice(0, 10);
+const addDays = (date, n) => { const d = parseLocal(date); d.setDate(d.getDate() + n); return ymd(d); };
+const hm = (s) => (s || "").slice(11, 16);
+
+// normaliza o agendamento (eventos antigos só têm startAt/endAt)
+export function schedOf(e) {
+  if (e.dateFrom) return { dateFrom: e.dateFrom, dateTo: e.dateTo || e.dateFrom, timeFrom: e.timeFrom || "", timeTo: e.timeTo || "", perDay: !!e.perDay, days: e.days || {} };
+  const s = e.startAt || "", f = e.endAt || s;
+  let dateFrom = s.slice(0, 10), dateTo = f.slice(0, 10);
+  const timeFrom = hm(s), timeTo = hm(f);
+  // termina no dia seguinte antes do horário de início: é um dia só, que passa da meia-noite
+  if (dateTo > dateFrom && addDays(dateFrom, 1) === dateTo && timeTo <= timeFrom) dateTo = dateFrom;
+  return { dateFrom, dateTo, timeFrom, timeTo, perDay: false, days: {} };
+}
+// lista dos dias do evento, com o horário de cada um
+export function eventDays(e) {
+  const s = schedOf(e);
+  if (!s.dateFrom || !parseLocal(s.dateFrom)) return [];
+  const out = [];
+  for (let d = s.dateFrom, i = 0; d <= s.dateTo && i < 62; d = addDays(d, 1), i++) {
+    const own = s.perDay && s.days[d];
+    out.push({ date: d, from: own?.from || s.timeFrom, to: own?.to || s.timeTo });
+  }
+  return out;
+}
+// início e término reais (o último dia pode passar da meia-noite)
+export function deriveRange(e) {
+  const days = eventDays(e);
+  if (!days.length) return { startAt: e.startAt || "", endAt: e.endAt || "" };
+  const a = days[0], z = days[days.length - 1];
+  const endDate = z.to && z.from && z.to <= z.from ? addDays(z.date, 1) : z.date;
+  return { startAt: `${a.date}T${a.from || "00:00"}`, endAt: `${endDate}T${z.to || "23:59"}` };
+}
+// "17 out - 2026" e "17 out - 2026 até 18 out - 2026"
+export const fmtDateYear = (date) => { const d = parseLocal(date); return d ? `${d.getDate()} ${MONTH[d.getMonth()]} - ${d.getFullYear()}` : ""; };
+export function periodLabel(e) {
+  const s = schedOf(e);
+  return s.dateTo && s.dateTo !== s.dateFrom ? `${fmtDateYear(s.dateFrom)} até ${fmtDateYear(s.dateTo)}` : fmtDateYear(s.dateFrom);
+}
+export const dayLabel = (date) => fmtDay(parseLocal(date));
+const hmLabel = (t) => { if (!t) return ""; const [h, m] = t.split(":"); return +m ? `${+h}h${m}` : `${+h}h`; };
+export const hoursLabel = (day) => day.from && day.to ? `${hmLabel(day.from)} às ${hmLabel(day.to)}` : hmLabel(day.from) ? `a partir das ${hmLabel(day.from)}` : "Horário a confirmar";
+// dia mostrado por padrão: hoje (se o evento acontece hoje), senão o próximo dia, senão o primeiro
+export function defaultDay(days, now = new Date()) {
+  const today = ymd(now);
+  return days.find(d => d.date === today) || days.find(d => d.date > today) || days[0];
+}
+export const todayYmd = (now = new Date()) => ymd(now);
