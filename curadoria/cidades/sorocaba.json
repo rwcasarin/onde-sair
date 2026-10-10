@@ -1,0 +1,34 @@
+{
+  "cidade": "Sorocaba",
+  "uf": "SP",
+  "centro": { "lat": -23.5015, "lng": -47.4526 },
+  "raio_m": 15000,
+  "tipos": {
+    "Restaurantes": {
+      "cota": 35, "min_avaliacoes": 200,
+      "buscas": ["restaurante", "restaurante japonês", "restaurante italiano", "churrascaria", "hamburgueria", "pizzaria", "cafeteria", "padaria artesanal", "sorveteria", "restaurante árabe", "comida mineira", "restaurante vegetariano"]
+    },
+    "Bares": {
+      "cota": 25, "min_avaliacoes": 200,
+      "buscas": ["bar", "choperia", "cervejaria artesanal", "pub", "bar de drinks", "boteco", "wine bar"]
+    },
+    "Parques": {
+      "cota": 12, "min_avaliacoes": 300,
+      "buscas": ["parque", "praça", "mirante", "jardim botânico", "trilha", "parque natural"]
+    },
+    "Shows e baladas": {
+      "cota": 10, "min_avaliacoes": 100,
+      "buscas": ["casa noturna", "balada", "casa de shows", "bar com música ao vivo", "karaokê"]
+    },
+    "Eventos": {
+      "cota": 10, "min_avaliacoes": 100,
+      "buscas": ["museu", "teatro", "centro cultural", "cinema", "zoológico", "atração turística"]
+    }
+  },
+  "nota_minima": 4.3,
+  "apostas": { "nota_minima": 4.6, "min_avaliacoes": 50, "maximo": 10 },
+  "ja_no_site": [
+    "Rino Beer Growler & Craft", "Frater's Pub", "Carneada", "Sophie's BBQ",
+    "Parque da Água Vermelha", "Parque das Águas", "Drink Me Speakeasy Bar"
+  ]
+}

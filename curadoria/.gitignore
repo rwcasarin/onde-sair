@@ -1,0 +1,4 @@
+# respostas do Google (até 30 dias) e planilhas com notas: uso interno, não versionar
+.cache/
+saida/
+__pycache__/
