@@ -39,6 +39,8 @@ const directions = (e) => e.geo
 // Lista
 // ---------------------------------------------------------------------
 export function EventosLista() {
+  const nav = useNav();
+  const { user, ask, paused, eventsPaused } = useAccount();
   const { id: globalCity, name: city, set: setGlobalCity } = useCity();
   const all = EVENTS;
   const [vibe, setVibe] = useState(() => {
@@ -176,6 +178,12 @@ export function EventosLista() {
             </div>
           ) : (
             <div className="listing-grid">{results.map(e => <EventCard key={e.id} e={e} />)}</div>
+          )}
+          {!paused && !eventsPaused && (
+            <div className="ev-submit-cta">
+              <div><strong>Tem um evento com a cara da cidade?</strong><span>Envie para a agenda: a equipe revisa e publica.</span></div>
+              <button className="btn-outline" onClick={() => user ? nav("enviarEvento") : ask({ type: "enviarEvento" })}><Icon name="calendar" size={16} /> Enviar evento</button>
+            </div>
           )}
         </section>
       </div>

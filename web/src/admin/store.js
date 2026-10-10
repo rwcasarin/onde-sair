@@ -136,6 +136,7 @@ function seed() {
     defaultCity: "sorocaba", announcement: { enabled: false, text: "Novidade: roteiros de feriado já estão no ar!", tone: "primary" },
     newsletter: true, maintenance: false, accounts: { paused: false, showBar: true, message: "" },
     roteirosPause: { paused: false, hideCatalog: true, showBar: true, message: "" },
+    eventsPause: { paused: false, hideCatalog: true, showBar: true, message: "" },
   };
 
   const activity = [
@@ -392,6 +393,11 @@ export function syncPublic() {
   SITE.roteirosHidden = !!rp.paused && rp.hideCatalog !== false;
   SITE.roteirosBar = rp.showBar !== false;
   SITE.roteirosMessage = rp.message || ROTEIROS_PAUSED_TEXT;
+  const ep = db.settings.eventsPause || {};
+  SITE.eventsPaused = !!ep.paused;
+  SITE.eventsHidden = !!ep.paused && ep.hideCatalog !== false;
+  SITE.eventsBar = ep.showBar !== false;
+  SITE.eventsMessage = ep.message || EVENTS_PAUSED_TEXT;
   SITE.mapsKey = db.settings.mapsKey || "";
   SITE.seoTitle = db.settings.seoTitle || "";
   SITE.seoDesc = db.settings.seoDesc || "";
@@ -401,7 +407,8 @@ export function syncPublic() {
 // pausa de contas e interações (manutenções e instabilidades): texto padrão do aviso no site
 export const ACCOUNTS_PAUSED_TEXT = "Login, cadastro, favoritos e roteiros estão pausados por alguns instantes para manutenção. Você pode continuar navegando normalmente.";
 export const ROTEIROS_PAUSED_TEXT = "Os roteiros estão em manutenção por alguns instantes. Lugares e o Radar seguem disponíveis normalmente.";
-export const SITE = { roteirosPaused: false, roteirosHidden: false, roteirosBar: true, roteirosMessage: ROTEIROS_PAUSED_TEXT, announcement: null, maintenance: false, accountsPaused: false, accountsMessage: ACCOUNTS_PAUSED_TEXT, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
+export const EVENTS_PAUSED_TEXT = "A agenda de eventos está em manutenção por alguns instantes. Lugares, roteiros e o Radar seguem disponíveis normalmente.";
+export const SITE = { eventsPaused: false, eventsHidden: false, eventsBar: true, eventsMessage: EVENTS_PAUSED_TEXT, roteirosPaused: false, roteirosHidden: false, roteirosBar: true, roteirosMessage: ROTEIROS_PAUSED_TEXT, announcement: null, maintenance: false, accountsPaused: false, accountsMessage: ACCOUNTS_PAUSED_TEXT, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
 
 // ---------------------------------------------------------------------
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)
@@ -544,6 +551,14 @@ export function saveEventCategories(cats, user, moves = {}) {
   db.eventCategories = cats;
   log(user, "atualizou", "categorias de evento", "evento"); commit();
 }
+// Evento enviado por um usuário do site no modo offline (no modo nuvem, quem grava é a API)
+export function addEventSubmission(ev) {
+  db.events = [ev, ...(db.events || [])];
+  log({ name: ev.submittedBy?.name }, "enviou para revisão", ev.title, "evento");
+  commit();
+}
+export const eventSubmissionsOf = (userId) => (db.events || []).filter(e => e.submittedBy?.id === userId);
+export const dbForSubmission = () => ({ categories: db.eventCategories || [], vibes: (db.vibes || []).filter(v => v.active !== false), places: db.places.filter(p => p.status === "publicado"), cities: db.cities || [] });
 export function saveMenus(menus, user) { db.menus = menus; log(user, "atualizou", "menus", "menus"); commit(); }
 export function saveSettings(settings, user) { db.settings = settings; log(user, "atualizou", "configurações", "config"); commit(); }
 // Cadastro rápido a partir do editor de lugar (sem duplicidade: ignora acentos e maiúsculas)

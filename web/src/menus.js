@@ -23,6 +23,7 @@ export const siteTarget = (id) => SITE_TARGETS.find(t => t.id === id);
 export function resolveItem(item, pages = PAGES) {
   if (!item?.label?.trim() || item.hidden) return null;   // item oculto no painel
   // roteiros pausados e escondidos: links para roteiros saem dos menus
+  if (SITE.eventsHidden && ((item.type === "site" && item.target === "eventos") || (item.type === "url" && /^\/eventos(\/|$|\?)/.test((item.url || "").trim())))) return null;
   if (SITE.roteirosHidden && ((item.type === "site" && item.target === "roteiros") || (item.type === "url" && /^\/roteiros(\/|$|\?)/.test((item.url || "").trim())))) return null;
   if (item.type === "page") {
     const pg = pages.find(p => p.id === item.page);

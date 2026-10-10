@@ -87,8 +87,9 @@ export function toPath(screen, params = {}) {
     case "historia": return storyPath(params.id);
     case "pagina": return "/" + slugOf(PAGES.find(x => x.id === params.id) || { slug: params.id });
     case "mapa": return params.id ? "/guia/" + slugOf(PLACES.find(x => x.id === params.id) || { slug: params.id }) : "/guia";
-    case "perfil": return { favoritos: "/perfil/favoritos", favRoteiros: "/perfil/favoritos/roteiros", favEventos: "/perfil/favoritos/eventos", meus: "/perfil/roteiros", conta: "/perfil/conta" }[params.tab] || "/perfil";
+    case "perfil": return { favoritos: "/perfil/favoritos", favRoteiros: "/perfil/favoritos/roteiros", favEventos: "/perfil/favoritos/eventos", meusEventos: "/perfil/eventos", meus: "/perfil/roteiros", conta: "/perfil/conta" }[params.tab] || "/perfil";
     case "meuRoteiro": return "/perfil/roteiros/" + encodeURIComponent(params.id);
+    case "enviarEvento": return "/perfil/eventos/novo";
     case "meuRoteiroEditar": {
       if (params.id && params.id !== "novo") return "/perfil/roteiros/" + encodeURIComponent(params.id) + "/editar";
       const q = new URLSearchParams();
@@ -116,6 +117,11 @@ export function fromPath(full) {
     if (!x) return { screen: "perfil", params: { tab: "favoritos" } };
     if (x === "favoritos" && !z) return y === "roteiros" ? { screen: "perfil", params: { tab: "favRoteiros" } } : y === "eventos" ? { screen: "perfil", params: { tab: "favEventos" } } : !y ? { screen: "perfil", params: { tab: "favoritos" } } : notFound;
     if (x === "conta" && !y) return { screen: "perfil", params: { tab: "conta" } };
+    if (x === "eventos") {
+      if (!y) return { screen: "perfil", params: { tab: "meusEventos" } };
+      if (y === "novo" && !z) return { screen: "enviarEvento", params: {} };
+      return notFound;
+    }
     if (x === "roteiros") {
       if (!y) return { screen: "perfil", params: { tab: "meus" } };
       if (y === "novo" && !z) return { screen: "meuRoteiroEditar", params: { id: "novo", lugar: q.get("lugar") ? (bySlug(PLACES, q.get("lugar"))?.id || "") : "", copiar: q.get("copiar") || "" } };

@@ -52,6 +52,16 @@ export function Home() {
       </section>
 
       <div className="shell">
+        {/* ================= EVENTOS ================= */}
+        {events.length > 0 && !SITE.eventsHidden && (
+          <section className="h2-section" id="eventos">
+            <SectionHead title={`Eventos em ${name}`} sub="O que está rolando e o que vem por aí." link="Ver a agenda" onLink={() => nav("eventos")} />
+            <div className="events-row">
+              {events.map(e => <EventCard key={e.id} e={e} />)}
+            </div>
+          </section>
+        )}
+
         {/* ================= DICAS PARA HOJE ================= */}
         <section className="h2-section">
           <SectionHead
@@ -65,16 +75,6 @@ export function Home() {
             ))}
           </div>
         </section>
-
-        {/* ================= EVENTOS ================= */}
-        {events.length > 0 && (
-          <section className="h2-section" id="eventos">
-            <SectionHead title={`Eventos em ${name}`} sub="O que está rolando e o que vem por aí." link="Ver a agenda" onLink={() => nav("eventos")} />
-            <div className="events-row">
-              {events.map(e => <EventCard key={e.id} e={e} />)}
-            </div>
-          </section>
-        )}
 
         {/* ================= RADAR (blog) ================= */}
         <section className="h2-section" id="radar">

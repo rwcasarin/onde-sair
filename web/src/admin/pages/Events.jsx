@@ -4,9 +4,10 @@ import { SEED_EVENT_CATEGORIES, AGE_RATINGS, eventImg, eventGallery } from "../.
 import { EventCard } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
-  Btn, Card, Input, Textarea, Select, Toggle, ChipInput, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, PageHeader, useAdmin, useDraft,
+  AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify } from "../store.js";
+import { slugify, can } from "../store.js";
+import { href } from "../../router.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
 import { eventsNav } from "./Types.jsx";
@@ -18,15 +19,24 @@ const catsOf = (db) => db.eventCategories?.length ? db.eventCategories : SEED_EV
 // Lista
 // ---------------------------------------------------------------------
 export function EventsList() {
-  const { db } = useAdmin();
+  const { db, user, go } = useAdmin();
+  const ep = db.settings.eventsPause;
   const cats = catsOf(db);
   return (
     <ContentList
+      notice={ep?.paused && (
+        <div className="a-alert tone-warn" role="status">
+          <AIcon name="alert" size={16} />
+          <div><strong>Os eventos estão pausados no site.</strong> {ep.hideCatalog !== false ? "A agenda não aparece para os visitantes e ninguém consegue enviar eventos." : "O envio de eventos pelo site está pausado; a agenda segue visível."} Aqui no painel tudo funciona normalmente.{" "}
+            {can(user, "settings.edit") && <a href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}>Gerenciar a pausa</a>}</div>
+        </div>
+      )}
       coll="events" title="Eventos" newLabel="Novo evento" nav={eventsNav(db)}
       subtitle="A agenda da cidade. Só os publicados aparecem no site; eventos encerrados saem da agenda sozinhos."
       searchText={(e) => `${e.title} ${e.venueName || ""} ${e.bairro} ${(e.tags || []).join(" ")}`}
       filters={[
         { key: "when", label: "Quando", options: [["proximos", "Próximos"], ["encerrados", "Encerrados"]], test: (e, v) => v === "encerrados" ? isPast(e) : !isPast(e) },
+        { key: "origem", label: "Origem", options: [["site", "Enviados pelo site"], ["equipe", "Cadastrados pela equipe"]], test: (e, v) => v === "site" ? !!e.submittedBy : !e.submittedBy },
         { key: "cat", label: "Categoria", options: cats.map(c => [c.id, c.label]), test: (e, v) => e.category === v },
         { key: "vibe", label: "Vibe", options: db.vibes.map(v => [v.id, v.label]), test: (e, v) => (e.affs || []).includes(v) },
       ]}
@@ -34,7 +44,7 @@ export function EventsList() {
         { key: "title", label: "Evento", render: (e) => (
           <span className="a-cell-main">
             <ImageSlot className="a-thumb" src={eventImg(e.id)} compact />
-            <span><strong>{e.title}</strong><em>{cats.find(c => c.id === e.category)?.label || "Sem categoria"}</em></span>
+            <span><strong>{e.title}</strong><em>{cats.find(c => c.id === e.category)?.label || "Sem categoria"}{e.submittedBy ? ` · enviado por ${e.submittedBy.name}` : ""}</em></span>
           </span>
         ) },
         { key: "startAt", label: "Quando", width: 210, render: (e) => <span className={isPast(e) ? "a-muted" : ""}>{whenLabel(e)}{isPast(e) ? " · encerrado" : ""}</span> },
@@ -300,6 +310,17 @@ function EventForm({ initial, isNew }) {
       </>}
       side={<>
         <PublishPanel coll="events" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
+        {draft.submittedBy && (
+          <Card title="Enviado pelo site">
+            <dl className="a-meta">
+              <div><dt>Quem enviou</dt><dd>{draft.submittedBy.name}</dd></div>
+              {draft.submittedBy.email && <div><dt>E-mail da conta</dt><dd><a href={`mailto:${draft.submittedBy.email}`}>{draft.submittedBy.email}</a></dd></div>}
+              {draft.contact && <div><dt>Contato informado</dt><dd>{draft.contact}</dd></div>}
+              <div><dt>Enviado em</dt><dd>{new Date(draft.submittedBy.at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</dd></div>
+            </dl>
+            <p className="a-hint">{draft.status === "revisao" ? "Revise os dados (e a foto, se veio) e publique para aprovar. Para recusar, arquive: a pessoa vê “Não aprovado” em Meus eventos." : "Quem enviou acompanha a situação em Meus eventos."}</p>
+          </Card>
+        )}
         <Card title="Prévia do card">
           <div className="a-preview" aria-hidden="true">
             <EventCard e={{ ...draft, id: previewId, title: draft.title || "Nome do evento", tagline: draft.tagline || "Frase de destaque do evento.", venueName: venue?.name || draft.venueName }} />

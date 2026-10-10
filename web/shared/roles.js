@@ -32,7 +32,7 @@ export function publicView(db) {
     places: live(db.places),
     roteiros: live(db.roteiros),
     stories: live(db.stories),
-    ...(db.events ? { events: live(db.events) } : {}),
+    ...(db.events ? { events: live(db.events).map(({ submittedBy, contact, ...e }) => e) } : {}),   // sem dados de quem enviou
     ...(db.eventCategories ? { eventCategories: db.eventCategories } : {}),
     ...(db.pages ? { pages: live(db.pages) } : {}),   // sem páginas/menus salvos, o site usa os iniciais
     ...(db.menus ? { menus: db.menus } : {}),

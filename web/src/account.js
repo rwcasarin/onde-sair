@@ -1,6 +1,7 @@
 // Conta do visitante (cadastro, login, favoritos e vibes)
 // Nuvem: /api/account. Offline: localStorage.
-import { REMOTE, api } from "./admin/store.js";
+import { REMOTE, api, addEventSubmission, eventSubmissionsOf, dbForSubmission, setMedia, slugify, getDB } from "./admin/store.js";
+import { cleanSubmission, SUBMIT_LIMITS } from "../shared/eventsubmit.js";
 import { cleanRoteiro, cleanRoteiros, blankStep, LIMITS } from "../shared/myroteiros.js";
 
 const LOCAL_USERS = "onde-sair-users";
@@ -153,4 +154,41 @@ export async function changeAccountPassword(current, next) {
   if (next.length < 8) throw new Error("A nova senha precisa de pelo menos 8 caracteres.");
   u.password = await hash(next);
   writeLocal(users);
+}
+
+// ---------- eventos enviados pelo usuário (vão para revisão da equipe) ----------
+const mineView = (e) => ({ id: e.id, slug: e.slug, title: e.title, status: e.status, startAt: e.startAt, endAt: e.endAt, submittedAt: e.submittedBy?.at || e.createdAt });
+const todaySP = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+
+// Devolve { event } ou { fields, message }
+export async function submitEvent(payload) {
+  if (!account.user) return { message: "Entre na sua conta para enviar um evento." };
+  if (REMOTE) {
+    try { const r = await api("account?action=event", { method: "POST", body: payload }); return { event: r.event }; }
+    catch (e) { return { fields: e.data?.fields, message: e.data?.fields ? null : e.message }; }
+  }
+  const me = account.user;
+  if (eventSubmissionsOf(me.id).filter(e => e.status === "revisao").length >= SUBMIT_LIMITS.pending)
+    return { message: "Você já tem eventos aguardando aprovação. Espere a equipe analisar antes de enviar outros." };
+  const ctx = dbForSubmission();
+  const { event, errors } = cleanSubmission(payload, { ...ctx, today: todaySP() });
+  if (Object.keys(errors).length) return { fields: errors };
+  const id = "eu" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const base = slugify(event.title) || id;
+  const p = event.venue && ctx.places.find(x => x.id === event.venue);
+  const at = new Date().toISOString();
+  const ev = {
+    ...event, id, slug: (getDB().events || []).some(e => e.slug === base) ? `${base}-${id.slice(-4)}` : base, status: "revisao",
+    geo: p?.geo || null, placeId: p?.placeId || "", map: p?.map || { x: 50, y: 50, label: "" }, tint: p?.tint || "tint-eco",
+    reasons: [], showGallery: false, note: "", seo: { title: "", desc: "" },
+    submittedBy: { id: me.id, name: me.name, email: me.email || "", at }, createdAt: at, updatedAt: at, updatedBy: `${me.name} (enviado pelo site)`,
+  };
+  addEventSubmission(ev);
+  if (payload.image) await setMedia(`images/eventos/${id}.jpg`, payload.image, { name: me.name }).catch(() => {});
+  return { event: mineView(ev) };
+}
+export async function myEvents() {
+  if (!account.user) return [];
+  if (REMOTE) { try { return (await api("account?action=my-events")).events || []; } catch { return []; } }
+  return eventSubmissionsOf(account.user.id).map(mineView);
 }
