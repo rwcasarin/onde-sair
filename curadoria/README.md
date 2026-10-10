@@ -48,3 +48,24 @@ entram só o `placeId` e os textos da curadoria.
 
 Copie `cidades/sorocaba.json`, ajuste centro, raio, cotas e mínimos (cidades
 maiores pedem mínimos de avaliações maiores) e rode com o nome do arquivo.
+
+## Sem API: dados públicos da web
+
+`ranking_web.py` faz o mesmo ranking a partir de uma coleta manual feita por
+busca na web (`web/<cidade>.py`): notas e nº de avaliações do Tripadvisor, do
+Google (como aparecem no Wanderlog e no Restaurant Guru) e do Foursquare.
+
+```bash
+python3 curadoria/ranking_web.py sorocaba        # curadoria/saida/ranking-sorocaba-web.xlsx
+python3 -m unittest curadoria/test_ranking_web.py
+```
+
+- Como cada fonte tem um volume diferente (o Tripadvisor tem uma fração das
+  avaliações do Google), a média ponderada é calculada **por fonte** e
+  combinada com peso pela confiança `v/(v+m)` de cada uma.
+- Corte: nota mínima do tipo em alguma fonte, com volume mínimo nessa fonte
+  (Tripadvisor 50, Google 200). Parques e Eventos usam nota mínima 4,0, porque
+  atrações têm notas mais baixas no Tripadvisor.
+- A aba **Sem nota** traz lugares citados em guias, mas sem nota encontrada:
+  ficam para a curadoria avaliar pelo conhecimento local.
+- Limitação: os dados vêm de resumos de busca, com datas diferentes por fonte.
