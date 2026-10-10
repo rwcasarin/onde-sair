@@ -195,11 +195,10 @@ export function Evento({ id }) {
   const [tab, setTab] = useState("visao");
   const [shared, setShared] = useState(false);
   const [shift, setShift] = useState(0);
-  const [pickedDay, setPickedDay] = useState(null);
   if (!e) return null;
   // horário: o do dia de hoje (se o evento acontece hoje); dá para escolher outro dia
   const days = eventDays(e);
-  const day = days.find(d => d.date === pickedDay) || defaultDay(days);
+  const day = defaultDay(days);
   const sameHours = sameHoursAllDays(days);
   const venue = eventVenue(e);
   const where = venueName(e);
@@ -297,19 +296,19 @@ export function Evento({ id }) {
                 <Icon name="clock" size={20} />
                 <div>
                   <span className="event-box-label">Horário</span>
-                  {/* o seletor de dia só aparece quando os horários mudam de um dia para outro: seletor > horário */}
-                  <div className="event-hours-line">
-                    {!sameHours && (
-                      <label className="event-day-pick">
-                        <select value={day.date} onChange={(ev) => setPickedDay(ev.target.value)} aria-label="Ver o horário de outro dia">
-                          {days.map(d => <option key={d.date} value={d.date}>{d.date === todayYmd() ? "Hoje, " + dayLabel(d.date).toLowerCase() : dayLabel(d.date)}</option>)}
-                        </select>
-                        <Icon name="chevron" size={14} />
-                      </label>
+                  {/* horários diferentes por dia: lista com todos os dias (hoje em destaque); senão, só o horário */}
+                  {sameHours
+                    ? <strong className="event-day-hours">{hoursLabel(day)}</strong>
+                    : (
+                      <ul className="event-hours-list">
+                        {days.map(d => (
+                          <li key={d.date} className={d.date === todayYmd() ? "is-today" : ""}>
+                            <span>{d.date === todayYmd() ? "Hoje" : dayLabel(d.date)}</span>
+                            <strong>{hoursLabel(d)}</strong>
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                    <strong className="event-day-hours">{hoursLabel(day)}</strong>
-                  </div>
-                  {!sameHours && <span className="event-hours-note">Os horários mudam conforme o dia.</span>}
                 </div>
               </div>
             )}
