@@ -1,7 +1,8 @@
 // POST /api/admin/media { path, dataUrl } — envia imagem (JPEG/PNG/WebP até 4 MB)
+// PATCH /api/admin/media { from, to } — move (imagem enviada antes do 1º salvamento de um item novo)
 // DELETE /api/admin/media?p=… — remove
 import { requireUser } from "../_lib/auth.js";
-import { readJSON, writeJSON, writeFile, deleteFile, Conflict } from "../_lib/storage.js";
+import { readJSON, writeJSON, writeFile, readFile, deleteFile, Conflict } from "../_lib/storage.js";
 import { json, fail, body, handle, isCmsCall } from "../_lib/http.js";
 import { can } from "../../shared/roles.js";
 
@@ -30,6 +31,22 @@ export const POST = handle(async (request) => {
   await writeFile(path, buf, m[1]);
   const version = Date.now().toString(36);
   await updateMap(map => ({ ...map, [path]: version }));
+  return json({ ok: true, version });
+});
+
+export const PATCH = handle(async (request) => {
+  if (!isCmsCall(request)) return fail(403, "Requisição inválida");
+  const user = await requireUser(request);
+  if (!can(user, "media.manage")) return fail(403, "Seu perfil não gerencia mídia.");
+  const { from = "", to = "" } = await body(request);
+  if (!VALID.test(from) || !VALID.test(to) || from.includes("..") || to.includes("..")) return fail(400, "Caminho inválido");
+  const file = await readFile(from);
+  if (!file) return fail(404, "Imagem não encontrada");
+  const buf = Buffer.from(await new Response(file.stream).arrayBuffer());
+  await writeFile(to, buf, file.contentType);
+  await deleteFile(from);
+  const version = Date.now().toString(36);
+  await updateMap(map => { delete map[from]; return { ...map, [to]: version }; });
   return json({ ok: true, version });
 });
 

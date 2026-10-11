@@ -9,7 +9,8 @@ import { CityField } from "../components/cityselect.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
 import { whatsappLink } from "./detalhe.jsx";
-import { slugify } from "../admin/store.js";
+import { NotFound } from "./notfound.jsx";
+import { slugify, hasMedia } from "../admin/store.js";
 import { currentPath, HASH_MODE } from "../router.js";
 import { CheckRow, toggleIn } from "./lista.jsx";
 import {
@@ -199,11 +200,11 @@ export function Evento({ id }) {
   const nav = useNav();
   const { faves, toggle } = useFaves();
   const { paused } = useAccount();
-  const e = EVENTS.find(x => x.id === id) || EVENTS[0];
+  const e = EVENTS.find(x => x.id === id);
   const [tab, setTab] = useState("visao");
   const [shared, setShared] = useState(false);
   const [shift, setShift] = useState(0);
-  if (!e) return null;
+  if (!e) return <NotFound />;
   // horário: o do dia de hoje (se o evento acontece hoje); dá para escolher outro dia
   const days = eventDays(e);
   const day = defaultDay(days);
@@ -219,8 +220,9 @@ export function Evento({ id }) {
   const ticketLabel = e.ticket?.label || (e.price?.free ? "Garantir ingresso" : "Comprar ingresso");
   const reasons = (e.reasons || []).filter(r => r[1]);
   // fotos do evento (a seção pode ser escondida no painel)
-  const showFotos = e.showGallery !== false;
-  const gallery = eventGallery(e.id);
+  // só as fotos que foram enviadas; sem nenhuma, a seção some
+  const gallery = eventGallery(e.id).filter(hasMedia);
+  const showFotos = e.showGallery !== false && gallery.length > 0;
   const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
   const tabs = [["visao", "Visão geral"], ...(reasons.length ? [["porque", "Por que ir"]] : []), ...(showFotos ? [["fotos", "Fotos"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
   const calWhere = [where, address].filter(Boolean).join(", ");

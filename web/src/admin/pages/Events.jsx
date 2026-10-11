@@ -6,12 +6,13 @@ import { ImageSlot } from "../../components/image-slot.jsx";
 import {
   AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify, can } from "../store.js";
+import { slugify, can, SITE } from "../store.js";
 import { href } from "../../router.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
 import { eventsNav } from "./Types.jsx";
 import { parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel, sameHoursAllDays } from "../../events.js";
+import { autoTitle, autoDesc } from "../../seo.js";
 
 const catsOf = (db) => db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES;
 
@@ -69,7 +70,7 @@ const blank = () => {
     title: "", slug: "", tagline: "", desc: "", note: "", category: "", affs: [], tags: [],
     startAt: toLocal(s), endAt: toLocal(f), doors: "",
     price: { free: false, from: "", to: "", note: "" }, ticket: { required: false, url: "", label: "" },
-    insta: "", whatsapp: "", site: "", age: "livre", reasons: [], showGallery: true,
+    insta: "", whatsapp: "", site: "", age: "livre", reasons: [], showGallery: false,
     venue: "", venueName: "", end: "", bairro: "", city: "sorocaba", cep: "", geo: null, placeId: "", map: { x: 50, y: 50, label: "" },
     tint: "tint-eco", seo: { title: "", desc: "" }, status: "rascunho",
   };
@@ -128,10 +129,10 @@ function EventForm({ initial, isNew }) {
     const p = db.places.find(x => x.id === id);
     if (!p) return set({ venue: "" });
     set({ venue: p.id, venueName: "", end: p.end || "", bairro: p.bairro || "", city: p.city || draft.city, cep: p.cep || "", geo: p.geo || null, placeId: p.placeId || "",
-      map: p.map || draft.map, insta: draft.insta || p.insta || "", whatsapp: p.whatsapp || "" });
+      map: p.map || draft.map, insta: draft.insta || p.insta || "", whatsapp: p.whatsapp || draft.whatsapp || "" });
   }
   const venue = db.places.find(p => p.id === draft.venue);
-  const changedAddress = venue && (draft.end !== (venue.end || "") || draft.bairro !== (venue.bairro || "") || (draft.whatsapp || "") !== (venue.whatsapp || ""));
+  const changedAddress = venue && (draft.end !== (venue.end || "") || draft.bairro !== (venue.bairro || "") || (!!venue.whatsapp && (draft.whatsapp || "") !== venue.whatsapp));
 
   const checklist = [
     ["Nome e frase de destaque", !!draft.title && !!draft.tagline],
@@ -296,14 +297,14 @@ function EventForm({ initial, isNew }) {
 
         {tab === "seo" && (
           <Card subtitle="Como o evento aparece no Google e nas redes.">
-            <Input label="Título da página" value={draft.seo.title} placeholder={`${draft.title || "Nome do evento"} · ${whenLabel(draft)} | Onde Sair`}
+            <Input label="Título da página" value={draft.seo.title} placeholder={autoTitle("events", draft)}
               onChange={(v) => set({ seo: { ...draft.seo, title: v } })} maxCount={60} />
-            <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={draft.tagline || draft.desc} rows={3}
+            <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={autoDesc("events", draft) || "Sem preencher, usamos a frase de destaque."} rows={3}
               onChange={(v) => set({ seo: { ...draft.seo, desc: v } })} maxCount={160} />
             <div className="a-serp" aria-label="Prévia no Google">
               <span className="a-serp-url">ondesair.com.br › eventos › {draft.slug || slugify(draft.title) || "evento"}</span>
-              <strong>{draft.seo.title || `${draft.title || "Nome do evento"} · ${whenLabel(draft)} | Onde Sair`}</strong>
-              <p>{(draft.seo.desc || draft.tagline || draft.desc || "A descrição aparece aqui.").slice(0, 160)}</p>
+              <strong>{draft.seo.title || autoTitle("events", draft)}</strong>
+              <p>{(draft.seo.desc || autoDesc("events", draft) || SITE.seoDesc || "A descrição aparece aqui.").slice(0, 160)}</p>
             </div>
           </Card>
         )}

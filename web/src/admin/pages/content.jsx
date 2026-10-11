@@ -4,7 +4,7 @@ import {
   AIcon, Btn, Card, DataTable, PageHeader, StatusBadge, Tabs, Toolbar, FilterSelect, Select, useAdmin, Modal,
 } from "../kit.jsx";
 import { go as goPath, toPath } from "../../router.js";
-import { STATUS, can, relTime, fmtDate, setStatus, removeItems, duplicateItem, saveItem, isLive } from "../store.js";
+import { STATUS, can, relTime, fmtDate, setStatus, removeItems, duplicateItem, saveItem, isLive, adoptNewMedia } from "../store.js";
 
 export const COLL = {
   places:   { one: "lugar", many: "lugares", path: "lugares", title: (x) => x.name, siteScreen: "detalhe" },
@@ -197,7 +197,11 @@ export function useEditorSave({ coll, draft, commit, dirty, rules }) {
     setDirty(false);
     const msg = { publicado: "Publicado no site.", revisao: "Enviado para revisão.", agendado: "Publicação agendada.", arquivado: "Arquivado.", rascunho: "Rascunho salvo." }[status];
     saved(msg);
-    if (isNew) setTimeout(() => go(`${COLL[coll].path}/${item.id}`), 0);
+    if (isNew) {
+      // imagens enviadas antes de salvar passam para o id definitivo
+      adoptNewMedia(coll, item.id).catch(e => toast("Não consegui mover as imagens enviadas: " + e.message, "error"));
+      setTimeout(() => go(`${COLL[coll].path}/${item.id}`), 0);
+    }
   }
   return { errors, validate, save };
 }

@@ -7,9 +7,10 @@ import { ImageSlot } from "../../components/image-slot.jsx";
 import {
   AIcon, Card, Input, Textarea, Select, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Toggle, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify, can } from "../store.js";
+import { slugify, can, SITE } from "../store.js";
 import { href } from "../../router.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
+import { autoTitle, autoDesc } from "../../seo.js";
 
 const TAG_COLORS = ["vibe-pink", "vibe-yellow", "vibe-mint", "vibe-lavender", "vibe-orange", "vibe-sky"];
 const tagColor = (label) => TAG_COLORS[[...label].reduce((a, c) => a + c.charCodeAt(0), 0) % TAG_COLORS.length];
@@ -205,14 +206,14 @@ function RoteiroForm({ initial, isNew }) {
         {tab === "seo" && (
           <Card subtitle="Como o roteiro aparece no Google e nas redes.">
             <Input label="Endereço (URL)" value={draft.slug} placeholder={slugify(draft.title)} onChange={(v) => set({ slug: slugify(v) })} prefix="/roteiros/" />
-            <Input label="Título da página" value={draft.seo.title} placeholder={`${draft.title || "Título do roteiro"} | Onde Sair`}
+            <Input label="Título da página" value={draft.seo.title} placeholder={autoTitle("roteiros", draft)}
               onChange={(v) => set({ seo: { ...draft.seo, title: v } })} maxCount={60} />
-            <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={draft.desc} rows={3}
+            <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={autoDesc("roteiros", draft) || "Sem preencher, usamos o resumo."} rows={3}
               onChange={(v) => set({ seo: { ...draft.seo, desc: v } })} maxCount={160} />
             <div className="a-serp" aria-label="Prévia no Google">
               <span className="a-serp-url">ondesair.com.br › roteiros › {draft.slug || slugify(draft.title) || "roteiro"}</span>
-              <strong>{draft.seo.title || `${draft.title || "Título do roteiro"} | Onde Sair`}</strong>
-              <p>{(draft.seo.desc || draft.desc || "A descrição aparece aqui.").slice(0, 160)}</p>
+              <strong>{draft.seo.title || autoTitle("roteiros", draft)}</strong>
+              <p>{(draft.seo.desc || autoDesc("roteiros", draft) || SITE.seoDesc || "A descrição aparece aqui.").slice(0, 160)}</p>
             </div>
           </Card>
         )}

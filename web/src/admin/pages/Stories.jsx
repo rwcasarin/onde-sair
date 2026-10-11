@@ -5,8 +5,9 @@ import {
 } from "../kit.jsx";
 import { RichEditor } from "../richeditor.jsx";
 import { htmlToText, asHtml } from "../../richtext.js";
-import { slugify } from "../store.js";
+import { slugify, SITE } from "../store.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
+import { autoTitle, autoDesc } from "../../seo.js";
 
 const SHAPES = [["teal", "Teal"], ["purple", "Roxo"], ["lavender", "Lavanda"]];
 
@@ -98,13 +99,13 @@ function StoryForm({ initial, isNew }) {
           <Input label="Endereço (URL)" prefix="ondesair.com.br/radar/" value={draft.slug} placeholder={slugify(draft.title)}
             onChange={(v) => set({ slug: v.toLowerCase().replace(/\s+/g, "-") })} onBlur={() => draft.slug && set({ slug: slugify(draft.slug) })}
             hint="Mudar o endereço de um post publicado quebra links antigos." />
-          <Input label="Título para buscadores" value={draft.seo.title} placeholder={`${draft.title || "Título do post"} · Radar Onde Sair`} onChange={(title) => setSeo({ title })} maxCount={60} />
+          <Input label="Título para buscadores" value={draft.seo.title} placeholder={autoTitle("stories", draft)} onChange={(title) => setSeo({ title })} maxCount={60} />
           <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={draft.desc || "Resumo do post."} rows={3} onChange={(desc) => setSeo({ desc })} maxCount={160}
             hint="Sem preencher, usamos o resumo." />
           <div className="a-serp" aria-label="Prévia no Google">
             <span className="a-serp-url">ondesair.com.br › radar › {slug}</span>
-            <strong>{draft.seo.title || `${draft.title || "Título do post"} · Radar Onde Sair`}</strong>
-            <p>{(draft.seo.desc || draft.desc || "A descrição aparece aqui.").slice(0, 160)}</p>
+            <strong>{draft.seo.title || autoTitle("stories", draft)}</strong>
+            <p>{(draft.seo.desc || autoDesc("stories", draft) || SITE.seoDesc || "A descrição aparece aqui.").slice(0, 160)}</p>
           </div>
         </Card>
       </>}

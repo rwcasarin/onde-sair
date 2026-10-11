@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useContext } from "react";
 import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, EVENTS, cityName } from "./data.js";
-import { whenLabel } from "./events.js";
 import { SITE } from "./admin/store.js";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
 import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
@@ -24,6 +23,7 @@ import { NotFound } from "./screens/notfound.jsx";
 import { Pagina } from "./screens/pagina.jsx";
 import { htmlToText } from "./richtext.js";
 import { account, loadAccount, subscribeAccount, updateAccount, setIntent, takeIntent, findMyRoteiro } from "./account.js";
+import { autoTitle, autoDesc } from "./seo.js";
 
 const NO_FAVES = new Set();
 
@@ -52,10 +52,10 @@ function titleFor(screen, params) {
       return t(params.q ? `Busca: ${params.q}` : v ? v.label : tp ? tp.label : "Lugares");
     }
     case "vibes": { const v = AFFINITIES.find(a => a.id === params.aff); return t(v ? `${v.label} · Vibes` : "Vibes · Lugares e roteiros por clima"); }
-    case "evento": { const e = EVENTS.find(x => x.id === params.id); return e?.seo?.title || t(e ? `${e.title} · ${whenLabel(e)}` : "Evento"); }
-    case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || t(p ? `${p.name} · ${p.bairro}` : "Lugar"); }
-    case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return r?.seo?.title || t(r ? r.title : "Roteiro"); }
-    case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return s?.seo?.title || t(s ? `${s.title} · Radar` : "Radar"); }
+    case "evento": { const e = EVENTS.find(x => x.id === params.id); return e?.seo?.title || autoTitle("events", e); }
+    case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || autoTitle("places", p); }
+    case "roteiro": { const r = ROTEIROS.find(x => x.id === params.id); return r?.seo?.title || autoTitle("roteiros", r); }
+    case "historia": { const s = ALL_STORIES.find(x => x.id === params.id); return s?.seo?.title || autoTitle("stories", s); }
     case "perfil": return t({ favoritos: "Lugares favoritos", favRoteiros: "Roteiros favoritos", favEventos: "Eventos favoritos", meusEventos: "Meus eventos", meus: "Meus roteiros", conta: "Dados da conta" }[params.tab] || "Meu perfil");
     case "meuRoteiro": return t(findMyRoteiro(params.id)?.title || "Meu roteiro");
     case "enviarEvento": return t("Enviar evento");
@@ -73,7 +73,7 @@ function metaFor(screen, params) {
   const desc = item?.seo?.desc || (screen === "pagina" && item ? item.excerpt || htmlToText(item.body).slice(0, 160) : "") ||
     (screen === "vibes" ? (VIBE_PAGE[params.aff]?.lede || "Lugares e roteiros reunidos pela vibe do rolê: dates, impressionar, relaxar, turistar, economizar e programas com criança.") : "") ||
     (screen === "historias" ? "Radar Onde Sair: novidades, atualizações e listas de lugares da cidade, por quem vive ela." : "") ||
-    (screen === "detalhe" || screen === "evento" ? item?.tagline : screen === "historia" ? item?.desc : "") || SITE.seoDesc || "";
+    (item ? autoDesc({ detalhe: "places", evento: "events", roteiro: "roteiros", historia: "stories" }[screen], item) : "") || SITE.seoDesc || "";
   return { desc, noindex: !!item?.seo?.noindex || screen === "404" || PRIVATE.has(screen) || screen === "entrar" };
 }
 function setTag(attr, key, content) {

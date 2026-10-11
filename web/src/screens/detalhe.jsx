@@ -11,6 +11,7 @@ import { SITE } from "../admin/store.js";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
 import { roteiroVibes } from "../vibes.js";
+import { NotFound } from "./notfound.jsx";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -36,15 +37,36 @@ export function whatsappLink(phone = "") {
   return /^\d{10,11}$/.test(d) ? `https://wa.me/55${d}` : null;
 }
 
+// Link do site do lugar: aceita "www.x.com.br" ou "x.com.br" sem o protocolo
+export const siteHref = (u = "") => {
+  const t = String(u).trim();
+  if (!t || !/\.[a-z]{2,}/i.test(t)) return null;
+  return /^https?:\/\//i.test(t) ? t : "https://" + t;
+};
+// Telefone clicável: só quando tem dígitos suficientes (DDD + número)
+export const telHref = (phone = "") => {
+  const d = String(phone).replace(/\D/g, "");
+  return d.length >= 10 ? "tel:+" + (d.startsWith("55") && d.length >= 12 ? d : "55" + d) : null;
+};
+const filled = (v) => typeof v === "string" ? v.trim() && v.trim() !== "—" && v.trim() !== "-" : v != null;
+
 export function Detalhe({ id }) {
+  const p = PLACES.find(x => x.id === id);
+  return p ? <DetalheView p={p} /> : <NotFound />;
+}
+
+function DetalheView({ p }) {
   const nav = useNav();
   const { name: city } = useCity();
   const { faves, toggle } = useFaves();
   const { paused } = useAccount();
-  const p = PLACES.find(x => x.id === id) || PLACES[0];
   // seção de fotos pode ser escondida no admin
   const showFotos = p.showGallery !== false;
-  const tabs = TABS.filter(([t]) => t !== "fotos" || showFotos);
+  // motivos e vibes sem conteúdo (ou vibe desativada no painel) não aparecem
+  const reasons = (p.reasons || []).filter(([, text]) => filled(text));
+  const vibeNames = (p.affs || []).map(affById).filter(Boolean).map(a => a.label.toLowerCase().replace(/^(para|pra) /, ""));
+  const tabs = TABS.filter(([t]) => (t !== "fotos" || showFotos) && (t !== "porque" || reasons.length));
+  const site = siteHref(p.site), tel = telHref(p.phone);
   const [tab, setTab] = useState("visao");
   const [shift, setShift] = useState(0);
   const [shared, setShared] = useState(false);
@@ -74,8 +96,8 @@ export function Detalhe({ id }) {
 
   async function share() {
     try {
-      if (navigator.share) await navigator.share({ title: p.name, text: p.tagline });
-      else await navigator.clipboard?.writeText(`${p.name} — ${p.tagline}`);
+      if (navigator.share) await navigator.share({ title: p.name, text: p.tagline || "" });
+      else await navigator.clipboard?.writeText(p.tagline ? `${p.name} — ${p.tagline}` : p.name);
       setShared(true); setTimeout(() => setShared(false), 1800);
     } catch { /* cancelado */ }
   }
@@ -97,7 +119,7 @@ export function Detalhe({ id }) {
           <ul className="place-meta">
             <li><Icon name="pin" size={18} fill /> {p.bairro}</li>
             <li><PriceDots level={p.priceLevel} /></li>
-            <li><Icon name="utensils" size={18} /> {p.cuisine}</li>
+            {filled(p.cuisine) && <li><Icon name="utensils" size={18} /> {p.cuisine}</li>}
           </ul>
 
           {/* ações: 1ª linha — chegar e falar com o lugar; 2ª linha — ações do visitante (só ícone, texto no hover) */}
@@ -129,45 +151,44 @@ export function Detalhe({ id }) {
 
       <div className="shell place-body">
         {/* 1 · Sobre o lugar (60%) + depoimento da equipe (30%) */}
-        <section className="place-row split-60-30" id="sec-visao">
+        <section className={"place-row" + (filled(p.dica) ? " split-60-30" : "")} id="sec-visao">
           <div className="about-text">
             <h2 className="h2t">Sobre o lugar</h2>
-            <p>{p.desc}</p>
-            <p>
+            {filled(p.desc) && <p>{p.desc}</p>}
+            {vibeNames.length > 0 && <p>
               É o tipo de lugar que faz você querer ficar mais um pouco: a gente indica
-              pra {p.affs.map(a => affById(a).label.toLowerCase().replace(/^(para|pra) /, "")).join(", ")}.
-            </p>
+              pra {vibeNames.join(", ")}.
+            </p>}
             {p.tags?.length > 0 && (
               <ul className="place-tags" aria-label="Tags">
                 {p.tags.map(t => <li key={t}>{t}</li>)}
               </ul>
             )}
           </div>
-          <blockquote className="big-quote">
+          {filled(p.dica) && <blockquote className="big-quote">
             <span className="big-quote-mark">“</span>
             <p>{p.dica}</p>
             <footer>Equipe Onde Sair</footer>
-          </blockquote>
+          </blockquote>}
         </section>
 
         {/* 2 · Por que ir? (horizontal) */}
-        <section className="place-row" id="sec-porque">
+        {reasons.length > 0 && <section className="place-row" id="sec-porque">
           <div className="why-box why-row">
             <h2 className="h2t">Por que ir?</h2>
             <ul>
-              {p.reasons.map(([icon, text]) => (
-                <li key={text}><span className="why-icon"><Icon name={icon} size={18} fill={icon === "star" || icon === "heart"} /></span>{text}</li>
+              {reasons.map(([icon, text], i) => (
+                <li key={i}><span className="why-icon"><Icon name={icon} size={18} fill={icon === "star" || icon === "heart"} /></span>{text}</li>
               ))}
             </ul>
           </div>
-        </section>
+        </section>}
 
         {/* 3 · Fotos do lugar */}
         {showFotos && <section className="place-row" id="sec-fotos">
           <div>
             <div className="h2-head">
               <h2>Fotos do lugar</h2>
-              <a href="#" className="h2-link" onClick={(e) => e.preventDefault()}>Ver todas as fotos <Icon name="arrow" size={16} /></a>
             </div>
             <div className="gallery gallery-wide">
               {shown.map((src, i) => (
@@ -199,12 +220,12 @@ export function Detalhe({ id }) {
           <div className="info-box">
             <h2 className="h2t">Informações úteis</h2>
             <dl>
-              <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>
+              {filled(p.open) && <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>}
               <div><Icon name="dollar" size={20} /><dt>Faixa de preço</dt><dd><PriceDots level={p.priceLevel} /></dd></div>
               <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{fullAddress(p)}{p.cep && <><br />CEP {p.cep}</>}</dd></div>
-              <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{p.phone}</dd></div>
-              <div><Icon name="link" size={20} /><dt>Site</dt><dd><a href="#" onClick={(e) => e.preventDefault()}>{p.site}</a></dd></div>
-              <div><Icon name="instagram" size={20} /><dt>Instagram</dt><dd>{instaProfile(p.insta) ? <a href={instaProfile(p.insta)} target="_blank" rel="noreferrer">{p.insta}</a> : p.insta}</dd></div>
+              {filled(p.phone) && <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{tel ? <a href={tel}>{p.phone}</a> : p.phone}</dd></div>}
+              {filled(p.site) && <div><Icon name="link" size={20} /><dt>Site</dt><dd>{site ? <a href={site} target="_blank" rel="noreferrer">{p.site.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a> : p.site}</dd></div>}
+              {filled(p.insta) && <div><Icon name="instagram" size={20} /><dt>Instagram</dt><dd>{instaProfile(p.insta) ? <a href={instaProfile(p.insta)} target="_blank" rel="noreferrer">{p.insta}</a> : p.insta}</dd></div>}
             </dl>
           </div>
         </section>
