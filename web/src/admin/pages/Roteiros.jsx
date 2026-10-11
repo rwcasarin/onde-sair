@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { roteiroVibes, vibesFromPlaces } from "../../vibes.js";
+import { roteiroVibes, vibesFromPlaces, roteiroBairros } from "../../vibes.js";
 import { roteiroImg, placeImg } from "../../data.js";
 import { PlaceMap } from "../../components/placemap.jsx";
 import { RoteiroCard } from "../../components/site.jsx";
@@ -20,6 +20,7 @@ const STEP_COLORS = ["var(--c-magenta)", "var(--primary)", "#F58220", "var(--c-t
 export function RoteirosList() {
   const { db, user, go } = useAdmin();
   const rp = db.settings.roteirosPause;
+  const bairrosOf = (r) => roteiroBairros(r, (id) => db.places.find(p => p.id === id));
   return (
     <ContentList
       notice={rp?.paused && (
@@ -31,13 +32,13 @@ export function RoteirosList() {
       )}
       coll="roteiros" title="Roteiros" newLabel="Novo roteiro"
       subtitle="Sequências de paradas com propósito e ordem."
-      searchText={(r) => `${r.title} ${r.desc} ${r.bairros}`}
+      searchText={(r) => `${r.title} ${r.desc} ${bairrosOf(r).join(" ")}`}
       filters={[{ key: "vibe", label: "Vibe", options: db.vibes.map(v => [v.id, v.label]), test: (r, v) => roteiroVibes(r).includes(v) || (r.vibes || []).includes(v) }]}
       columns={[
         { key: "title", label: "Roteiro", render: (r) => (
           <span className="a-cell-main">
             <ImageSlot className="a-thumb" src={roteiroImg(r.id)} compact />
-            <span><strong>{r.title}</strong><em>{r.bairros}</em></span>
+            <span><strong>{r.title}</strong><em>{bairrosOf(r).join(" · ")}</em></span>
           </span>
         ) },
         { key: "vibes", label: "Vibes", width: 190, sortable: false, render: (r) => { const vs = roteiroVibes(r).map(a => db.vibes.find(x => x.id === a)).filter(Boolean); return vs.length ? <span className="a-vibe-list">{vs.slice(0, 2).map(v => <span key={v.id} className={"a-vibe-dot " + v.cls}>{v.label}</span>)}{vs.length > 2 && <em>+{vs.length - 2}</em>}</span> : "—"; } },
@@ -53,7 +54,7 @@ const stepImgKey = () => "p" + Date.now().toString(36) + Math.random().toString(
 const newStep = () => ({ time: "", title: "", place: "", optional: false, desc: "", img: stepImgKey() });
 
 const BLANK = {
-  title: "", slug: "", vibes: [], vibesAuto: true, seo: { title: "", desc: "" }, desc: "", about: "", quote: "", note: "", bairros: "", tint: "tint-relax",
+  title: "", slug: "", vibes: [], vibesAuto: true, seo: { title: "", desc: "" }, desc: "", about: "", quote: "", note: "", tint: "tint-relax",
   stats: { tempo: "", invest: 1, investLabel: "Econômico", ideal: "" },
   steps: [newStep()],
   tips: { dica: "", horario: "", epoca: "", comoChegar: "", lembrete: "" }, tags: [], status: "rascunho",
@@ -128,7 +129,6 @@ function RoteiroForm({ initial, isNew }) {
             <div className="a-form-grid">
               <Input label="Tempo total" value={draft.stats.tempo} onChange={(v) => setStat("tempo", v)} placeholder="6 a 8 horas" />
               <Input label="Ideal para" value={draft.stats.ideal} onChange={(v) => setStat("ideal", v)} placeholder="Casais, amigos" />
-              <Input label="Bairros" value={draft.bairros} onChange={(v) => set({ bairros: v })} placeholder="Centro · Boa Vista" />
             </div>
             <Field label="Investimento">
               <Segmented label="Investimento" value={draft.stats.invest} onChange={(v) => set({ stats: { ...draft.stats, invest: v, investLabel: ["Grátis", "Econômico", "Moderado", "Especial"][v] } })}
@@ -186,7 +186,13 @@ function RoteiroForm({ initial, isNew }) {
                       </div>
                     </div>
                   </div>
-                  <Input label="Título da parada" value={s.title} onChange={(title) => upd({ title })} />
+                  {s.place ? <Input label="Título da parada" value={s.title} onChange={(title) => upd({ title })} /> : (
+                    <div className="a-form-grid">
+                      <Input label="Título da parada" value={s.title} onChange={(title) => upd({ title })} />
+                      <Input label="Bairro (opcional)" value={s.bairro || ""} onChange={(bairro) => upd({ bairro })} placeholder="Ex.: Centro"
+                        hint="Parada livre: entra no filtro de bairros da página de roteiros." />
+                    </div>
+                  )}
                   <Textarea label="Descrição" value={s.desc} onChange={(desc) => upd({ desc })} rows={2} maxCount={200} />
                 </div>
               )}

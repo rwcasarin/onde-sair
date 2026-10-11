@@ -5,7 +5,7 @@ import { Icon } from "../components/icons.jsx";
 import { HeroMedia, Crumbs, VibePill, RoteiroCard, Footer, affById, placeById } from "../components/site.jsx";
 import { useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
-import { roteiroVibes } from "../vibes.js";
+import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { slugify } from "../admin/store.js";
 import { currentPath, HASH_MODE } from "../router.js";
 import { INVEST_LABELS } from "../../shared/myroteiros.js";
@@ -17,9 +17,9 @@ const STOPS = [["curto", "Até 3 paradas", (n) => n <= 3], ["longo", "4 paradas 
 // campos usados nos filtros: cidade e bairros vêm das paradas com lugar
 function facts(r) {
   const stops = r.steps.map(s => s.place && placeById(s.place)).filter(Boolean);
-  const bairros = [...new Set([...(r.bairros || "").split(/[·,]/).map(s => s.trim()), ...stops.map(p => p.bairro)].filter(Boolean))];
+  const bairros = roteiroBairros(r, placeById);
   return { r, vibes: roteiroVibes(r), city: stops[0]?.city || "", bairros, invest: r.stats?.invest ?? null, stops: r.steps.length,
-    text: [r.title, r.desc, r.bairros, ...(r.tags || []).map(t => t[0] || t), ...stops.map(p => p.name)].join(" ").toLowerCase() };
+    text: [r.title, r.desc, ...bairros, ...(r.tags || []).map(t => t[0] || t), ...stops.map(p => p.name)].join(" ").toLowerCase() };
 }
 
 export function RoteirosLista() {
