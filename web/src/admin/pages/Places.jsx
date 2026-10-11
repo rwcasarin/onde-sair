@@ -8,11 +8,12 @@ import {
   AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Check,
   PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify, addCity, addBairro } from "../store.js";
+import { slugify, addCity, addBairro, SITE } from "../store.js";
 import { AddressAutocomplete, CreatableField, Pending, findCity, findBairro } from "./location.jsx";
 import { PlaceMap } from "../../components/placemap.jsx";
 import { loadGoogle, addressOf } from "../../maps.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
+import { autoTitle, autoDesc } from "../../seo.js";
 
 export const REASON_ICONS = ["eye", "star", "heart", "users", "music", "leaf", "sun", "coins", "clock", "sparkle", "image", "camera", "wine", "smile", "pin"];
 
@@ -120,12 +121,12 @@ function PlaceForm({ initial, isNew }) {
             <div className="a-form-grid">
               <Input label="Nome" required value={draft.name} onChange={(v) => set({ name: v })} error={errors.name} maxCount={60} />
               <Input label="Endereço na URL (slug)" value={draft.slug} placeholder={slugify(draft.name)} onChange={(v) => set({ slug: slugify(v) })} prefix="/lugares/" hint="Deixe em branco para gerar a partir do nome." />
-              <Input label="Subtítulo" value={draft.sub} onChange={(v) => set({ sub: v })} hint="Aparece sob o nome nos cards. Ex.: Rooftop, Boteco de raiz." maxCount={40} />
+              <Input label="Subtítulo" value={draft.sub} onChange={(v) => set({ sub: v })} hint="Aparece no mapa do Guia, nos cards dos posts do Radar e na busca. Ex.: Rooftop, Boteco de raiz." maxCount={40} />
               <Input label="Tipo de cozinha / programa" value={draft.cuisine} onChange={(v) => set({ cuisine: v })} hint="Ex.: Contemporânea, Café e brunch." />
             </div>
             <Input label="Frase de destaque" value={draft.tagline} onChange={(v) => set({ tagline: v })} maxCount={110} hint="Linha fina abaixo do nome na página do lugar." />
             <Textarea label="Descrição" required value={draft.desc} onChange={(v) => set({ desc: v })} error={errors.desc} rows={5} maxCount={400}
-              hint="A primeira frase vira o resumo dos cards. Tom de amigo, não de guia." />
+              hint="Texto de “Sobre o lugar”. Só vai para os cards quando a frase de destaque está vazia. Tom de amigo, não de guia." />
             <div className="a-form-grid">
               <Textarea label="A dica que importa" value={draft.dica} onChange={(v) => set({ dica: v })} rows={3} maxCount={220} hint="Aparece como citação da equipe." />
               <div>
@@ -175,7 +176,7 @@ function PlaceForm({ initial, isNew }) {
           <Card>
             <OrderedPicker label="Vibes" error={errors.affs} hint="A ordem aqui é a ordem em que as vibes aparecem no site."
               value={draft.affs} onChange={(affs) => set({ affs })} options={db.vibes.map(v => [v.id, v.label, v.cls])} />
-            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} hint="Aparecem na página do lugar (abaixo do texto “Sobre o lugar”) e nos cards da listagem. De 3 a 5 funcionam melhor."
+            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} hint="Aparecem na página do lugar (abaixo do texto “Sobre o lugar”) e ajudam na busca. De 3 a 5 funcionam melhor."
               suggestions={[...new Set(db.places.flatMap(p => p.tags || []))]} />
           </Card>
         )}
@@ -200,14 +201,14 @@ function PlaceForm({ initial, isNew }) {
 
         {tab === "seo" && (
           <Card subtitle="Como o lugar aparece no Google e nas redes.">
-            <Input label="Título da página" value={draft.seo.title} placeholder={`${draft.name} · ${draft.sub} em ${draft.bairro} | Onde Sair`}
+            <Input label="Título da página" value={draft.seo.title} placeholder={autoTitle("places", draft)}
               onChange={(v) => set({ seo: { ...draft.seo, title: v } })} maxCount={60} />
-            <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={draft.desc} rows={3}
+            <Textarea label="Meta descrição" value={draft.seo.desc} placeholder={autoDesc("places", draft) || "Sem preencher, usamos a frase de destaque."} rows={3}
               onChange={(v) => set({ seo: { ...draft.seo, desc: v } })} maxCount={160} />
             <div className="a-serp" aria-label="Prévia no Google">
               <span className="a-serp-url">ondesair.com.br › lugares › {draft.slug || slugify(draft.name) || "lugar"}</span>
-              <strong>{draft.seo.title || `${draft.name || "Nome do lugar"} · ${draft.sub || "Subtítulo"} | Onde Sair`}</strong>
-              <p>{(draft.seo.desc || draft.desc || "A descrição aparece aqui.").slice(0, 160)}</p>
+              <strong>{draft.seo.title || autoTitle("places", draft)}</strong>
+              <p>{(draft.seo.desc || autoDesc("places", draft) || SITE.seoDesc || "A descrição aparece aqui.").slice(0, 160)}</p>
             </div>
           </Card>
         )}

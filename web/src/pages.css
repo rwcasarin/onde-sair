@@ -712,7 +712,10 @@
 /* ---------- Histórias e 404 ---------- */
 .stories-all { margin-top: 8px; }
 .story-article .story-byline { color: var(--ink-3); font-size: 14px; margin: 0 0 20px; }
-.story-hero { aspect-ratio: 16 / 9; max-height: 520px; width: 100%; border-radius: var(--radius); }
+.story-hero { aspect-ratio: 16 / 9; max-height: 520px; width: 100%; border-radius: var(--radius); overflow: hidden; }
+.story-hero.is-loaded > img:not(.story-hero-bg) { object-fit: contain; position: relative; z-index: 1; }
+.story-hero-bg { position: absolute; inset: -20px; width: calc(100% + 40px) !important; height: calc(100% + 40px) !important; object-fit: cover; filter: blur(24px) saturate(1.1); opacity: .55; z-index: 0; }
+.story-hero:not(.is-loaded) .story-hero-bg { display: none; }
 .story-text { max-width: none; margin: 36px 0 8px; font-size: 18px; line-height: 1.7; color: var(--ink-2); }
 .story-text p { margin: 0 0 1.1em; white-space: pre-line; }
 .notfound { padding: 96px 0 120px; max-width: 640px; }

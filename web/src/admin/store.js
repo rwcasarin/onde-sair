@@ -414,6 +414,8 @@ export const SITE = { eventsPaused: false, eventsHidden: false, eventsBar: true,
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)
 // ---------------------------------------------------------------------
 // valor no mapa: data URL (modo local) ou versão do arquivo no Blob (modo nuvem)
+// a imagem foi enviada pelo painel (fica no registro de mídia)
+export const hasMedia = (path) => !!(path && db.media?.[path]);
 export const resolveMedia = (path) => {
   const v = path && db.media?.[path];
   // caminhos relativos (images/…) viram absolutos: as páginas agora têm URL própria (/lugares/x)
@@ -430,6 +432,26 @@ export async function setMedia(path, dataUrl, user) {
   log(user, "enviou imagem", path, "mídia");
   commit();
   return REMOTE || !storageError;
+}
+// Item novo: as imagens enviadas antes do 1º salvamento ficam em ".../novo.jpg"; depois de salvo, vão para o id real
+const MEDIA_DIR = { places: "lugares", events: "eventos", roteiros: "roteiros", stories: "historias" };
+export async function adoptNewMedia(coll, id) {
+  const dir = MEDIA_DIR[coll];
+  if (!dir || !id) return 0;
+  const re = new RegExp(`^images/${dir}/(novo|nova)(?=[-.])`);
+  const moves = Object.keys(db.media || {}).filter(p => re.test(p)).map(p => [p, p.replace(re, `images/${dir}/${id}`)]);
+  for (const [from, to] of moves) {
+    if (REMOTE) {
+      const r = await api("admin/media", { method: "PATCH", body: { from, to } });
+      const { [from]: _, ...rest } = db.media;
+      db.media = { ...rest, [to]: r.version };
+    } else {
+      const { [from]: v, ...rest } = db.media;
+      db.media = { ...rest, [to]: v };
+    }
+  }
+  if (moves.length) { commit(); }
+  return moves.length;
 }
 export async function removeMedia(path, user) {
   if (REMOTE) await api("admin/media?p=" + encodeURIComponent(path), { method: "DELETE" });
@@ -470,6 +492,19 @@ export function uniqueSlug(coll, slug, id) {
   return s;
 }
 
+// Data de publicação: fixada na 1ª vez que o item vai ao ar (editar depois não muda a data exibida).
+// "Publicar agora" num item que estava agendado para o futuro descarta o agendamento.
+function stampPublish(next, prev) {
+  if (next.status === "publicado") {
+    const sched = next.publishAt && next.publishAt <= now() ? next.publishAt : null;
+    if (next.publishAt && !sched) delete next.publishAt;
+    next.publishedAt = prev?.status === "publicado" ? prev.publishedAt || publishedDate(prev) : next.publishedAt || sched || now();
+  } else if (next.status === "agendado" && next.publishAt) next.publishedAt = next.publishAt;
+  return next;
+}
+// Data exibida no site (posts do Radar)
+export const publishedDate = (x) => x.publishedAt || x.publishAt || x.createdAt || x.updatedAt;
+
 export function saveItem(coll, item, user, { status } = {}) {
   const exists = db[coll].some(x => x.id === item.id);
   const prev = db[coll].find(x => x.id === item.id);
@@ -482,6 +517,7 @@ export function saveItem(coll, item, user, { status } = {}) {
     updatedAt: now(), updatedBy: user?.name,
     createdAt: item.createdAt || now(),
   };
+  stampPublish(next, prev);
   db[coll] = exists ? db[coll].map(x => x.id === next.id ? next : x) : [next, ...db[coll]];
   const verb = !exists ? "criou" : next.status !== prev?.status
     ? { publicado: "publicou", revisao: "enviou para revisão", rascunho: "voltou para rascunho", agendado: "agendou", arquivado: "arquivou" }[next.status]
@@ -492,7 +528,7 @@ export function saveItem(coll, item, user, { status } = {}) {
 }
 
 export function setStatus(coll, ids, status, user) {
-  db[coll] = db[coll].map(x => ids.includes(x.id) ? { ...x, status, updatedAt: now(), updatedBy: user?.name } : x);
+  db[coll] = db[coll].map(x => ids.includes(x.id) ? stampPublish({ ...x, status, updatedAt: now(), updatedBy: user?.name }, x) : x);
   log(user, `alterou status para "${STATUS[status].label}" de`, `${ids.length} ${TYPE_LABEL[coll]}(s)`, TYPE_LABEL[coll]);
   commit();
 }

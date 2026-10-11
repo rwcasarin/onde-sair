@@ -9,14 +9,14 @@ import { useNav } from "../nav.js";
 import { href, storyPath, placePath, currentPath, HASH_MODE, canGoBack } from "../router.js";
 import { slugify } from "../admin/store.js";
 import { sanitizeHtml, asHtml } from "../richtext.js";
-import { resolveMedia } from "../admin/store.js";
+import { resolveMedia, publishedDate } from "../admin/store.js";
 import { mountEmbeds } from "../embeds.js";
 
 const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }); } catch { return ""; } };
 
 function StoryCard({ s }) {
   const nav = useNav();
-  const when = s.publishAt || s.updatedAt;
+  const when = publishedDate(s);
   return (
     <article className="story-card" onClick={() => nav("historia", { id: s.id })} style={{ cursor: "pointer" }}>
       <ImageSlot className="story-img" src={s.img} alt="" hint="3:4">
@@ -137,7 +137,7 @@ export function Historia({ id }) {
   const inline = [...String(s.body || "").matchAll(/data-place="([\w-]+)"/g)].map(m => m[1]);
   const places = (s.places || []).filter(pid => !inline.includes(pid)).map(pid => PLACES.find(p => p.id === pid)).filter(Boolean).slice(0, 4);   // no máximo 4
   const more = ALL_STORIES.filter(x => x.id !== s.id).slice(0, 2);
-  const when = s.publishAt || s.updatedAt;
+  const when = publishedDate(s);
   return (
     <main className="home2">
       <article className="shell narrow story-article">
@@ -145,7 +145,10 @@ export function Historia({ id }) {
           back={<a href={href("/radar")} className="back-link" onClick={(e) => { e.preventDefault(); canGoBack() ? history.back() : nav("historias"); }}><Icon name="left" size={16} /> Voltar</a>} title={s.title} lede={s.desc}
           eyebrow={s.tag && <span className={"story-tag tone-" + s.tone}>{s.tag}</span>} />
         {(s.author || when) && <p className="story-byline">{s.author && <>Por <strong>{s.author}</strong></>}{s.author && when && " · "}{when && fmt(when)}</p>}
-        <ImageSlot className="story-hero" src={s.img} alt="" hint="Foto de capa · 16:9" />
+        {/* capa enviada em 3:4: aparece inteira, com a própria foto desfocada preenchendo as laterais */}
+        <ImageSlot className="story-hero" src={s.img} alt={s.title} hint="Foto de capa · 3:4">
+          <img className="story-hero-bg" src={resolveMedia(s.img)} alt="" aria-hidden="true" />
+        </ImageSlot>
         <PostBody s={s} />
         {places.length > 0 && (
           <section className="h2-section">

@@ -42,7 +42,8 @@ function RoteiroView({ r, mine = false }) {
   // parada com lugar usa a foto do lugar; parada livre usa a foto enviada no painel
   const stepImg = (s, i) => s.place ? placeImg(s.place) : mine ? undefined : roteiroImg(r.id, s.img || i + 1);
   const vibes = roteiroVibes(r);
-  const investLabel = r.stats.investLabel || INVEST_LABELS[r.stats.invest] || "";
+  // rótulo do investimento sem repetir o símbolo ("Grátis", não "Grátis · Grátis")
+  const investLabel = [r.stats.investLabel || INVEST_LABELS[r.stats.invest] || ""].find(l => l && l !== INVEST[r.stats.invest]) || "";
   const copy = () => user ? nav("meuRoteiroEditar", { id: "novo", copiar: r.id }) : ask({ type: "copiar", id: r.id });
   const tips = r.tips || {};
 
@@ -204,7 +205,7 @@ function RoteiroView({ r, mine = false }) {
             <h2 className="h2t">Informações úteis</h2>
             <dl>
               {r.stats.tempo && <div><Icon name="clock" size={20} /><dt>Tempo total</dt><dd>{r.stats.tempo}</dd></div>}
-              <div><Icon name="dollar" size={20} /><dt>Investimento</dt><dd><b>{INVEST[r.stats.invest]}</b> {investLabel}</dd></div>
+              <div><Icon name="dollar" size={20} /><dt>Investimento</dt><dd><b>{INVEST[r.stats.invest]}</b>{investLabel ? " " + investLabel : ""}</dd></div>
               {r.stats.ideal && <div><Icon name="users" size={20} /><dt>Ideal para</dt><dd>{r.stats.ideal}</dd></div>}
               {tips.horario && <div><Icon name="sun" size={20} /><dt>Melhor horário</dt><dd>{tips.horario}</dd></div>}
               {tips.epoca && <div><Icon name="calendar" size={20} /><dt>Melhor época</dt><dd>{tips.epoca}</dd></div>}
