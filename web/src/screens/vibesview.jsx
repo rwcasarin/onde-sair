@@ -6,7 +6,7 @@ import { Icon } from "../components/icons.jsx";
 import { HeroMedia, Crumbs, VibePill, PlaceCard, RoteiroCard, Footer, affById, placeById } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
-import { roteiroVibes } from "../vibes.js";
+import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { SITE } from "../admin/store.js";
 import { CheckRow, toggleIn } from "./lista.jsx";
 
@@ -19,9 +19,9 @@ function asItems() {
     text: [p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" ") }));
   const rots = SITE.roteirosHidden ? [] : ROTEIROS.map(r => {
     const stops = r.steps.map(s => s.place && placeById(s.place)).filter(Boolean);
-    const bairros = [...new Set([...(r.bairros || "").split(/[·,]/).map(s => s.trim()), ...stops.map(p => p.bairro)].filter(Boolean))];
+    const bairros = roteiroBairros(r, placeById);
     return { kind: "roteiro", id: r.id, name: r.title, vibes: roteiroVibes(r), city: stops[0]?.city || "", bairros, price: r.stats?.invest ?? null, r,
-      stops: r.steps.length, text: [r.title, r.desc, r.bairros, ...(r.tags || []).map(t => t[0] || t)].join(" ") };
+      stops: r.steps.length, text: [r.title, r.desc, ...bairros, ...(r.tags || []).map(t => t[0] || t)].join(" ") };
   });
   return [...places, ...rots];
 }

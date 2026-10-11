@@ -59,7 +59,7 @@ const BLANK = {
   affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
   priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", note: "",
   showGallery: true,
-  map: { x: 50, y: 50, label: "" }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
+  map: { x: 50, y: 50 }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
 
 const RULES = [
@@ -357,10 +357,9 @@ export function LocationTab({ draft, set, errors, pinLabel, title = "Endereço",
           }}>
             <MapArt className="a-map-art" pins={[...db.places.filter(p => p.id !== draft.id).map(p => ({ x: p.map.x, y: p.map.y, color: "#C9C3DB", title: p.name })), { x: draft.map.x, y: draft.map.y, label: pinName, color: "var(--c-magenta)" }]} />
           </div>
-          <div className="a-form-grid a-form-grid-3">
+          <div className="a-form-grid">
             <Input label="Posição X (%)" type="number" min={0} max={100} value={draft.map.x} onChange={(v) => set({ map: { ...draft.map, x: +v } })} />
             <Input label="Posição Y (%)" type="number" min={0} max={100} value={draft.map.y} onChange={(v) => set({ map: { ...draft.map, y: +v } })} />
-            <Input label="Sigla no pino" value={draft.map.label} onChange={(v) => set({ map: { ...draft.map, label: v.toUpperCase().slice(0, 4) } })} />
           </div>
         </Card>
       )}
