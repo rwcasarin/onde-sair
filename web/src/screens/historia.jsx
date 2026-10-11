@@ -11,6 +11,7 @@ import { slugify } from "../admin/store.js";
 import { sanitizeHtml, asHtml } from "../richtext.js";
 import { resolveMedia, publishedDate } from "../admin/store.js";
 import { mountEmbeds } from "../embeds.js";
+import { NotFound } from "./notfound.jsx";
 
 const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }); } catch { return ""; } };
 
@@ -133,10 +134,13 @@ function PostBody({ s }) {
 export function Historia({ id }) {
   const nav = useNav();
   const s = ALL_STORIES.find(x => x.id === id);
-  if (!s) return null;
+  if (!s) return <NotFound />;
   const inline = [...String(s.body || "").matchAll(/data-place="([\w-]+)"/g)].map(m => m[1]);
   const places = (s.places || []).filter(pid => !inline.includes(pid)).map(pid => PLACES.find(p => p.id === pid)).filter(Boolean).slice(0, 4);   // no máximo 4
-  const more = ALL_STORIES.filter(x => x.id !== s.id).slice(0, 2);
+  // "Mais no Radar": mesma categoria primeiro, depois os mais recentes
+  const more = ALL_STORIES.filter(x => x.id !== s.id)
+    .sort((a, b) => (b.tag === s.tag) - (a.tag === s.tag) || String(publishedDate(b)).localeCompare(String(publishedDate(a))))
+    .slice(0, 2);
   const when = publishedDate(s);
   return (
     <main className="home2">

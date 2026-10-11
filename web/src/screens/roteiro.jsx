@@ -5,7 +5,7 @@ import { ImageSlot } from "../components/image-slot.jsx";
 import {
   HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, TypePill, CardMore,
 } from "../components/site.jsx";
-import { roteiroVibes } from "../vibes.js";
+import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { findMyRoteiro, myRoteiros, deleteMyRoteiro } from "../account.js";
 import { INVEST_LABELS } from "../../shared/myroteiros.js";
@@ -14,6 +14,20 @@ import { PlaceMap } from "../components/placemap.jsx";
 
 const STEP_COLORS = ["var(--c-magenta)", "var(--primary)", "#F58220", "var(--c-teal)", "var(--c-yellow)"];
 const INVEST = ["Grátis", "$", "$$", "$$$"];
+
+// "Continue explorando": mesma cidade, vibes em comum, lugares e bairros em comum (empate: ordem do painel)
+const cityOfRoteiro = (r) => r.steps.map(s => s.place && placeById(s.place)).find(Boolean)?.city || "";
+export function relatedRoteiros(r, n = 5) {
+  const vibes = roteiroVibes(r), places = r.steps.map(s => s.place).filter(Boolean), bairros = roteiroBairros(r, placeById), city = cityOfRoteiro(r);
+  return ROTEIROS.filter(x => x.id !== r.id)
+    .map((x, i) => ({ x, i, score:
+      (city && cityOfRoteiro(x) === city ? 3 : 0) +
+      roteiroVibes(x).filter(v => vibes.includes(v)).length * 2 +
+      x.steps.filter(s => s.place && places.includes(s.place)).length +
+      roteiroBairros(x, placeById).filter(b => bairros.includes(b)).length }))
+    .sort((a, b) => b.score - a.score || a.i - b.i)
+    .slice(0, n).map(s => s.x);
+}
 
 export function Roteiro({ id }) {
   const r = ROTEIROS.find(x => x.id === id);
@@ -36,7 +50,7 @@ function RoteiroView({ r, mine = false }) {
   const [tab, setTab] = useState("visao");
   const [shared, setShared] = useState(false);
   const saved = faves.has(r.id);
-  const others = ROTEIROS.filter(x => x.id !== r.id).slice(0, 5);
+  const others = relatedRoteiros(r);
   const firstPlace = r.steps.find(s => s.place)?.place;
   const heroImg = mine ? (firstPlace ? placeImg(firstPlace) : undefined) : roteiroImg(r.id);
   // parada com lugar usa a foto do lugar; parada livre usa a foto enviada no painel

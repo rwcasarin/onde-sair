@@ -11,11 +11,11 @@ import { instaProfile } from "../insta.js";
 import { whatsappLink } from "./detalhe.jsx";
 import { NotFound } from "./notfound.jsx";
 import { slugify, hasMedia } from "../admin/store.js";
-import { currentPath, HASH_MODE } from "../router.js";
+import { currentPath, HASH_MODE, eventPath } from "../router.js";
 import { CheckRow, toggleIn } from "./lista.jsx";
 import {
   WHEN, inRange, isPast, isHappening, byDate, whenLabel, priceLabel,
-  eventVenue, venueName, googleCalendarUrl, icsHref, eventDays, periodLines, dayLabel, hoursLabel, defaultDay, todayYmd, sameHoursAllDays,
+  eventVenue, venueName, googleCalendarUrl, googleCoversAll, icsHref, eventDays, periodLines, dayLabel, hoursLabel, defaultDay, todayYmd, sameHoursAllDays,
 } from "../events.js";
 
 const SORTS = [["data", "Data (mais próximos)"], ["az", "A–Z"]];
@@ -226,6 +226,8 @@ export function Evento({ id }) {
   const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
   const tabs = [["visao", "Visão geral"], ...(reasons.length ? [["porque", "Por que ir"]] : []), ...(showFotos ? [["fotos", "Fotos"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
   const calWhere = [where, address].filter(Boolean).join(", ");
+  const pageUrl = typeof location !== "undefined" ? location.origin + eventPath(e) : "";
+  const gcalUrl = googleCalendarUrl(e, calWhere, pageUrl);
   // selo de situação (mesmas cores do bloco de data dos cards): acontecendo agora ou encerrado
   const status = live ? <span className="event-status is-live"><i aria-hidden="true" />Agora</span>
     : past ? <span className="event-status is-past">Encerrado</span> : null;
@@ -274,7 +276,7 @@ export function Evento({ id }) {
               {!paused && <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(e.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
                 <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
               </button>}
-              {!past && <a className="act-btn act-sm" href={googleCalendarUrl(e, calWhere)} target="_blank" rel="noreferrer" aria-label="Adicionar à agenda"><Icon name="calendar" size={17} /><span className="act-label">Adicionar à agenda</span></a>}
+              {!past && <a className="act-btn act-sm" href={gcalUrl} target="_blank" rel="noreferrer" aria-label="Adicionar à agenda"><Icon name="calendar" size={17} /><span className="act-label">Adicionar à agenda</span></a>}
               <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
             </div>
           </div>
@@ -347,8 +349,9 @@ export function Evento({ id }) {
             </dl>
             {!past && (
               <p className="event-box-cal"><Icon name="calendar" size={14} /> Adicionar à agenda:{" "}
-                <a href={googleCalendarUrl(e, calWhere)} target="_blank" rel="noreferrer">Google</a> ·{" "}
-                <a href={icsHref(e, calWhere)} download={`${e.slug || e.id}.ics`}>Apple/Outlook</a></p>
+                <a href={gcalUrl} target="_blank" rel="noreferrer">Google</a> ·{" "}
+                <a href={icsHref(e, calWhere, pageUrl)} download={`${e.slug || e.id}.ics`}>Apple/Outlook</a>
+                {!googleCoversAll(e) && <span className="event-box-cal-note">No Google entra {day?.date === todayYmd() ? "o dia de hoje" : `o dia ${dayLabel(day.date)}`}, com os horários de todos os dias na descrição. O arquivo Apple/Outlook traz cada dia com o seu horário.</span>}</p>
             )}
           </aside>
         </section>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, useAdmin, useDraft } from "../kit.jsx";
+import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, ImageField, useAdmin, useDraft } from "../kit.jsx";
+import { SHARE_DEFAULT_IMG } from "../../../shared/share.js";
 import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT, ROTEIROS_PAUSED_TEXT, EVENTS_PAUSED_TEXT } from "../store.js";
 
 const TABS = [["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["pausas", "Pausas"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["avancado", "Avançado"], ["dados", "Dados"]];
@@ -70,6 +71,12 @@ export function SettingsPage({ initialTab }) {
           <Input label="Título padrão" value={draft.seoTitle} onChange={(seoTitle) => set({ seoTitle })} maxCount={60} />
           <Textarea label="Descrição padrão" value={draft.seoDesc} onChange={(seoDesc) => set({ seoDesc })} rows={3} maxCount={160} />
           <div className="a-serp"><span className="a-serp-url">ondesair.com.br</span><strong>{draft.seoTitle}</strong><p>{draft.seoDesc}</p></div>
+        </Card>
+      )}
+      {tab === "seo" && (
+        <Card title="Imagem de compartilhamento" subtitle="Aparece quando alguém compartilha um link do site no WhatsApp, Instagram, Facebook ou X. Lugares, roteiros, eventos e posts usam a própria foto de capa; esta vale para as demais páginas e para itens sem foto.">
+          <ImageField label="Imagem padrão" path={SHARE_DEFAULT_IMG} hint="1200×630 · horizontal" ratio="1200 / 630" />
+          <p className="a-hint">Sem esta imagem, usamos a foto do topo da home.</p>
         </Card>
       )}
 
