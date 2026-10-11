@@ -66,18 +66,52 @@ export function inRange(e, [from, to]) {
 
 // Agenda: Google Agenda e arquivo .ics
 const gcal = (s) => s.replace(/[-:]/g, "") + "00";
-export function googleCalendarUrl(e, where) {
-  const s = e.startAt, f = e.endAt || e.startAt;
-  const q = new URLSearchParams({ action: "TEMPLATE", text: e.title, dates: `${gcal(s)}/${gcal(f)}`, details: e.tagline || "", location: where || "", ctz: "America/Sao_Paulo" });
+// Cada dia do evento vira um compromisso com o próprio horário (dia sem horário = dia inteiro;
+// término antes do início = passa da meia-noite). Eventos antigos sem dias: startAt/endAt.
+const ymdC = (d) => d.replace(/-/g, "");
+function calSlots(e) {
+  const days = eventDays(e);
+  if (!days.length) return e.startAt ? [{ start: gcal(e.startAt), end: gcal(e.endAt || e.startAt) }] : [];
+  return days.map(d => {
+    if (!d.from) return { allDay: true, start: ymdC(d.date), end: ymdC(addDays(d.date, 1)) };
+    const endDate = d.to && d.to <= d.from ? addDays(d.date, 1) : d.date;
+    const to = d.to || `${String(Math.min(+d.from.slice(0, 2) + 2, 23)).padStart(2, "0")}:${d.from.slice(3, 5)}`;   // sem término: 2 horas
+    return { start: gcal(`${d.date}T${d.from}`), end: gcal(`${endDate}T${to}`) };
+  });
+}
+// texto com os horários de cada dia (vai na descrição quando os dias têm horários diferentes)
+const hoursText = (e) => eventDays(e).map(d => `${dayLabel(d.date)}: ${hoursLabel(d)}`).join("\n");
+
+// Google Agenda: um link cria um compromisso só. Mesmo horário todo dia → repetição diária;
+// horários diferentes → o próximo dia do evento, com os horários de todos os dias na descrição.
+export function googleCalendarUrl(e, where, url = "") {
+  const slots = calSlots(e), days = eventDays(e);
+  const same = days.length <= 1 || sameHoursAllDays(days);
+  const idx = same ? 0 : Math.max(0, days.indexOf(defaultDay(days)));
+  const slot = slots[idx];
+  const details = [e.tagline || "", !same ? "Horários:\n" + hoursText(e) : "", url].filter(Boolean).join("\n\n");
+  const q = new URLSearchParams({ action: "TEMPLATE", text: e.title, dates: slot ? `${slot.start}/${slot.end}` : "", details, location: where || "", ctz: "America/Sao_Paulo" });
+  if (same && slots.length > 1) q.set("recur", `RRULE:FREQ=DAILY;COUNT=${slots.length}`);
   return "https://calendar.google.com/calendar/render?" + q;
 }
-export function icsHref(e, where) {
+// o link do Google cobre todos os dias? (senão, a página avisa que o arquivo traz todos)
+export const googleCoversAll = (e) => { const d = eventDays(e); return d.length <= 1 || sameHoursAllDays(d); };
+
+// Arquivo .ics (Apple, Outlook, Google por importação): um compromisso por dia, cada um com o seu horário
+export function icsText(e, where, url = "", now = new Date()) {
   const esc = (t = "") => String(t).replace(/[,;\\]/g, (m) => "\\" + m).replace(/\n/g, "\\n");
-  const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Onde Sair//Eventos//PT", "BEGIN:VEVENT",
-    `UID:${e.id}@ondesair.com.br`, `DTSTART;TZID=America/Sao_Paulo:${gcal(e.startAt)}`, `DTEND;TZID=America/Sao_Paulo:${gcal(e.endAt || e.startAt)}`,
-    `SUMMARY:${esc(e.title)}`, `DESCRIPTION:${esc(e.tagline)}`, `LOCATION:${esc(where)}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
-  return "data:text/calendar;charset=utf-8," + encodeURIComponent(body);
+  const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+  const tz = ["BEGIN:VTIMEZONE", "TZID:America/Sao_Paulo", "BEGIN:STANDARD", "DTSTART:19700101T000000", "TZOFFSETFROM:-0300", "TZOFFSETTO:-0300", "TZNAME:-03", "END:STANDARD", "END:VTIMEZONE"];
+  const slots = calSlots(e), days = eventDays(e);
+  const events = slots.flatMap((sl, i) => ["BEGIN:VEVENT",
+    `UID:${e.id}${days[i] ? "-" + days[i].date : ""}@ondesair.com.br`, `DTSTAMP:${stamp}`,
+    ...(sl.allDay ? [`DTSTART;VALUE=DATE:${sl.start}`, `DTEND;VALUE=DATE:${sl.end}`]
+      : [`DTSTART;TZID=America/Sao_Paulo:${sl.start}`, `DTEND;TZID=America/Sao_Paulo:${sl.end}`]),
+    `SUMMARY:${esc(e.title)}`, `DESCRIPTION:${esc([e.tagline || "", url].filter(Boolean).join("\n\n"))}`, `LOCATION:${esc(where)}`,
+    ...(url ? [`URL:${url}`] : []), "END:VEVENT"]);
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Onde Sair//Eventos//PT", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", ...tz, ...events, "END:VCALENDAR"].join("\r\n");
 }
+export const icsHref = (e, where, url) => "data:text/calendar;charset=utf-8," + encodeURIComponent(icsText(e, where, url));
 
 // ---------------------------------------------------------------------
 // Período e horários por dia

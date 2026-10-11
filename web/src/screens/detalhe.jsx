@@ -5,7 +5,7 @@ import { ImageSlot } from "../components/image-slot.jsx";
 import {
   HeroMedia, Crumbs, VibePill, PriceDots, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, affById,
 } from "../components/site.jsx";
-import { useNav, useCity, useFaves, useAccount } from "../nav.js";
+import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 import { SITE } from "../admin/store.js";
 import { PlaceMap } from "../components/placemap.jsx";
@@ -57,7 +57,6 @@ export function Detalhe({ id }) {
 
 function DetalheView({ p }) {
   const nav = useNav();
-  const { name: city } = useCity();
   const { faves, toggle } = useFaves();
   const { paused } = useAccount();
   // seção de fotos pode ser escondida no admin
@@ -65,7 +64,6 @@ function DetalheView({ p }) {
   // motivos e vibes sem conteúdo (ou vibe desativada no painel) não aparecem
   const reasons = (p.reasons || []).filter(([, text]) => filled(text));
   const vibeNames = (p.affs || []).map(affById).filter(Boolean).map(a => a.label.toLowerCase().replace(/^(para|pra) /, ""));
-  const tabs = TABS.filter(([t]) => (t !== "fotos" || showFotos) && (t !== "porque" || reasons.length));
   const site = siteHref(p.site), tel = telHref(p.phone);
   const [tab, setTab] = useState("visao");
   const [shift, setShift] = useState(0);
@@ -78,16 +76,21 @@ function DetalheView({ p }) {
   const gallery = placeGallery(p.id);
   const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
 
+  // "Confira também": na mesma cidade, os com mais vibes em comum primeiro (mesmo tipo desempata)
+  const placeCity = CITIES.find(c => c.id === p.city);
   const similar = PLACES
-    .filter(x => x.id !== p.id)
+    .filter(x => x.id !== p.id && x.city === p.city)
     .map(x => ({ x, score: x.affs.filter(a => p.affs.includes(a)).length + (x.type === p.type ? 0.5 : 0) }))
     .sort((m, n) => n.score - m.score)
     .slice(0, 2).map(s => s.x);
-
+  // roteiros: os que passam por este lugar primeiro, depois os da cidade com vibes em comum
+  const rotCity = (r) => PLACES.find(x => x.id === r.steps.find(st => st.place && PLACES.some(y => y.id === st.place))?.place)?.city;
   const rots = SITE.roteirosHidden ? [] : ROTEIROS
+    .filter(r => r.steps.some(st => st.place === p.id) || rotCity(r) === p.city)
     .map(r => ({ r, score: (r.steps.some(st => st.place === p.id) ? 10 : 0) + roteiroVibes(r).filter(a => p.affs.includes(a)).length }))
     .sort((m, n) => n.score - m.score)
     .slice(0, 2).map(s => s.r);
+  const tabs = TABS.filter(([t]) => (t !== "fotos" || showFotos) && (t !== "porque" || reasons.length) && (t !== "confira" || similar.length || rots.length));
 
   function goTab(id) {
     setTab(id);
@@ -231,11 +234,11 @@ function DetalheView({ p }) {
         </section>
 
         {/* 5 · Confira também — 2 lugares + 2 roteiros */}
-        <section className="place-row" id="sec-confira">
+        {(similar.length > 0 || rots.length > 0) && <section className="place-row" id="sec-confira">
           <div>
             <div className="h2-head">
               <h2>Confira também</h2>
-              <p>{rots.length ? "Lugares e roteiros" : "Lugares"} com a mesma vibe em {city}.</p>
+              <p>{similar.length && rots.length ? "Lugares e roteiros" : similar.length ? "Lugares" : "Roteiros"} com a mesma vibe{placeCity ? ` em ${placeCity.name}` : ""}.</p>
               <a href="#" className="h2-link" onClick={(e) => { e.preventDefault(); nav("lista", { tipo: TYPES.find(t => t.label === p.type)?.slug }); }}>Ver mais <Icon name="arrow" size={16} /></a>
             </div>
             <div className="related-grid">
@@ -251,7 +254,7 @@ function DetalheView({ p }) {
               ))}
             </div>
           </div>
-        </section>
+        </section>}
       </div>
 
       <Footer />

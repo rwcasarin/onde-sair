@@ -13,6 +13,7 @@ function localApi() {
         if (!req.url.startsWith("/api/")) return next();
         // aplica os rewrites do vercel.json (ex.: /api/oauth/:provider/callback)
         for (const r of rewrites) {
+          if (r.has) continue;   // regras condicionais (ex.: robôs de pré-visualização) só valem no Vercel
           const keys = []; const re = new RegExp("^" + r.source.replace(/:(\w+)/g, (_, k) => (keys.push(k), "([^/?]+)")) + "(?:\\?(.*))?$");
           const m = req.url.match(re);
           if (m) { let dest = r.destination; keys.forEach((k, i) => { dest = dest.replace(":" + k, m[i + 1]); }); const qs = m[keys.length + 1]; req.url = dest + (qs ? (dest.includes("?") ? "&" : "?") + qs : ""); break; }
