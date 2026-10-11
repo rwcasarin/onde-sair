@@ -46,7 +46,9 @@ export function EventosLista() {
   const all = EVENTS;
   const [vibe, setVibe] = useState(() => {
     const s = new URLSearchParams(currentPath().split("?")[1] || "").get("vibe");
-    return VIBE_ORDER.find(id => slugify(affById(id)?.label || "") === s || id === s) || null;
+    if (!s) return null;
+    const core = (x) => x.replace(/^(para|pra)-(a-)?/, "");   // links antigos: ?vibe=pra-relaxar
+    return VIBE_ORDER.find(id => slugify(affById(id)?.label || "") === s || id === s) || VIBE_ORDER.find(id => core(slugify(affById(id)?.label || "")) === core(s)) || null;
   });
   const [cityF, setCityF] = useState(() => (globalCity && all.some(e => e.city === globalCity) ? globalCity : ""));
   const [when, setWhen] = useState("");
