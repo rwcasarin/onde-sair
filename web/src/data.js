@@ -1,3 +1,4 @@
+import { VIBES as TAX_VIBES, PLACE_TYPES, vibeRecord } from "./taxonomy.js";
 // =====================================================================
 // Onde Sair — mock data
 // Cobertura nacional · cidade ativa definida pelo usuário
@@ -15,24 +16,11 @@ const CITIES = [
 ];
 
 // Camada 1 — Contexto (chips roxos cheios · DESTAQUE)
-const AFFINITIES = [
-  { id: "dates",    label: "Para dates",       sub: "Pra começar bem",     slug: "para-dates",       tint: "tint-date",    count: 18 },
-  { id: "impress",  label: "Pra impressionar", sub: "Reunião, sogra, BFF", slug: "para-impressionar",tint: "tint-impress", count: 12 },
-  { id: "turist",   label: "Pra turistar",     sub: "Chegou agora",        slug: "para-turistar",    tint: "tint-turist",  count: 22 },
-  { id: "relax",    label: "Pra relaxar",      sub: "Domingo sem pressa",  slug: "para-relaxar",     tint: "tint-relax",   count: 16 },
-  { id: "eco",      label: "Pra economizar",   sub: "Vale cada real",      slug: "para-economizar",  tint: "tint-eco",     count: 19 },
-  { id: "crianca",  label: "Pra criançada",    sub: "Família toda feliz",  slug: "para-a-criancada", tint: "tint-crianca", count: 11 },
-];
+const AFFINITIES = TAX_VIBES.map(v => { const r = vibeRecord(v); return { id: r.id, label: r.label, sub: r.sub, slug: r.slug, tint: r.tint, count: 0 }; });
 
 // Camada 2 — Tipo (chips outline · FILTRO)
 // Tipos de lugar (gerenciados no painel em Lugares › Tipos; aqui ficam os iniciais)
-export const SEED_TYPES = [
-  { id: "restaurantes",   label: "Restaurantes",     slug: "restaurantes",    cls: "vibe-orange",   icon: "utensils" },
-  { id: "bares",          label: "Bares",            slug: "bares",           cls: "vibe-pink",     icon: "cheers" },
-  { id: "parques",        label: "Parques",          slug: "parques",         cls: "vibe-mint",     icon: "tree" },
-  { id: "shows-baladas",  label: "Shows e baladas",  slug: "shows-e-baladas", cls: "vibe-lavender", icon: "music" },
-  { id: "eventos",        label: "Eventos",          slug: "eventos",         cls: "vibe-sky",      icon: "calendar" },
-];
+export const SEED_TYPES = PLACE_TYPES.map(t => ({ ...t }));
 const TYPES = SEED_TYPES.map(t => ({ ...t }));
 
 const ROTEIROS = [
@@ -136,7 +124,7 @@ const PLACES = [
   {
     id: "p5",
     name: "Clube Aurora",
-    type: "Shows e baladas",
+    type: "Baladas e festas",
     bairro: "Boa Vista",
     desc: "Pista boa, line-up que respeita house e disco. Atmosfera continua até o sol nascer.",
     dica: "Antes das 23h30 entra sem fila. Depois disso, só com lista — siga o perfil da casa.",
@@ -151,7 +139,7 @@ const PLACES = [
   {
     id: "p6",
     name: "Cine Vitória",
-    type: "Eventos",
+    type: "Cultura",
     bairro: "Centro",
     desc: "Sala única, curadoria de cinema independente, pipocário gourmet. O cinema que a cidade estava devendo.",
     dica: "Sessão de quinta tem chope de cortesia. Filme cult + chope = combinação correta.",
@@ -166,7 +154,7 @@ const PLACES = [
   {
     id: "p7",
     name: "Feira do Largo",
-    type: "Eventos",
+    type: "Feiras e mercados",
     bairro: "Centro",
     desc: "Chorinho ao vivo, antiguidades, pastel de feira de verdade. A cidade antiga inteira na rua.",
     dica: "Sábado às 13h. Pastel de queijo + caldo de cana — e depois quiosque do Seu Toninho.",
@@ -254,16 +242,9 @@ export const priceLabel = (level) => level === 0 ? "Grátis" : "R$".repeat(level
 // =====================================================================
 
 // Cor + ícone de cada afinidade (pílulas coloridas da home)
-export const VIBE_STYLE = {
-  dates:   { icon: "heart",  cls: "vibe-pink"     },
-  impress: { icon: "cheers", cls: "vibe-yellow"   },
-  relax:   { icon: "leaf",   cls: "vibe-mint"     },
-  turist:  { icon: "camera", cls: "vibe-lavender" },
-  eco:     { icon: "coins",  cls: "vibe-orange"   },
-  crianca: { icon: "smile",  cls: "vibe-sky"      },
-};
+export const VIBE_STYLE = Object.fromEntries(TAX_VIBES.map(([id, , , icon, cls]) => [id, { icon, cls }]));
 // Ordem das pílulas no hero (igual ao layout)
-export const VIBE_ORDER = ["dates", "impress", "relax", "turist", "eco", "crianca"];
+export const VIBE_ORDER = TAX_VIBES.map(v => v[0]);
 
 export const HERO = {
   img: "images/home/hero.jpg",
@@ -338,7 +319,7 @@ PLACES.push(
     map: { x: 60, y: 18, label: "M360" },
   },
   {
-    id: "p11", name: "Museu da Cidade", type: "Eventos", bairro: "Centro",
+    id: "p11", name: "Museu da Cidade", type: "Cultura", bairro: "Centro",
     desc: "Arte, arquitetura e vistas icônicas. Um programa cultural que sempre impressiona.",
     dica: "Terça a entrada é gratuita. Termine no café do último andar, a vista do vão central é outra.",
     by: "Curadoria · Ana C.", affs: ["turist", "impress", "eco"], tint: "tint-turist",
@@ -374,7 +355,7 @@ PLACES.push(
     map: { x: 48, y: 36, label: "SP" },
   },
   {
-    id: "p15", name: "Galpão 22", type: "Shows e baladas", bairro: "Zona Norte",
+    id: "p15", name: "Galpão 22", type: "Música ao vivo", bairro: "Zona Norte",
     desc: "Shows ao vivo num galpão restaurado. Do samba ao indie, a agenda é sempre boa.",
     dica: "Compre antecipado: na porta é mais caro. Fique perto da mesa de som, o áudio é melhor.",
     by: "Curadoria · Rafael S.", affs: ["turist", "impress"], tint: "tint-turist",
@@ -429,14 +410,7 @@ export const MOMENTOS = ["Jantar", "Almoço", "Happy hour", "Brunch", "Noite", "
 export const AMBIENTES = ["Ambiente interno", "Ambiente externo"];
 
 // Conteúdo da página de cada vibe
-export const VIBE_PAGE = {
-  dates:   { lede: "Lugares com clima certo pra começar bem — e pra conversa render.", note: "boas conversas começam com um bom lugar.", features: [["wine", "Jantares a dois"], ["music", "Boa música"], ["sun", "Pôr do sol"], ["heart", "Clima romântico"]] },
-  impress: { lede: "Lugares especiais para criar boas primeiras impressões e viver momentos que ficam na memória.", note: "boas histórias começam aqui.", features: [["cheers", "Jantares especiais"], ["diamond", "Ocasiões especiais"], ["users", "Encontros românticos"], ["star", "Experiências únicas"]] },
-  turist:  { lede: "Chegou agora? O essencial da cidade, do jeito de quem mora aqui.", note: "conhecer a cidade pelos olhos de quem vive nela.", features: [["camera", "Cartões-postais"], ["landmark", "Cultura"], ["star", "Clássicos locais"], ["pin", "Bairros históricos"]] },
-  relax:   { lede: "Lugares sem pressa, pra quando a semana foi pesada.", note: "domingo sem pressa também é programa.", features: [["leaf", "Natureza"], ["sun", "Luz boa"], ["clock", "Sem pressa"], ["heart", "Bem-estar"]] },
-  eco:     { lede: "Programas que cabem no bolso e não cabem no esquecimento.", note: "vale cada real, e sobra história pra contar.", features: [["coins", "Preço justo"], ["star", "Grátis e bons"], ["users", "Pra ir em turma"], ["heart", "Achados locais"]] },
-  crianca: { lede: "Lugares testados com criança de verdade: espaço, sombra e diversão.", note: "a família toda feliz no mesmo rolê.", features: [["smile", "Diversão"], ["leaf", "Ao ar livre"], ["star", "Estrutura boa"], ["heart", "Família toda"]] },
-};
+export const VIBE_PAGE = Object.fromEntries(TAX_VIBES.map(v => [v[0], { ...v[6] }]));
 export const vibeImg = (aff) => `images/vibes/${aff}.jpg`;
 
 // "Bom para…" — cartões da página de lugar

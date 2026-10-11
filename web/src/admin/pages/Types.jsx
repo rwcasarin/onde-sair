@@ -6,8 +6,8 @@ import { SEED_TYPES, SEED_EVENT_CATEGORIES } from "../../data.js";
 import { Icon } from "../../components/icons.jsx";
 import { IconPicker } from "./Places.jsx";
 
-export const TYPE_COLORS = [["vibe-pink", "Rosa"], ["vibe-yellow", "Amarelo"], ["vibe-mint", "Menta"], ["vibe-lavender", "Lavanda"], ["vibe-orange", "Laranja"], ["vibe-sky", "Azul"]];
-const TYPE_ICONS = ["utensils", "cheers", "martini", "wine", "tree", "leaf", "music", "calendar", "landmark", "camera", "coins", "sun", "star", "heart", "users", "pin", "sparkle", "smile"];
+export const TYPE_COLORS = [["vibe-pink", "Rosa"], ["vibe-yellow", "Amarelo"], ["vibe-mint", "Menta"], ["vibe-lavender", "Lavanda"], ["vibe-orange", "Laranja"], ["vibe-sky", "Azul"], ["vibe-coral", "Coral"], ["vibe-violet", "Violeta"], ["vibe-lime", "Lima"]];
+const TYPE_ICONS = ["utensils", "coffee", "basket", "cheers", "martini", "wine", "tree", "leaf", "music", "calendar", "landmark", "camera", "coins", "sun", "star", "heart", "users", "pin", "sparkle", "smile"];
 const norm = (s = "") => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 // menu interno da área Lugares (o mesmo na lista e nos tipos)

@@ -1,4 +1,5 @@
 import { SEED_EVENT_CATEGORIES } from "../data.js";
+import { VIBES as TAX_VIBES, PLACE_TYPES, vibeRecord, newTypeFor } from "../taxonomy.js";
 // =====================================================================
 // Onde Sair · atualizações de conteúdo
 //
@@ -232,6 +233,29 @@ function placeTypes(d) {
   return types.map(t => t.label);
 }
 
+// Vibes e tipos oficiais (out/2026): "Pra …" vira "Para …", entram 3 vibes novas e a lista
+// nova de tipos; lugares dos tipos que saíram vão para o tipo novo mais próximo.
+// Vibes e tipos criados no painel continuam (depois dos oficiais).
+function taxonomy2026(d) {
+  const out = [];
+  const old = d.vibes || [];
+  const official = TAX_VIBES.map(v => {
+    const cur = old.find(x => x.id === v[0]);
+    const rec = vibeRecord(v);
+    if (!cur) out.push("vibe " + rec.label);
+    return cur ? { ...cur, label: rec.label, ...(cur.slug ? {} : { slug: rec.slug }) } : rec;
+  });
+  d.vibes = [...official, ...old.filter(x => !TAX_VIBES.some(v => v[0] === x.id))];
+
+  let moved = 0;
+  (d.places || []).forEach(p => { const t = newTypeFor(p); if (t !== p.type) { p.type = t; moved++; } });
+  const extra = (d.types || []).filter(t => !["shows e baladas", "eventos"].includes(norm(t.label)) && !PLACE_TYPES.some(x => norm(x.label) === norm(t.label))
+    && (d.places || []).some(p => norm(p.type) === norm(t.label)));
+  d.types = [...PLACE_TYPES.map(t => ({ ...t })), ...extra];
+  if (moved) out.push(`${moved} lugar(es) com tipo novo`);
+  return out.concat(PLACE_TYPES.map(t => t.label));
+}
+
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
@@ -245,6 +269,7 @@ const UPDATES = [
   { id: "2026-10-menu-radar", label: "Radar no menu principal no lugar de Vibes", apply: headerRadar },
   { id: "2026-10-menu-vibes", label: "página de Vibes no menu principal", apply: headerVibes },
   { id: "2026-10-eventos", label: "eventos: categorias e agenda de exemplo", apply: seedEvents },
+  { id: "2026-10-vibes-e-tipos", label: "vibes e tipos de lugar oficiais", apply: taxonomy2026 },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

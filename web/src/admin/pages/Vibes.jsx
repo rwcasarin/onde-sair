@@ -4,8 +4,8 @@ import { AIcon, Btn, Card, Input, Textarea, Toggle, Repeater, ImageField, Field,
 import { saveVibes, slugify } from "../store.js";
 import { IconPicker } from "./Places.jsx";
 
-const COLORS = [["vibe-pink", "Rosa"], ["vibe-yellow", "Amarelo"], ["vibe-mint", "Menta"], ["vibe-lavender", "Lavanda"], ["vibe-orange", "Laranja"], ["vibe-sky", "Azul"]];
-const VIBE_ICONS = ["heart", "cheers", "leaf", "camera", "coins", "smile", "music", "sun", "star", "martini", "landmark", "tree", "sparkle", "users", "wine"];
+const COLORS = [["vibe-pink", "Rosa"], ["vibe-yellow", "Amarelo"], ["vibe-mint", "Menta"], ["vibe-lavender", "Lavanda"], ["vibe-orange", "Laranja"], ["vibe-sky", "Azul"], ["vibe-coral", "Coral"], ["vibe-violet", "Violeta"], ["vibe-lime", "Lima"]];
+const VIBE_ICONS = ["heart", "coffee", "basket", "cheers", "leaf", "camera", "coins", "smile", "music", "sun", "star", "martini", "landmark", "tree", "sparkle", "users", "wine"];
 
 export function VibesPage() {
   const { db, user, toast, saved, confirm, setDirty } = useAdmin();

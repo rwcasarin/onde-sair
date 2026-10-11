@@ -6,7 +6,7 @@ import { saveHome, isLive } from "../store.js";
 import { IconPicker } from "./Places.jsx";
 import { openOnSite } from "./content.jsx";
 
-const COLORS = [["vibe-pink", "Rosa"], ["vibe-yellow", "Amarelo"], ["vibe-mint", "Menta"], ["vibe-lavender", "Lavanda"], ["vibe-orange", "Laranja"], ["vibe-sky", "Azul"]];
+const COLORS = [["vibe-pink", "Rosa"], ["vibe-yellow", "Amarelo"], ["vibe-mint", "Menta"], ["vibe-lavender", "Lavanda"], ["vibe-orange", "Laranja"], ["vibe-sky", "Azul"], ["vibe-coral", "Coral"], ["vibe-violet", "Violeta"], ["vibe-lime", "Lima"]];
 
 export function HomePage() {
   const { db, user, toast, saved, setDirty } = useAdmin();

@@ -16,6 +16,9 @@
 .vibe-lavender { --vibe-soft: #E4DDFA; --vibe: #C9B9F4; --vibe-ink: #3B2A7C; }
 .vibe-orange   { --vibe-soft: #FFC08C; --vibe: #F9A15E; --vibe-ink: #8A3A00; }
 .vibe-sky      { --vibe-soft: #CFE6FB; --vibe: #9CCBF4; --vibe-ink: #1F5C9E; }
+.vibe-coral    { --vibe-soft: #FFD5CC; --vibe: #FF9E8A; --vibe-ink: #A8321A; }
+.vibe-violet   { --vibe-soft: #F0D6F7; --vibe: #D99BEB; --vibe-ink: #7A1F94; }
+.vibe-lime     { --vibe-soft: #E4F5C2; --vibe: #BFE57A; --vibe-ink: #3F6B00; }
 
 /* =================================================================
    Header
