@@ -1,27 +1,27 @@
 // Vibes (/vibes e /vibes/{slug}): lugares e roteiros juntos, no modelo da lista de lugares.
 // O menu de vibes fica no topo, com a vibe da página marcada.
 import { useMemo, useState } from "react";
-import { PLACES, ROTEIROS, VIBE_ORDER, VIBE_PAGE, PRICE_BUCKETS, MOMENTOS, AMBIENTES, CITIES, TYPES, vibeImg } from "../data.js";
+import { PLACES, ROTEIROS, VIBE_ORDER, VIBE_PAGE, MOMENTOS, AMBIENTES, CITIES, TYPES, vibeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { HeroMedia, Crumbs, VibePill, PlaceCard, RoteiroCard, Footer, affById, placeById } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { SITE } from "../admin/store.js";
-import { CheckRow, toggleIn } from "./lista.jsx";
+import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, PRICE_LEVELS, sortBy, fslug } from "../filters.jsx";
 
-const SORTS = [["relevancia", "Mais relevantes"], ["preco", "Menor preço"], ["az", "A–Z"]];
+const SORTS = ["relevancia", "az", "preco", "recentes"];
 const STOPS = [["curto", "Até 3 paradas", (n) => n <= 3], ["longo", "4 paradas ou mais", (n) => n >= 4]];
 
 // item da listagem: lugar ou roteiro com os campos usados nos filtros
 function asItems() {
   const places = PLACES.map(p => ({ kind: "lugar", id: p.id, name: p.name, vibes: p.affs || [], city: p.city, bairros: [p.bairro].filter(Boolean), price: p.priceLevel, p,
-    text: [p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" ") }));
+    text: fslug([p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" ")) }));
   const rots = SITE.roteirosHidden ? [] : ROTEIROS.map(r => {
     const stops = r.steps.map(s => s.place && placeById(s.place)).filter(Boolean);
     const bairros = roteiroBairros(r, placeById);
     return { kind: "roteiro", id: r.id, name: r.title, vibes: roteiroVibes(r), city: stops[0]?.city || "", bairros, price: r.stats?.invest ?? null, r,
-      stops: r.steps.length, text: [r.title, r.desc, ...bairros, ...(r.tags || []).map(t => t[0] || t)].join(" ") };
+      stops: r.steps.length, text: fslug([r.title, r.desc, ...bairros, ...(r.tags || []).map(t => t[0] || t), ...stops.map(p => p.name)].join(" ")) };
   });
   return [...places, ...rots];
 }
@@ -37,18 +37,12 @@ function interleave(list) {
 export function VibesView({ aff = null, q = "" }) {
   const nav = useNav();
   const { id: globalCity, name: city, set: setGlobalCity } = useCity();
-  const [cityF, setCityF] = useState(globalCity || "");
-  const [kinds, setKinds] = useState(new Set());              // vazio = lugares e roteiros
-  const [bairros, setBairros] = useState(new Set());
-  const [showAllBairros, setShowAllBairros] = useState(false);
-  const [prices, setPrices] = useState(new Set());
-  const [types, setTypes] = useState(new Set());
-  const [momentos, setMomentos] = useState(new Set());
-  const [ambientes, setAmbientes] = useState(new Set());
-  const [stops, setStops] = useState(new Set());
-  const [sort, setSort] = useState("relevancia");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [query, setQuery] = useState(q);
+  const { f, set, toggle, reset } = useFilters({
+    busca: ["busca", "one", q], mostrar: ["mostrar", "set"], cidade: ["cidade", "one", globalCity || "todas"], bairro: ["bairro", "set"], preco: ["preco", "set"],
+    tipo: ["tipo", "set"], momento: ["momento", "set"], ambiente: ["ambiente", "set"], tamanho: ["tamanho", "set"], ordem: ["ordem", "one", "relevancia"],
+  });
+  const query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade, kinds = f.mostrar;
 
   const a = aff ? affById(aff) : null;
   const page = aff ? VIBE_PAGE[aff] : null;
@@ -56,32 +50,43 @@ export function VibesView({ aff = null, q = "" }) {
   const hasRoteiros = all.some(x => x.kind === "roteiro");
 
   // vibe + busca (sem cidade): base das contagens por cidade
-  const anyCity = useMemo(() => all.filter(x => {
-    if (aff && !x.vibes.includes(aff)) return false;
-    if (query && !x.text.toLowerCase().includes(query.toLowerCase())) return false;
-    return true;
-  }), [all, aff, query]);
+  const anyCity = useMemo(() => all.filter(x => (!aff || x.vibes.includes(aff)) && (!query || x.text.includes(fslug(query)))), [all, aff, query]);
   const cityCounts = useMemo(() => anyCity.reduce((m, x) => (x.city ? { ...m, [x.city]: (m[x.city] || 0) + 1 } : m), {}), [anyCity]);
   const base = useMemo(() => anyCity.filter(x => !cityF || x.city === cityF), [anyCity, cityF]);
-  const BAIRROS = useMemo(() => [...new Set(base.flatMap(x => x.bairros))].sort((x, y) => x.localeCompare(y, "pt-BR")), [base]);
-  function changeCity(v) { setCityF(v); setBairros(new Set()); setShowAllBairros(false); if (v) setGlobalCity(v); }
+  function changeCity(v) { set("cidade", v || "todas"); reset(["bairro"]); if (v) setGlobalCity(v); }
 
   // filtros de lugar valem só para lugares; os de roteiro, só para roteiros
-  const placeFilters = types.size + momentos.size + ambientes.size;
-  const passPlace = (x) => (!types.size || types.has(x.p.type)) && (!momentos.size || x.p.momento.some(m => momentos.has(m))) && (!ambientes.size || x.p.ambiente.some(m => ambientes.has(m)));
-  const passRot = (x) => !stops.size || STOPS.some(([k, , fn]) => stops.has(k) && fn(x.stops));
-  const common = (x) => (!bairros.size || x.bairros.some(b => bairros.has(b))) && (!prices.size || prices.has(x.price));
   const shown = (kind) => !kinds.size || kinds.has(kind);
-  let results = base.filter(x => shown(x.kind) && common(x) && (x.kind === "lugar" ? passPlace(x) : passRot(x)));
-  const rank = (x) => (aff ? x.vibes.indexOf(aff) : 0);
-  if (sort === "preco") results = [...results].sort((x, y) => (x.price ?? 9) - (y.price ?? 9));
-  else if (sort === "az") results = [...results].sort((x, y) => x.name.localeCompare(y.name, "pt-BR"));
-  else results = interleave([...results].sort((x, y) => rank(x) - rank(y)));
+  const tests = {
+    mostrar: (x) => shown(x.kind),
+    bairro: (x) => !f.bairro.size || x.bairros.some(b => f.bairro.has(fslug(b))),
+    preco: (x) => !f.preco.size || f.preco.has(String(x.price)),
+    tipo: (x) => x.kind !== "lugar" || !f.tipo.size || f.tipo.has(fslug(x.p.type)),
+    momento: (x) => x.kind !== "lugar" || !f.momento.size || (x.p.momento || []).some(m => f.momento.has(fslug(m))),
+    ambiente: (x) => x.kind !== "lugar" || !f.ambiente.size || (x.p.ambiente || []).some(m => f.ambiente.has(fslug(m))),
+    tamanho: (x) => x.kind !== "roteiro" || !f.tamanho.size || STOPS.some(([k, , fn]) => f.tamanho.has(k) && fn(x.stops)),
+  };
+  const pass = (x, skip) => Object.entries(tests).every(([k, t]) => k === skip || t(x));
+  const count = (key, fn) => base.filter(x => pass(x, key) && fn(x)).length;
 
-  const count = (fn) => base.filter(fn).length;
+  let results = base.filter(x => pass(x));
+  const rank = (x) => (aff ? x.vibes.indexOf(aff) : 0);
+  results = f.ordem === "relevancia" ? interleave([...results].sort((x, y) => rank(x) - rank(y)))
+    : sortBy(results, f.ordem, { name: (x) => x.name, price: (x) => x.price });
+
   const nPlaces = results.filter(x => x.kind === "lugar").length, nRots = results.length - nPlaces;
-  const filterCount = kinds.size + bairros.size + prices.size + placeFilters + stops.size;
-  function clearAll() { setKinds(new Set()); setBairros(new Set()); setPrices(new Set()); setTypes(new Set()); setMomentos(new Set()); setAmbientes(new Set()); setStops(new Set()); }
+  const BAIRROS = [...new Set(base.flatMap(x => x.bairros))].sort((x, y) => x.localeCompare(y, "pt-BR")).map(b => [fslug(b), b]);
+  const TIPOS = TYPES.map(t => [fslug(t.label), t.label]);
+  const KINDS = [["lugar", "Lugares"], ["roteiro", "Roteiros"]];
+  const label = (list, v) => list.find(([k]) => k === v)?.[1] || v;
+  const chipsOf = (key, list) => [...f[key]].map(v => ({ key: key + v, label: label(list, v), onRemove: () => toggle(key, v) }));
+  const chips = [
+    ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
+    ...chipsOf("mostrar", KINDS), ...chipsOf("bairro", BAIRROS), ...chipsOf("preco", PRICE_LEVELS.map(o => [o.value, o.label])),
+    ...chipsOf("tipo", TIPOS), ...chipsOf("momento", MOMENTOS.map(m => [fslug(m), m])), ...chipsOf("ambiente", AMBIENTES.map(m => [fslug(m), m])), ...chipsOf("tamanho", STOPS),
+  ];
+  const filterCount = chips.length;
+  function clearAll() { reset(["busca", "mostrar", "bairro", "preco", "tipo", "momento", "ambiente", "tamanho"]); }
 
   const title = a ? a.label : "Vibes";
   const lede = page ? page.lede : "Lugares e roteiros reunidos pelo clima do rolê. Escolha uma vibe ou use os filtros.";
@@ -110,97 +115,51 @@ export function VibesView({ aff = null, q = "" }) {
       </section>
 
       <div className="shell listing-layout">
-        <aside className={"filters" + (filtersOpen ? " open" : "")}>
-          <div className="filters-head">
-            <h2>Filtrar por</h2>
-            {filterCount > 0 && <button className="link-btn" onClick={clearAll}>Limpar tudo</button>}
-          </div>
-
+        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={results.length} noun="resultados">
+          <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Nome, bairro ou tag" />
           {hasRoteiros && (
-            <div className="filter-block">
-              <h3>Mostrar</h3>
-              <CheckRow checked={kinds.has("lugar")} onChange={() => setKinds(toggleIn(kinds, "lugar"))} count={count(x => x.kind === "lugar")}>Lugares</CheckRow>
-              <CheckRow checked={kinds.has("roteiro")} onChange={() => setKinds(toggleIn(kinds, "roteiro"))} count={count(x => x.kind === "roteiro")}>Roteiros</CheckRow>
-            </div>
+            <FilterBlock title="Mostrar">
+              <CheckList options={KINDS.map(([value, l]) => ({ value, label: l, count: count("mostrar", x => x.kind === value) }))} selected={kinds} onToggle={(v) => toggle("mostrar", v)} />
+            </FilterBlock>
           )}
-
-          <div className="filter-block">
-            <h3>Cidade</h3>
-            <CityField value={cityF} onChange={changeCity} counts={cityCounts} />
-          </div>
-
-          <div className="filter-block">
-            <h3>Bairro / Região</h3>
-            {(showAllBairros ? BAIRROS : BAIRROS.slice(0, 5)).map(b => (
-              <CheckRow key={b} checked={bairros.has(b)} onChange={() => setBairros(toggleIn(bairros, b))} count={count(x => x.bairros.includes(b))}>{b}</CheckRow>
-            ))}
-            {BAIRROS.length > 5 && <button className="link-btn strong" onClick={() => setShowAllBairros(!showAllBairros)}>{showAllBairros ? "Ver menos −" : "Ver mais +"}</button>}
-          </div>
-
-          <div className="filter-block">
-            <h3>Faixa de preço <small>(lugares e roteiros)</small></h3>
-            {PRICE_BUCKETS.map(b => (
-              <CheckRow key={b.level} boxed checked={prices.has(b.level)} onChange={() => setPrices(toggleIn(prices, b.level))} count={count(x => x.price === b.level)}>{b.label}</CheckRow>
-            ))}
-          </div>
-
+          <FilterBlock title="Cidade"><CityField value={cityF} onChange={changeCity} counts={cityCounts} /></FilterBlock>
+          <FilterBlock title="Bairro / Região">
+            <CheckList options={BAIRROS.map(([value, l]) => ({ value, label: l, count: count("bairro", x => x.bairros.some(b => fslug(b) === value)) }))} selected={f.bairro} onToggle={(v) => toggle("bairro", v)} searchLabel="Buscar bairro" />
+          </FilterBlock>
+          <FilterBlock title="Preço" note="(por pessoa)">
+            <CheckList boxed options={PRICE_LEVELS.map(o => ({ ...o, count: count("preco", x => String(x.price) === o.value) }))} selected={f.preco} onToggle={(v) => toggle("preco", v)} />
+          </FilterBlock>
           {shown("lugar") && <>
             <p className="filters-group">Só para lugares</p>
-            <div className="filter-block">
-              <h3>Tipo de lugar</h3>
-              {TYPES.filter(t => base.some(x => x.kind === "lugar" && x.p.type === t.label)).map(t => (
-                <CheckRow key={t.id} checked={types.has(t.label)} onChange={() => setTypes(toggleIn(types, t.label))} count={count(x => x.kind === "lugar" && x.p.type === t.label)}>{t.label}</CheckRow>
-              ))}
-            </div>
-            <div className="filter-block">
-              <h3>Momento</h3>
-              {MOMENTOS.map(m => <CheckRow key={m} checked={momentos.has(m)} onChange={() => setMomentos(toggleIn(momentos, m))} count={count(x => x.kind === "lugar" && x.p.momento.includes(m))}>{m}</CheckRow>)}
-            </div>
-            <div className="filter-block">
-              <h3>Ambiente</h3>
-              {AMBIENTES.map(m => <CheckRow key={m} checked={ambientes.has(m)} onChange={() => setAmbientes(toggleIn(ambientes, m))} count={count(x => x.kind === "lugar" && x.p.ambiente.includes(m))}>{m}</CheckRow>)}
-            </div>
+            <FilterBlock title="Tipo de lugar">
+              <CheckList options={TIPOS.map(([value, l]) => ({ value, label: l, count: count("tipo", x => x.kind === "lugar" && fslug(x.p.type) === value) }))} selected={f.tipo} onToggle={(v) => toggle("tipo", v)} />
+            </FilterBlock>
+            <FilterBlock title="Momento">
+              <CheckList options={MOMENTOS.map(m => ({ value: fslug(m), label: m, count: count("momento", x => x.kind === "lugar" && (x.p.momento || []).includes(m)) }))} selected={f.momento} onToggle={(v) => toggle("momento", v)} />
+            </FilterBlock>
+            <FilterBlock title="Ambiente">
+              <CheckList options={AMBIENTES.map(m => ({ value: fslug(m), label: m, count: count("ambiente", x => x.kind === "lugar" && (x.p.ambiente || []).includes(m)) }))} selected={f.ambiente} onToggle={(v) => toggle("ambiente", v)} />
+            </FilterBlock>
           </>}
-
           {hasRoteiros && shown("roteiro") && <>
             <p className="filters-group">Só para roteiros</p>
-            <div className="filter-block">
-              <h3>Tamanho</h3>
-              {STOPS.map(([k, l, fn]) => <CheckRow key={k} checked={stops.has(k)} onChange={() => setStops(toggleIn(stops, k))} count={count(x => x.kind === "roteiro" && fn(x.stops))}>{l}</CheckRow>)}
-            </div>
+            <FilterBlock title="Tamanho">
+              <CheckList options={STOPS.map(([value, l, fn]) => ({ value, label: l, count: count("tamanho", x => x.kind === "roteiro" && fn(x.stops)) }))} selected={f.tamanho} onToggle={(v) => toggle("tamanho", v)} />
+            </FilterBlock>
           </>}
-
-          <button className="btn-pill btn-block" onClick={() => { setFiltersOpen(false); document.getElementById("resultados")?.scrollIntoView({ behavior: "smooth" }); }}>Aplicar filtros</button>
-        </aside>
+        </FilterPanel>
 
         <section className="results" id="resultados">
-          <div className="results-bar">
-            <h2>{summary} {cityF ? `em ${CITIES.find(c => c.id === cityF)?.name || city}` : "em todas as cidades"}</h2>
-            <button className="btn-outline filters-toggle" onClick={() => setFiltersOpen(!filtersOpen)}>
-              <Icon name="list" size={16} /> Filtros{filterCount ? ` · ${filterCount}` : ""}
-            </button>
-            <label className="sort">
-              <span>Ordenar por</span>
-              <span className="select-wrap">
-                <select value={sort} onChange={(e) => setSort(e.target.value)}>{SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
-                <Icon name="chevron" size={16} />
-              </span>
-            </label>
-          </div>
-
-          {(query || kinds.size > 0) && (
-            <div className="active-chips">
-              {[...kinds].map(k => <button key={k} className="soft-tag removable" onClick={() => setKinds(toggleIn(kinds, k))}>{k === "lugar" ? "Lugares" : "Roteiros"} <Icon name="x" size={12} /></button>)}
-              {query && <button className="soft-tag removable" onClick={() => setQuery("")}>“{query}” <Icon name="x" size={12} /></button>}
-            </div>
-          )}
+          <ResultsBar title={`${summary} ${cityF ? `em ${CITIES.find(c => c.id === cityF)?.name || city}` : "em todas as cidades"}`}
+            active={filterCount} onOpenFilters={() => setFiltersOpen(true)} sort={f.ordem} sorts={SORTS} onSort={(v) => set("ordem", v)} />
+          <ActiveChips chips={chips} onClear={clearAll} />
 
           {results.length === 0 ? (
             <div className="empty-state">
               <h3>Nada bateu com esses filtros.</h3>
               <p>Tente afrouxar um filtro ou escolher outra vibe.</p>
               <div className="row gap-12 wrap" style={{ justifyContent: "center" }}>
-                <button className="btn-outline" onClick={() => { clearAll(); setQuery(""); }}>Limpar filtros</button>
+                <button className="btn-outline" onClick={clearAll}>Limpar filtros</button>
                 {cityF && Object.keys(cityCounts).some(c => c !== cityF) && <button className="btn-outline" onClick={() => changeCity("")}>Ver em todas as cidades</button>}
               </div>
             </div>
