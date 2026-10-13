@@ -11,9 +11,9 @@ import {
 import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
-import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, PRICE_LEVELS, sortBy, fslug } from "../filters.jsx";
+import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, sortBy, fslug } from "../filters.jsx";
 
-const SORTS = ["relevancia", "az", "preco", "recentes"];
+const SORTS = ["relevancia", "az", "recentes"];
 export { CheckRow, toggleIn } from "../filters.jsx";
 
 export function Lista({ aff = null, q = "", tipo = "" }) {
@@ -26,7 +26,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   // filtros no link: /lugares?busca=…&cidade=…&bairro=centro,vila-nova&tipo=bares&preco=1,2
   const { f, set, toggle, reset } = useFilters({
     busca: ["busca", "one", q], cidade: ["cidade", "one", globalCity || "todas"], bairro: ["bairro", "set"], tipo: ["tipo", "set", tipo ? [tipo] : []],
-    preco: ["preco", "set"], momento: ["momento", "set"], ambiente: ["ambiente", "set"], ordem: ["ordem", "one", "relevancia"],
+    momento: ["momento", "set"], ambiente: ["ambiente", "set"], ordem: ["ordem", "one", "relevancia"],
   });
   const query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade;
 
@@ -51,7 +51,6 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   const tests = {
     bairro: (p) => !f.bairro.size || f.bairro.has(fslug(p.bairro)),
     tipo: (p) => !f.tipo.size || f.tipo.has(fslug(p.type)),
-    preco: (p) => !f.preco.size || f.preco.has(String(p.priceLevel)),
     momento: (p) => !f.momento.size || (p.momento || []).some(m => f.momento.has(fslug(m))),
     ambiente: (p) => !f.ambiente.size || (p.ambiente || []).some(m => f.ambiente.has(fslug(m))),
   };
@@ -60,7 +59,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   const opts = (key, list, get) => list.map(([value, label]) => ({ value, label, count: count(key, p => get(p).includes(value)) }));
 
   let results = base.filter(p => pass(p));
-  results = f.ordem === "relevancia" ? results : sortBy(results, f.ordem, { name: (p) => p.name, price: (p) => p.priceLevel });
+  results = f.ordem === "relevancia" ? results : sortBy(results, f.ordem, { name: (p) => p.name });
 
   const BAIRROS = [...new Set(base.map(p => p.bairro).filter(Boolean))].sort((x, y) => x.localeCompare(y, "pt-BR")).map(b => [fslug(b), b]);
   const TIPOS = TYPES.map(t => [fslug(t.label), t.label]);
@@ -70,12 +69,11 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
     ...[...f.tipo].map(v => ({ key: "t" + v, label: label(TIPOS, v), onRemove: () => toggle("tipo", v) })),
     ...[...f.bairro].map(v => ({ key: "b" + v, label: label(BAIRROS, v), onRemove: () => toggle("bairro", v) })),
-    ...[...f.preco].map(v => ({ key: "p" + v, label: PRICE_LEVELS.find(x => x.value === v)?.label || v, onRemove: () => toggle("preco", v) })),
     ...[...f.momento].map(v => ({ key: "m" + v, label: label(MOMENTOS.map(m => [fslug(m), m]), v), onRemove: () => toggle("momento", v) })),
     ...[...f.ambiente].map(v => ({ key: "a" + v, label: label(AMBIENTES.map(m => [fslug(m), m]), v), onRemove: () => toggle("ambiente", v) })),
   ];
   const filterCount = chips.length - (a ? 1 : 0);
-  function clearAll() { reset(["busca", "bairro", "tipo", "preco", "momento", "ambiente"]); }
+  function clearAll() { reset(["busca", "bairro", "tipo", "momento", "ambiente"]); }
   const typeTitle = f.tipo.size === 1 ? label(TIPOS, [...f.tipo][0]) : "";
 
   const title = a ? a.label : query ? "Resultados da busca" : typeTitle || "Lugares";
@@ -119,9 +117,6 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
           </FilterBlock>
           <FilterBlock title="Tipo de lugar">
             <CheckList options={opts("tipo", TIPOS, p => [fslug(p.type)])} selected={f.tipo} onToggle={(v) => toggle("tipo", v)} />
-          </FilterBlock>
-          <FilterBlock title="Preço" note="(por pessoa)">
-            <CheckList boxed options={PRICE_LEVELS.map(o => ({ ...o, count: count("preco", p => String(p.priceLevel) === o.value) }))} selected={f.preco} onToggle={(v) => toggle("preco", v)} />
           </FilterBlock>
           <FilterBlock title="Momento">
             <CheckList options={opts("momento", MOMENTOS.map(m => [fslug(m), m]), p => (p.momento || []).map(fslug))} selected={f.momento} onToggle={(v) => toggle("momento", v)} />

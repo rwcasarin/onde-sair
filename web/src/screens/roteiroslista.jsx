@@ -7,16 +7,16 @@ import { useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { slugify } from "../admin/store.js";
-import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, PRICE_LEVELS, sortBy, fslug } from "../filters.jsx";
+import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, sortBy, fslug } from "../filters.jsx";
 
-const SORTS = ["relevancia", "az", "preco", "recentes", "paradas"];
+const SORTS = ["relevancia", "az", "recentes", "paradas"];
 const STOPS = [["curto", "Até 3 paradas", (n) => n <= 3], ["longo", "4 paradas ou mais", (n) => n >= 4]];
 
 // campos usados nos filtros: cidade e bairros vêm das paradas com lugar
 function facts(r) {
   const stops = r.steps.map(s => s.place && placeById(s.place)).filter(Boolean);
   const bairros = roteiroBairros(r, placeById);
-  return { r, vibes: roteiroVibes(r), city: stops[0]?.city || "", bairros, invest: r.stats?.invest ?? null, stops: r.steps.length,
+  return { r, vibes: roteiroVibes(r), city: stops[0]?.city || "", bairros, stops: r.steps.length,
     text: fslug([r.title, r.desc, ...bairros, ...(r.tags || []).map(t => t[0] || t), ...stops.map(p => p.name)].join(" ")) };
 }
 
@@ -35,7 +35,7 @@ export function RoteirosLista() {
   // cidade padrão: a do site, se tiver roteiros nela
   const { f, set, toggle, reset } = useFilters({
     vibe: ["vibe", "one"], busca: ["busca", "one"], cidade: ["cidade", "one", globalCity && all.some(x => x.city === globalCity) ? globalCity : "todas"],
-    bairro: ["bairro", "set"], preco: ["preco", "set"], tamanho: ["tamanho", "set"], ordem: ["ordem", "one", "relevancia"],
+    bairro: ["bairro", "set"], tamanho: ["tamanho", "set"], ordem: ["ordem", "one", "relevancia"],
   });
   const vibe = vibeFromSlug(f.vibe), query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade;
   const pickVibe = (id) => set("vibe", id === vibe ? "" : vibeSlug(id));
@@ -47,7 +47,6 @@ export function RoteirosLista() {
 
   const tests = {
     bairro: (x) => !f.bairro.size || x.bairros.some(b => f.bairro.has(fslug(b))),
-    preco: (x) => !f.preco.size || f.preco.has(String(x.invest)),
     tamanho: (x) => !f.tamanho.size || STOPS.some(([k, , fn]) => f.tamanho.has(k) && fn(x.stops)),
   };
   const pass = (x, skip) => Object.entries(tests).every(([k, t]) => k === skip || t(x));
@@ -55,7 +54,7 @@ export function RoteirosLista() {
 
   let results = base.filter(x => pass(x));
   if (f.ordem === "paradas") results = [...results].sort((x, y) => x.stops - y.stops);
-  else if (f.ordem !== "relevancia") results = sortBy(results, f.ordem, { name: (x) => x.r.title, price: (x) => x.invest });
+  else if (f.ordem !== "relevancia") results = sortBy(results, f.ordem, { name: (x) => x.r.title });
   else if (vibe) results = [...results].sort((x, y) => x.vibes.indexOf(vibe) - y.vibes.indexOf(vibe));
 
   const a = vibe ? affById(vibe) : null;
@@ -65,10 +64,10 @@ export function RoteirosLista() {
   const chips = [
     ...(a ? [{ key: "vibe", label: a.label, onRemove: () => set("vibe", "") }] : []),
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
-    ...chipsOf("bairro", BAIRROS), ...chipsOf("preco", PRICE_LEVELS.map(o => [o.value, o.label])), ...chipsOf("tamanho", STOPS),
+    ...chipsOf("bairro", BAIRROS), ...chipsOf("tamanho", STOPS),
   ];
   const filterCount = chips.length - (a ? 1 : 0);
-  function clearAll() { reset(["busca", "bairro", "preco", "tamanho"]); }
+  function clearAll() { reset(["busca", "bairro", "tamanho"]); }
 
   return (
     <main className="home2">
@@ -94,9 +93,6 @@ export function RoteirosLista() {
           </FilterBlock>
           <FilterBlock title="Tamanho">
             <CheckList options={STOPS.map(([value, l, fn]) => ({ value, label: l, count: count("tamanho", x => fn(x.stops)) }))} selected={f.tamanho} onToggle={(v) => toggle("tamanho", v)} />
-          </FilterBlock>
-          <FilterBlock title="Preço" note="(por pessoa)">
-            <CheckList boxed options={PRICE_LEVELS.map(o => ({ ...o, count: count("preco", x => String(x.invest) === o.value) }))} selected={f.preco} onToggle={(v) => toggle("preco", v)} />
           </FilterBlock>
         </FilterPanel>
 

@@ -59,7 +59,7 @@ const ROTEIROS = [
   {
     id: "r5",
     aff: "eco", affLabel: "Pra economizar", tint: "tint-eco",
-    title: "Rolê completo por menos de R$ 80",
+    title: "Rolê completo que cabe no bolso", slug: "role-completo-por-menos-de-r-80",
     desc: "Comida boa, programa de graça, drinque honesto. Cabe no bolso e não cabe no esquecimento.",
     paradas: 4,
     bairros: "Centro · Boa Vista",
@@ -199,7 +199,7 @@ const PLACES = [
 ];
 
 const NOTIFICATIONS = [
-  { id: "n1", kind: "ROTEIRO NOVO", title: "Um rolê novo pro seu domingo", body: "Marina montou um circuito de cafés no centro. 4 paradas, R$ 0 de entrada.", when: "agora", unread: true },
+  { id: "n1", kind: "ROTEIRO NOVO", title: "Um rolê novo pro seu domingo", body: "Marina montou um circuito de cafés no centro. 4 paradas, entrada livre.", when: "agora", unread: true },
   { id: "n3", kind: "FAVORITO",     title: "Florado Café liberou brunch aos sábados", body: "Você salvou. Agora rola coado especial das 10h às 14h.", when: "ontem", unread: false },
   { id: "n4", kind: "AGENDA",       title: "Sábado tem feira do Largo São Bento", body: "Chorinho começa às 13h, pastel de queijo é parada obrigatória.", when: "2 dias", unread: false },
   { id: "n5", kind: "AMIGO",        title: "Rafa salvou 3 lugares na sua lista 'aniversário'", body: "Aurora, Komorebi e Mesa 14. Que tal abrir um plano em grupo?", when: "3 dias", unread: false },
@@ -485,7 +485,7 @@ const ROTEIRO_EXTRA = {
   r5: {
     stats: { tempo: "5 a 6 horas", invest: 1, investLabel: "Econômico", ideal: "Amigos, solo" },
     vibes: ["eco", "turist"], note: "cabe no bolso e não cabe no esquecimento.",
-    about: "Comida boa, programa de graça e drinque honesto. Um rolê completo provando que dá pra sair bem gastando menos de R$ 80 — e voltar pra casa com história pra contar.",
+    about: "Comida boa, programa de graça e drinque honesto. Um rolê completo provando que dá pra sair bem gastando pouco — e voltar pra casa com história pra contar.",
     quote: "Bom programa não precisa ser caro. Precisa ser bem escolhido.",
     steps: [
       { time: "14h – 16h", title: "Feira do Largo", sub: "Pastel e chorinho", place: "p7", tags: [["Grátis", "vibe-mint"], ["Música ao vivo", "vibe-sky"]], desc: "Entrada livre, pastel de feira e música ao vivo na praça." },

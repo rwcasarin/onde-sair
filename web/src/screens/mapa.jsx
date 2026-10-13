@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PLACES, CITIES, VIBE_ORDER, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, VibePill, PriceDots, Footer } from "../components/site.jsx";
+import { PageHead, VibePill, Footer } from "../components/site.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 import { useNav, useCity } from "../nav.js";
 
@@ -40,7 +40,6 @@ export function Mapa({ id }) {
                     <strong>{p.name}</strong>
                     <span>{p.sub} • {p.bairro}</span>
                   </span>
-                  <PriceDots level={p.priceLevel} />
                 </button>
               </li>
             ))}

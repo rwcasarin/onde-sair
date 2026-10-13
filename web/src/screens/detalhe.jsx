@@ -3,7 +3,7 @@ import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, placeGallery, ro
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, PriceDots, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, affById,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, affById,
 } from "../components/site.jsx";
 import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
@@ -121,7 +121,6 @@ function DetalheView({ p }) {
 
           <ul className="place-meta">
             <li><Icon name="pin" size={18} fill /> {p.bairro}</li>
-            <li><PriceDots level={p.priceLevel} /></li>
             {filled(p.cuisine) && <li><Icon name="utensils" size={18} /> {p.cuisine}</li>}
           </ul>
 
@@ -224,7 +223,6 @@ function DetalheView({ p }) {
             <h2 className="h2t">Informações úteis</h2>
             <dl>
               {filled(p.open) && <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>}
-              <div><Icon name="dollar" size={20} /><dt>Faixa de preço</dt><dd><PriceDots level={p.priceLevel} /></dd></div>
               <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{fullAddress(p)}{p.cep && <><br />CEP {p.cep}</>}</dd></div>
               {filled(p.phone) && <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{tel ? <a href={tel}>{p.phone}</a> : p.phone}</dd></div>}
               {filled(p.site) && <div><Icon name="link" size={20} /><dt>Site</dt><dd>{site ? <a href={site} target="_blank" rel="noreferrer">{p.site.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a> : p.site}</dd></div>}

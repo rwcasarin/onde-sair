@@ -256,6 +256,22 @@ function taxonomy2026(d) {
   return out.concat(PLACE_TYPES.map(t => t.label));
 }
 
+// Sem menção a preço (pedido dos estabelecimentos): textos de exemplo que citavam valores.
+// Só troca o que ainda está igual ao texto original; o endereço do roteiro continua o mesmo.
+function noPrices(d) {
+  const out = [];
+  (d.roteiros || []).forEach(r => {
+    if (r.title === "Rolê completo por menos de R$ 80") {
+      r.slug = r.slug || "role-completo-por-menos-de-r-80";
+      r.title = "Rolê completo que cabe no bolso";
+      out.push(r.title);
+    }
+    if (typeof r.about === "string" && r.about.includes("gastando menos de R$ 80")) r.about = r.about.replace("gastando menos de R$ 80", "gastando pouco");
+  });
+  (d.campaigns || []).forEach(c => { if (typeof c.body === "string") c.body = c.body.replace(/R\$\s0 de entrada/, "entrada livre"); });
+  return out;
+}
+
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
@@ -270,6 +286,7 @@ const UPDATES = [
   { id: "2026-10-menu-vibes", label: "página de Vibes no menu principal", apply: headerVibes },
   { id: "2026-10-eventos", label: "eventos: categorias e agenda de exemplo", apply: seedEvents },
   { id: "2026-10-vibes-e-tipos", label: "vibes e tipos de lugar oficiais", apply: taxonomy2026 },
+  { id: "2026-10-sem-precos", label: "textos de exemplo sem menção a preço", apply: noPrices },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

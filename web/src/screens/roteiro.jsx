@@ -8,12 +8,10 @@ import {
 import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { findMyRoteiro, myRoteiros, deleteMyRoteiro } from "../account.js";
-import { INVEST_LABELS } from "../../shared/myroteiros.js";
 import { NotFound } from "./notfound.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 
 const STEP_COLORS = ["var(--c-magenta)", "var(--primary)", "#F58220", "var(--c-teal)", "var(--c-yellow)"];
-const INVEST = ["Grátis", "$", "$$", "$$$"];
 
 // "Continue explorando": mesma cidade, vibes em comum, lugares e bairros em comum (empate: ordem do painel)
 const cityOfRoteiro = (r) => r.steps.map(s => s.place && placeById(s.place)).find(Boolean)?.city || "";
@@ -56,8 +54,6 @@ function RoteiroView({ r, mine = false }) {
   // parada com lugar usa a foto do lugar; parada livre usa a foto enviada no painel
   const stepImg = (s, i) => s.place ? placeImg(s.place) : mine ? undefined : roteiroImg(r.id, s.img || i + 1);
   const vibes = roteiroVibes(r);
-  // rótulo do investimento sem repetir o símbolo ("Grátis", não "Grátis · Grátis")
-  const investLabel = [r.stats.investLabel || INVEST_LABELS[r.stats.invest] || ""].find(l => l && l !== INVEST[r.stats.invest]) || "";
   const copy = () => user ? nav("meuRoteiroEditar", { id: "novo", copiar: r.id }) : ask({ type: "copiar", id: r.id });
   const tips = r.tips || {};
 
@@ -98,7 +94,6 @@ function RoteiroView({ r, mine = false }) {
           <ul className="place-meta">
             {r.stats.tempo && <li><Icon name="clock" size={18} /> {r.stats.tempo}</li>}
             <li><Icon name="pin" size={18} fill /> {r.steps.length} parada{r.steps.length === 1 ? "" : "s"}</li>
-            <li><Icon name="coins" size={18} /> {INVEST[r.stats.invest]}{investLabel ? " · " + investLabel : ""}</li>
             {r.stats.ideal && <li><Icon name="users" size={18} fill /> {r.stats.ideal}</li>}
           </ul>
 
@@ -219,7 +214,6 @@ function RoteiroView({ r, mine = false }) {
             <h2 className="h2t">Informações úteis</h2>
             <dl>
               {r.stats.tempo && <div><Icon name="clock" size={20} /><dt>Tempo total</dt><dd>{r.stats.tempo}</dd></div>}
-              <div><Icon name="dollar" size={20} /><dt>Investimento</dt><dd><b>{INVEST[r.stats.invest]}</b>{investLabel ? " " + investLabel : ""}</dd></div>
               {r.stats.ideal && <div><Icon name="users" size={20} /><dt>Ideal para</dt><dd>{r.stats.ideal}</dd></div>}
               {tips.horario && <div><Icon name="sun" size={20} /><dt>Melhor horário</dt><dd>{tips.horario}</dd></div>}
               {tips.epoca && <div><Icon name="calendar" size={20} /><dt>Melhor época</dt><dd>{tips.epoca}</dd></div>}

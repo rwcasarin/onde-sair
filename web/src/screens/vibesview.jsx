@@ -8,19 +8,19 @@ import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { SITE } from "../admin/store.js";
-import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, PRICE_LEVELS, sortBy, fslug } from "../filters.jsx";
+import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, sortBy, fslug } from "../filters.jsx";
 
-const SORTS = ["relevancia", "az", "preco", "recentes"];
+const SORTS = ["relevancia", "az", "recentes"];
 const STOPS = [["curto", "Até 3 paradas", (n) => n <= 3], ["longo", "4 paradas ou mais", (n) => n >= 4]];
 
 // item da listagem: lugar ou roteiro com os campos usados nos filtros
 function asItems() {
-  const places = PLACES.map(p => ({ kind: "lugar", id: p.id, name: p.name, vibes: p.affs || [], city: p.city, bairros: [p.bairro].filter(Boolean), price: p.priceLevel, p,
+  const places = PLACES.map(p => ({ kind: "lugar", id: p.id, name: p.name, vibes: p.affs || [], city: p.city, bairros: [p.bairro].filter(Boolean), p,
     text: fslug([p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" ")) }));
   const rots = SITE.roteirosHidden ? [] : ROTEIROS.map(r => {
     const stops = r.steps.map(s => s.place && placeById(s.place)).filter(Boolean);
     const bairros = roteiroBairros(r, placeById);
-    return { kind: "roteiro", id: r.id, name: r.title, vibes: roteiroVibes(r), city: stops[0]?.city || "", bairros, price: r.stats?.invest ?? null, r,
+    return { kind: "roteiro", id: r.id, name: r.title, vibes: roteiroVibes(r), city: stops[0]?.city || "", bairros, r,
       stops: r.steps.length, text: fslug([r.title, r.desc, ...bairros, ...(r.tags || []).map(t => t[0] || t), ...stops.map(p => p.name)].join(" ")) };
   });
   return [...places, ...rots];
@@ -39,7 +39,7 @@ export function VibesView({ aff = null, q = "" }) {
   const { id: globalCity, name: city, set: setGlobalCity } = useCity();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { f, set, toggle, reset } = useFilters({
-    busca: ["busca", "one", q], mostrar: ["mostrar", "set"], cidade: ["cidade", "one", globalCity || "todas"], bairro: ["bairro", "set"], preco: ["preco", "set"],
+    busca: ["busca", "one", q], mostrar: ["mostrar", "set"], cidade: ["cidade", "one", globalCity || "todas"], bairro: ["bairro", "set"],
     tipo: ["tipo", "set"], momento: ["momento", "set"], ambiente: ["ambiente", "set"], tamanho: ["tamanho", "set"], ordem: ["ordem", "one", "relevancia"],
   });
   const query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade, kinds = f.mostrar;
@@ -60,7 +60,6 @@ export function VibesView({ aff = null, q = "" }) {
   const tests = {
     mostrar: (x) => shown(x.kind),
     bairro: (x) => !f.bairro.size || x.bairros.some(b => f.bairro.has(fslug(b))),
-    preco: (x) => !f.preco.size || f.preco.has(String(x.price)),
     tipo: (x) => x.kind !== "lugar" || !f.tipo.size || f.tipo.has(fslug(x.p.type)),
     momento: (x) => x.kind !== "lugar" || !f.momento.size || (x.p.momento || []).some(m => f.momento.has(fslug(m))),
     ambiente: (x) => x.kind !== "lugar" || !f.ambiente.size || (x.p.ambiente || []).some(m => f.ambiente.has(fslug(m))),
@@ -72,7 +71,7 @@ export function VibesView({ aff = null, q = "" }) {
   let results = base.filter(x => pass(x));
   const rank = (x) => (aff ? x.vibes.indexOf(aff) : 0);
   results = f.ordem === "relevancia" ? interleave([...results].sort((x, y) => rank(x) - rank(y)))
-    : sortBy(results, f.ordem, { name: (x) => x.name, price: (x) => x.price });
+    : sortBy(results, f.ordem, { name: (x) => x.name });
 
   const nPlaces = results.filter(x => x.kind === "lugar").length, nRots = results.length - nPlaces;
   const BAIRROS = [...new Set(base.flatMap(x => x.bairros))].sort((x, y) => x.localeCompare(y, "pt-BR")).map(b => [fslug(b), b]);
@@ -82,11 +81,11 @@ export function VibesView({ aff = null, q = "" }) {
   const chipsOf = (key, list) => [...f[key]].map(v => ({ key: key + v, label: label(list, v), onRemove: () => toggle(key, v) }));
   const chips = [
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
-    ...chipsOf("mostrar", KINDS), ...chipsOf("bairro", BAIRROS), ...chipsOf("preco", PRICE_LEVELS.map(o => [o.value, o.label])),
+    ...chipsOf("mostrar", KINDS), ...chipsOf("bairro", BAIRROS),
     ...chipsOf("tipo", TIPOS), ...chipsOf("momento", MOMENTOS.map(m => [fslug(m), m])), ...chipsOf("ambiente", AMBIENTES.map(m => [fslug(m), m])), ...chipsOf("tamanho", STOPS),
   ];
   const filterCount = chips.length;
-  function clearAll() { reset(["busca", "mostrar", "bairro", "preco", "tipo", "momento", "ambiente", "tamanho"]); }
+  function clearAll() { reset(["busca", "mostrar", "bairro", "tipo", "momento", "ambiente", "tamanho"]); }
 
   const title = a ? a.label : "Vibes";
   const lede = page ? page.lede : "Lugares e roteiros reunidos pelo clima do rolê. Escolha uma vibe ou use os filtros.";
@@ -125,9 +124,6 @@ export function VibesView({ aff = null, q = "" }) {
           <FilterBlock title="Cidade"><CityField value={cityF} onChange={changeCity} counts={cityCounts} /></FilterBlock>
           <FilterBlock title="Bairro / Região">
             <CheckList options={BAIRROS.map(([value, l]) => ({ value, label: l, count: count("bairro", x => x.bairros.some(b => fslug(b) === value)) }))} selected={f.bairro} onToggle={(v) => toggle("bairro", v)} searchLabel="Buscar bairro" />
-          </FilterBlock>
-          <FilterBlock title="Preço" note="(por pessoa)">
-            <CheckList boxed options={PRICE_LEVELS.map(o => ({ ...o, count: count("preco", x => String(x.price) === o.value) }))} selected={f.preco} onToggle={(v) => toggle("preco", v)} />
           </FilterBlock>
           {shown("lugar") && <>
             <p className="filters-group">Só para lugares</p>

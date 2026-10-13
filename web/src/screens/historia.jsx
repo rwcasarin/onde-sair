@@ -1,10 +1,10 @@
 // Radar (blog) — lista (/radar) e post (/radar/{slug}).
 // Posts de lista trazem lugares cadastrados como cards no meio do texto.
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { ALL_STORIES, PLACES, PRICE_RANGE, RADAR_CATEGORIES, placeImg } from "../data.js";
+import { ALL_STORIES, PLACES, RADAR_CATEGORIES, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, PriceDots, FaveButton } from "../components/site.jsx";
+import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, FaveButton } from "../components/site.jsx";
 import { useNav } from "../nav.js";
 import { href, storyPath, placePath, currentPath, HASH_MODE, canGoBack } from "../router.js";
 import { slugify } from "../admin/store.js";
@@ -80,7 +80,6 @@ export function Historias() {
 export function PostPlaceCard({ p, n }) {
   const nav = useNav();
   const go = (e) => { e.preventDefault(); nav("detalhe", { id: p.id }); };
-  const price = PRICE_RANGE?.[p.priceLevel];
   return (
     <article className="post-place">
       <a className="post-place-img" href={href(placePath(p))} onClick={go} tabIndex={-1} aria-hidden="true">
@@ -96,7 +95,6 @@ export function PostPlaceCard({ p, n }) {
         <div className="post-place-vibes">{p.affs.slice(0, 2).map(a => <VibePill key={a} aff={a} size="sm" />)}</div>
         {p.tagline && <p className="post-place-tagline">{p.tagline}</p>}
         <div className="post-place-meta">
-          <span title={price || ""}><PriceDots level={p.priceLevel} /></span>
           {p.open && <span className="post-place-open"><Icon name="clock" size={13} /> {p.open.split(" · ").slice(0, 2).join(" · ")}</span>}
         </div>
         <a className="btn-pill post-place-cta" href={href(placePath(p))} onClick={go}>Saiba mais <Icon name="arrow" size={14} /></a>

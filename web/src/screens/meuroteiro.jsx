@@ -8,7 +8,7 @@ import { Crumbs, VibePill, MapArt, Footer, RoteiroCard } from "../components/sit
 import { useNav, useFaves } from "../nav.js";
 import { findMyRoteiro, saveMyRoteiro, copyOf } from "../account.js";
 import { bySlug } from "../router.js";
-import { blankRoteiro, blankStep, roteiroErrors, cleanRoteiro, INVEST_LABELS, LIMITS } from "../../shared/myroteiros.js";
+import { blankRoteiro, blankStep, roteiroErrors, cleanRoteiro, LIMITS } from "../../shared/myroteiros.js";
 import { NotFound } from "./notfound.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 
@@ -175,12 +175,6 @@ function Editor({ start, isNew }) {
                 <div className="rot-form-2">
                   <F label="Tempo total">{(id) => <input id={id} value={d.stats.tempo} maxLength={40} onChange={(e) => setStats({ tempo: e.target.value })} placeholder="4 a 6 horas" />}</F>
                   <F label="Ideal para">{(id) => <input id={id} value={d.stats.ideal} maxLength={60} onChange={(e) => setStats({ ideal: e.target.value })} placeholder="Casal, amigos, família…" />}</F>
-                </div>
-                <div className="rot-field">
-                  <span className="rot-label">Investimento</span>
-                  <div className="seg" role="radiogroup" aria-label="Investimento">
-                    {INVEST_LABELS.map((l, i) => <button key={l} type="button" role="radio" aria-checked={d.stats.invest === i} className={d.stats.invest === i ? "on" : ""} onClick={() => setStats({ invest: i })}>{i ? "$".repeat(i) + " " : ""}{l}</button>)}
-                  </div>
                 </div>
                 <div className="rot-form-2">
                   <F label="Melhor horário">{(id) => <input id={id} value={d.tips.horario} maxLength={60} onChange={(e) => setTips({ horario: e.target.value })} placeholder="Sábado de manhã" />}</F>

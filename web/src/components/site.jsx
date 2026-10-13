@@ -1,5 +1,5 @@
 // Componentes compartilhados do site (v3)
-import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, PRICE_RANGE, EVENT_CATEGORIES, placeImg, roteiroImg, eventImg } from "../data.js";
+import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, EVENT_CATEGORIES, placeImg, roteiroImg, eventImg } from "../data.js";
 import { isPast, venueName, cardWhen } from "../events.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
@@ -40,16 +40,6 @@ export function IconPill({ icon, cls = "vibe-lavender", children }) {
 export function Tag({ children, cls = "" }) {
   return <span className={"soft-tag " + cls}>{children}</span>;
 }
-
-export function PriceDots({ level }) {
-  if (level === 0) return <span className="price-dots">Grátis</span>;
-  return (
-    <span className="price-dots" aria-label={`Preço nível ${level} de 3`}>
-      {"$".repeat(level)}<span className="off">{"$".repeat(3 - level)}</span>
-    </span>
-  );
-}
-
 
 export function FaveButton({ id, className = "fave" }) {
   const { faves, toggle } = useFaves();
