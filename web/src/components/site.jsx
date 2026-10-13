@@ -85,6 +85,19 @@ export function SectionHead({ title, sub, link, onLink, to }) {
   );
 }
 
+// Módulos quadrados da faixa geométrica (80×80), encaixados sem vazios: círculo, triângulo, quarto de círculo e semicírculo
+function GeoCell({ kind, y = 0, x = 0 }) {
+  const t = `translate(${x} ${y})`;
+  switch (kind) {
+    case "circle": return <g transform={t}><rect width="80" height="80.5" fill="var(--c-magenta)" /><circle cx="40" cy="40" r="40" fill="var(--c-yellow)" /></g>;
+    case "tri": return <g transform={t}><rect width="80" height="80.5" fill="var(--primary)" /><polygon points="0,80 80,0 80,80" fill="var(--c-magenta)" /></g>;
+    case "quarter": return <g transform={t}><rect width="80" height="80.5" fill="var(--c-teal)" /><path d="M0,80 V0 A80,80 0 0 1 80,80 Z" fill="var(--c-yellow)" /></g>;
+    case "semi": return <g transform={t}><rect width="80" height="80.5" fill="var(--c-magenta)" /><path d="M0,80 A40,40 0 0 1 80,80 Z" fill="var(--c-yellow)" /></g>;
+    case "quarter2": return <g transform={t}><rect width="80" height="80.5" fill="var(--primary)" /><path d="M80,0 H0 A80,80 0 0 0 80,80 Z" fill="var(--c-teal)" /></g>;
+    default: return <g transform={t}><rect width="80" height="80.5" fill="var(--c-yellow)" /><circle cx="40" cy="40" r="40" fill="var(--c-magenta)" /></g>;
+  }
+}
+
 // ---------- Mídia do hero: foto + frase manuscrita + painel geométrico ----------
 export function HeroMedia({ img, note, words = ["Mais cultura", "Mais encontros", "Mais histórias"], hint, shape = "curve" }) {
   return (
@@ -93,15 +106,14 @@ export function HeroMedia({ img, note, words = ["Mais cultura", "Mais encontros"
         {note && <p className="hero2-note">{note}<span className="hero2-note-line"></span></p>}
       </ImageSlot>
       <div className="hero2-geo">
-        <svg className="hero2-geo-shapes" viewBox="0 0 80 340" preserveAspectRatio="none">
-          <circle cx="40" cy="38" r="38" fill="var(--c-yellow)" />
-          <rect x="0" y="80" width="80" height="90" fill="var(--c-teal)" />
-          <polygon points="0,80 80,125 0,170" fill="var(--c-magenta)" />
-          <rect x="0" y="170" width="80" height="80" fill="var(--c-yellow)" />
-          <polygon points="0,170 80,250 0,250" fill="var(--primary)" />
-          <rect x="0" y="250" width="80" height="90" fill="var(--c-magenta)" />
-          <path d="M0,340 A80,80 0 0 1 80,260 L80,340 Z" fill="var(--c-yellow)" />
-        </svg>
+        <div className="hero2-geo-col">
+          <svg className="hero2-geo-shapes" viewBox="0 0 80 320">
+            {["circle", "tri", "quarter", "quarter2"].map((k, i) => <GeoCell key={k} kind={k} y={i * 80} />)}
+          </svg>
+          <div className="hero2-geo-fill">
+            <svg viewBox="0 0 80 40"><path d="M0,40 A40,40 0 0 1 80,40 Z" fill="var(--c-yellow)" /></svg>
+          </div>
+        </div>
         <div className="hero2-geo-side">
           <svg className="hero2-geo-top" viewBox="0 0 80 80">
             <rect width="80" height="80" fill="var(--c-magenta)" />
@@ -120,11 +132,7 @@ export function HeroMedia({ img, note, words = ["Mais cultura", "Mais encontros"
 export function GeoStrip() {
   return (
     <svg className="geo-strip" viewBox="0 0 240 80" aria-hidden="true">
-      <circle cx="40" cy="40" r="40" fill="var(--c-yellow)" />
-      <rect x="80" y="0" width="80" height="80" fill="var(--c-teal)" />
-      <polygon points="80,0 160,40 80,80" fill="var(--c-magenta)" />
-      <rect x="160" y="0" width="80" height="80" fill="var(--primary)" />
-      <path d="M160,80 A80,80 0 0 1 240,0 L240,80 Z" fill="var(--c-yellow)" />
+      {["circle", "tri", "quarter"].map((k, i) => <GeoCell key={k} kind={k} x={i * 80} />)}
     </svg>
   );
 }
