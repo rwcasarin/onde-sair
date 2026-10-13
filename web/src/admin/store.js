@@ -723,6 +723,12 @@ export async function logout() {
   if (REMOTE) { await api("auth/logout", { method: "POST" }).catch(() => {}); adminLoaded = false; return; }
   try { localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_KEY); } catch { /* */ }
 }
+// Alguém da equipe está logado no painel? (só confere a sessão, sem carregar o banco do painel)
+// Usado no modo manutenção: a equipe continua vendo o site.
+export async function staffSession() {
+  if (REMOTE) { try { return (await api("auth/me")).user || null; } catch { return null; } }
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || "null"); } catch { return null; }
+}
 // Sessão atual (assíncrono: no modo nuvem consulta o servidor)
 export async function currentUser() {
   if (REMOTE) {

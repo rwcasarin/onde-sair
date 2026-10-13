@@ -6,6 +6,7 @@ import App from "./App.jsx";
 import "./styles.css";
 import "./home.css";
 import "./pages.css";
+import { LoaderScreen } from "./components/loader.jsx";
 
 // Painel administrativo em /admin (carregado sob demanda)
 const AdminApp = lazy(() => import("./admin/AdminApp.jsx"));
@@ -13,7 +14,7 @@ const AdminApp = lazy(() => import("./admin/AdminApp.jsx"));
 function Root() {
   const path = usePath();
   return /^\/admin(\/|$|\?)/.test(path)
-    ? <Suspense fallback={<div className="a-loading">Carregando painel…</div>}><AdminApp /></Suspense>
+    ? <Suspense fallback={<LoaderScreen label="Carregando painel" />}><AdminApp /></Suspense>
     : <App />;
 }
 

@@ -10,6 +10,7 @@ import { whenLabel } from "../events.js";
 import { MyRoteiroCard } from "./roteiro.jsx";
 import { roteiroVibes } from "../vibes.js";
 import { SITE } from "../admin/store.js";
+import { Loader } from "../components/loader.jsx";
 
 const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); } catch { return ""; } };
 
@@ -249,7 +250,7 @@ function MyEvents() {
   const [list, setList] = useState(null);
   useEffect(() => { let on = true; myEvents().then(l => on && setList(l)); return () => { on = false; }; }, []);
   const send = SITE.eventsPaused ? <span className="auth-hint">{SITE.eventsMessage}</span> : <button className="btn-pill" onClick={() => nav("enviarEvento")}><Icon name="calendar" size={16} /> Enviar evento</button>;
-  if (!list) return <p className="auth-hint">Carregando…</p>;
+  if (!list) return <div className="os-loader-inline"><Loader size={44} label="Carregando seus eventos" /></div>;
   if (!list.length && SITE.eventsPaused) return <Empty icon="calendar" text="Envio de eventos em pausa." sub={SITE.eventsMessage} />;
   if (!list.length) return <Empty icon="calendar" text="Você ainda não enviou nenhum evento." sub="Conhece um evento que tem a cara da cidade? Envie para a agenda: a equipe revisa e publica." cta="Enviar evento" onClick={() => nav("enviarEvento")} />;
   return (

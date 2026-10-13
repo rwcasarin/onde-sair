@@ -9,9 +9,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Caveat:wght@500&display=swap" rel="stylesheet">
+  <style>
+    /* abertura: o asterisco animado aparece enquanto o site carrega (o React substitui o conteúdo do #root) */
+    .boot { position: fixed; inset: 0; display: grid; place-items: center; background: #F7F4EC; }
+    .boot svg { width: 96px; height: 96px; overflow: visible; opacity: 0; animation: boot-in .2s ease-out .3s forwards; }
+    .boot polygon { transform-box: view-box; transform-origin: 200px 200px; animation: boot-burst 1.4s cubic-bezier(.3,.7,.3,1) infinite; }
+    @keyframes boot-burst { 0% { transform: scale(.12); opacity: .2; } 40%, 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(.12); opacity: .2; } }
+    @keyframes boot-in { to { opacity: 1; } }
+    @keyframes boot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+    @media (prefers-reduced-motion: reduce) { .boot polygon { animation: none; } .boot svg { opacity: 1; animation: boot-pulse 1.6s ease-in-out infinite; } }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root"><div class="boot" role="status" aria-label="Carregando"><svg viewBox="-6 -6 412 412" aria-hidden="true"><g transform="rotate(0 200 200)"><polygon points="189,200 177,2 222,2 211,200" fill="#EE2A6E" style="animation-delay:0.00s"/></g><g transform="rotate(45 200 200)"><polygon points="189,200 177,2 222,2 211,200" fill="#EE2A6E" style="animation-delay:0.07s"/></g><g transform="rotate(90 200 200)"><polygon points="189,200 177,2 222,2 211,200" fill="#EE2A6E" style="animation-delay:0.14s"/></g><g transform="rotate(135 200 200)"><polygon points="189,200 177,2 222,2 211,200" fill="#EE2A6E" style="animation-delay:0.21s"/></g><g transform="rotate(180 200 200)"><polygon points="189,200 177,2 222,2 211,200" fill="#EE2A6E" style="animation-delay:0.28s"/></g><g transform="rotate(225 200 200)"><polygon points="189,200 177,2 222,2 211,200" fill="#EE2A6E" style="animation-delay:0.35s"/></g><g transform="rotate(270 200 200)"><polygon points="189,200 177,2 222,2 211,200" fill="#EE2A6E" style="animation-delay:0.42s"/></g><g transform="rotate(315 200 200)"><polygon points="189,200 177,2 222,2 211,200" fill="#EE2A6E" style="animation-delay:0.49s"/></g></svg></div></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

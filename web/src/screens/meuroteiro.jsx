@@ -11,6 +11,7 @@ import { bySlug } from "../router.js";
 import { blankRoteiro, blankStep, roteiroErrors, cleanRoteiro, LIMITS } from "../../shared/myroteiros.js";
 import { NotFound } from "./notfound.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
+import { Busy } from "../components/loader.jsx";
 
 const STEP_COLORS = ["var(--c-magenta)", "var(--primary)", "#F58220", "var(--c-teal)", "var(--c-yellow)"];
 const plain = (s = "") => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -255,7 +256,7 @@ function Editor({ start, isNew }) {
               </ol>
               <PlaceMap className="rot-side-map" route card={false} items={d.steps.map((s, i) => ({ id: "s" + i, place: s.place ? placeById(s.place) : null, title: s.title, num: i + 1, art: pins[i] }))} />
               {msg && <div className="auth-alert" role="alert"><Icon name="x" size={14} /> {msg}</div>}
-              <button className="btn-pill btn-lg btn-block" disabled={busy} onClick={save}>{busy ? "Salvando…" : isNew ? "Criar roteiro" : "Salvar alterações"}</button>
+              <button className="btn-pill btn-lg btn-block" disabled={busy} onClick={save}>{busy ? <Busy>Salvando…</Busy> : isNew ? "Criar roteiro" : "Salvar alterações"}</button>
               <button className="btn-outline btn-block" onClick={cancel}>Cancelar</button>
               {dirty && <p className="auth-hint auth-center">Alterações não salvas</p>}
             </div>
