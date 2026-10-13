@@ -385,6 +385,8 @@ export function syncPublic() {
   Object.assign(TAGLINES, { sub: db.settings.tagline, campaign: db.settings.campaign });
   SITE.announcement = db.settings.announcement;
   SITE.maintenance = db.settings.maintenance;
+  SITE.maintenanceTitle = db.settings.maintenanceTitle || MAINTENANCE_TITLE;
+  SITE.maintenanceMessage = db.settings.maintenanceMessage || MAINTENANCE_TEXT;
   SITE.accountsPaused = !!db.settings.accounts?.paused;
   SITE.accountsBar = db.settings.accounts?.showBar !== false;
   SITE.accountsMessage = db.settings.accounts?.message || ACCOUNTS_PAUSED_TEXT;
@@ -408,6 +410,8 @@ export function syncPublic() {
 export const ACCOUNTS_PAUSED_TEXT = "Login, cadastro, favoritos e roteiros estão pausados por alguns instantes para manutenção. Você pode continuar navegando normalmente.";
 export const ROTEIROS_PAUSED_TEXT = "Os roteiros estão em manutenção por alguns instantes. Lugares e o Radar seguem disponíveis normalmente.";
 export const EVENTS_PAUSED_TEXT = "A agenda de eventos está em manutenção por alguns instantes. Lugares, roteiros e o Radar seguem disponíveis normalmente.";
+export const MAINTENANCE_TITLE = "Voltamos já.";
+export const MAINTENANCE_TEXT = "Estamos ajustando a curadoria. Enquanto isso, siga a gente nas redes.";
 export const SITE = { eventsPaused: false, eventsHidden: false, eventsBar: true, eventsMessage: EVENTS_PAUSED_TEXT, roteirosPaused: false, roteirosHidden: false, roteirosBar: true, roteirosMessage: ROTEIROS_PAUSED_TEXT, announcement: null, maintenance: false, accountsPaused: false, accountsMessage: ACCOUNTS_PAUSED_TEXT, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
 
 // ---------------------------------------------------------------------

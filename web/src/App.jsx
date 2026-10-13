@@ -197,8 +197,8 @@ export default function App() {
   if (SITE.maintenance) {
     return (
       <main className="maintenance">
-        <h1>Voltamos já.</h1>
-        <p>Estamos ajustando a curadoria. Enquanto isso, siga a gente nas redes.</p>
+        <h1>{SITE.maintenanceTitle || "Voltamos já."}</h1>
+        <p>{SITE.maintenanceMessage || "Estamos ajustando a curadoria. Enquanto isso, siga a gente nas redes."}</p>
       </main>
     );
   }

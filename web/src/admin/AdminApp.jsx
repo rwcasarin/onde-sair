@@ -186,6 +186,10 @@ export default function AdminApp() {
             <span className="a-top-mark" aria-hidden="true"><OSIcon /></span>
             <QuickSearch db={db} go={go} />
             <div className="a-top-right">
+              {db.settings.maintenance && (
+                <a className="a-sync tone-red a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
+                  title="O site está fora do ar (modo manutenção)"><i /> Site em manutenção</a>
+              )}
               {db.settings.eventsPause?.paused && (
                 <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
                   title="Eventos pausados no site"><i /> Eventos pausados</a>
