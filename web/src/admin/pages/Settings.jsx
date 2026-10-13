@@ -98,7 +98,7 @@ export function SettingsPage({ initialTab }) {
             <AIcon name="alert" size={16} />
             <div>
               <Toggle label="Modo manutenção" checked={!!draft.maintenance} onChange={(maintenance) => set({ maintenance })}
-                hint={draft.maintenance ? "Ligado: assim que você salvar, todas as páginas do site mostram a mensagem abaixo." : "Desligado: o site funciona normalmente."} />
+                hint={draft.maintenance ? "Ligado: assim que você salvar, o público vê só a mensagem abaixo." : "Desligado: o site funciona normalmente."} />
             </div>
           </div>
           <span className="a-label">Enquanto estiver ligado</span>
@@ -106,6 +106,7 @@ export function SettingsPage({ initialTab }) {
             <li>Todas as páginas do site mostram só a mensagem de manutenção.</li>
             <li>Lugares, roteiros, eventos, Radar, contas e buscas ficam fora do ar.</li>
             <li>O painel continua funcionando normalmente.</li>
+            <li>Quem está logado no painel continua vendo o site (neste navegador), com uma faixa vermelha avisando que ele está em manutenção.</li>
           </ul>
           <Input label="Título" value={draft.maintenanceTitle || ""} placeholder={MAINTENANCE_TITLE} onChange={(maintenanceTitle) => set({ maintenanceTitle })} maxCount={40} />
           <Textarea label="Mensagem" value={draft.maintenanceMessage || ""} placeholder={MAINTENANCE_TEXT} onChange={(maintenanceMessage) => set({ maintenanceMessage })} rows={2} maxCount={200}

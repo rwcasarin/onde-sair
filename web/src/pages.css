@@ -616,6 +616,8 @@
 .site-announce.tone-teal { background: var(--green); }
 .site-announce.tone-yellow { background: var(--c-yellow); color: var(--heading); }
 .site-announce.off { opacity: .45; }
+.site-announce.tone-red { background: #C81B3A; }
+.maintenance-bar a { color: inherit; font-weight: 700; text-decoration: underline; }
 .maintenance {
   min-height: 100vh; display: grid; place-content: center; text-align: center; padding: 24px;
   background: var(--bg); color: var(--heading);

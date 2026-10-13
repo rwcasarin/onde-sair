@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useContext } from "react";
 import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, EVENTS, cityName } from "./data.js";
-import { SITE } from "./admin/store.js";
+import { SITE, staffSession } from "./admin/store.js";
+import { LoaderScreen } from "./components/loader.jsx";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
 import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
 import { TopNav } from "./components/ui.jsx";
@@ -194,7 +195,11 @@ export default function App() {
     applyMeta({ title, ...metaFor(screen, params) });
   }, [path]); // eslint-disable-line
 
-  if (SITE.maintenance) {
+  // manutenção: quem está logado no painel continua vendo o site (com um aviso); os demais veem a página de manutenção
+  const [staff, setStaff] = useState(SITE.maintenance ? undefined : null);
+  useEffect(() => { if (SITE.maintenance) staffSession().then(u => setStaff(u || null)); }, []);
+  if (SITE.maintenance && staff === undefined) return <LoaderScreen />;
+  if (SITE.maintenance && !staff) {
     return (
       <main className="maintenance">
         <h1>{SITE.maintenanceTitle || "Voltamos já."}</h1>
@@ -218,6 +223,12 @@ export default function App() {
       <div className="app">
         {SITE.announcement?.enabled && SITE.announcement.text && (
           <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
+        )}
+        {SITE.maintenance && staff && (
+          <div className="site-announce tone-red maintenance-bar" role="status">
+            Modo manutenção ligado: o site está fora do ar para o público. Você vê porque está logado no painel.{" "}
+            <a href="/admin/configuracoes/pausas">Desligar</a>
+          </div>
         )}
         {paused && SITE.accountsBar && <div className="site-announce tone-yellow accounts-paused-bar" role="status">{SITE.accountsMessage}</div>}
         {rotPaused && SITE.roteirosBar && <div className="site-announce tone-yellow roteiros-paused-bar" role="status">{SITE.roteirosMessage}</div>}
