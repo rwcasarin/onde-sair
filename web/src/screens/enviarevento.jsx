@@ -9,6 +9,7 @@ import { submitEvent } from "../account.js";
 import { blankSubmission, cleanSubmission, submissionDays } from "../../shared/eventsubmit.js";
 import { compressImage } from "../admin/kit.jsx";
 import { dayLabel, hoursLabel, periodLines, priceLabel } from "../events.js";
+import { Busy } from "../components/loader.jsx";
 
 let fid = 0;
 function F({ label, hint, error, required, children }) {
@@ -221,7 +222,7 @@ export function EnviarEvento() {
             <span className="ev-label">Prévia do card</span>
             <div aria-hidden="true" className="ev-preview">{<EventCard e={preview} />}</div>
             {msg && <p className="auth-error" role="alert">{msg}</p>}
-            <button className="btn-pill btn-lg btn-block" disabled={busy} onClick={send}>{busy ? "Enviando…" : "Enviar para aprovação"}</button>
+            <button className="btn-pill btn-lg btn-block" disabled={busy} onClick={send}>{busy ? <Busy>Enviando…</Busy> : "Enviar para aprovação"}</button>
             <p className="auth-hint">A equipe do Onde Sair revisa todos os eventos antes de publicar. Você acompanha em Meus eventos.</p>
           </aside>
         </div>

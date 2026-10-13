@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AIcon, Badge, Btn, Card, DataTable, Input, Modal, PageHeader, Select, Toolbar, FilterSelect, useAdmin } from "../kit.jsx";
 import { updateMembers, inviteMember, updateTeamMember, removeTeamMember, ROLES, PERMISSIONS, rolePerms, relTime, fmtDate, can } from "../store.js";
 import { href } from "../../router.js";
+import { Busy } from "../../components/loader.jsx";
 
 const MTONE = { ativo: "green", pendente: "amber", bloqueado: "red" };
 
@@ -185,7 +186,7 @@ export function TeamPage() {
 
       {invite && (
         <Modal title="Adicionar à equipe" size="sm" onClose={() => setInvite(null)}
-          footer={<><Btn onClick={() => setInvite(null)}>Cancelar</Btn><Btn kind="primary" icon="plus" disabled={busy} onClick={sendInvite}>{busy ? "Criando…" : "Criar acesso"}</Btn></>}>
+          footer={<><Btn onClick={() => setInvite(null)}>Cancelar</Btn><Btn kind="primary" icon="plus" disabled={busy} onClick={sendInvite}>{busy ? <Busy>Criando…</Busy> : "Criar acesso"}</Btn></>}>
           <Input label="Nome" required value={invite.name} onChange={(name) => setInvite({ ...invite, name })} error={err.name} />
           <Input label="E-mail" required type="email" value={invite.email} onChange={(email) => setInvite({ ...invite, email })} error={err.email} />
           <Select label="Perfil" value={invite.role} onChange={(role) => setInvite({ ...invite, role })} options={Object.entries(ROLES).map(([k, v]) => [k, v.label])} hint={ROLES[invite.role].desc} />

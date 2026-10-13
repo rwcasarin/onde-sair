@@ -8,6 +8,7 @@ import { VibePill } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
 import { account, signup, login, updateAccount, peekIntent } from "../account.js";
 import { go, href } from "../router.js";
+import { Busy } from "../components/loader.jsx";
 
 function Field({ id, label, error, hint, children, aside }) {
   return (
@@ -147,7 +148,7 @@ function LoginForm({ onDone, onSignup }) {
           <button type="button" aria-label={show ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShow(!show)}><Icon name="eye" size={18} /></button>
         </div>
       </Field>
-      <button type="submit" className="btn-pill btn-lg btn-block" disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button>
+      <button type="submit" className="btn-pill btn-lg btn-block" disabled={busy}>{busy ? <Busy>Entrando…</Busy> : "Entrar"}</button>
       <p className="auth-switch">Ainda não tem conta? <button type="button" className="auth-link" onClick={onSignup}>Crie grátis</button></p>
     </form>
   );
@@ -216,7 +217,7 @@ function SignupForm({ onDone, onLogin }) {
         <input type="checkbox" checked={f.marketing} onChange={(e) => set({ marketing: e.target.checked })} />
         <span>Quero receber o roteiro da semana por e-mail.</span>
       </label>
-      <button type="submit" className="btn-pill btn-lg btn-block" disabled={busy}>{busy ? "Criando sua conta…" : "Criar conta"}</button>
+      <button type="submit" className="btn-pill btn-lg btn-block" disabled={busy}>{busy ? <Busy>Criando sua conta…</Busy> : "Criar conta"}</button>
       <p className="auth-switch">Já tem conta? <button type="button" className="auth-link" onClick={onLogin}>Entrar</button></p>
     </form>
   );
@@ -256,7 +257,7 @@ function Welcome({ onDone }) {
         </div>
       </Field>
       {err && <div className="auth-alert" role="alert">{err}</div>}
-      <button className="btn-pill btn-lg btn-block" disabled={busy} onClick={finish}>{busy ? "Salvando…" : vibes.size ? "Ver minhas dicas" : "Continuar"}</button>
+      <button className="btn-pill btn-lg btn-block" disabled={busy} onClick={finish}>{busy ? <Busy>Salvando…</Busy> : vibes.size ? "Ver minhas dicas" : "Continuar"}</button>
       <button className="auth-link auth-center auth-skip" onClick={finish}>Pular por enquanto</button>
     </div>
   );

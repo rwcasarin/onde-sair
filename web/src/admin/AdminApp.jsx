@@ -22,6 +22,7 @@ import { CitiesPage } from "./pages/Cities.jsx";
 import { SettingsPage } from "./pages/Settings.jsx";
 import { currentPath, go as goPath, href, onPathChange } from "../router.js";
 import "./admin.css";
+import { Loader, LoaderScreen, Busy } from "../components/loader.jsx";
 
 const parse = () => currentPath().split("?")[0].split("/").filter(Boolean).slice(1); // remove "admin"
 
@@ -97,7 +98,7 @@ export default function AdminApp() {
   }, [toast]);
   const ctx = useMemo(() => ({ user, db, go, toast, saved, confirm, setDirty }), [user, db, go, toast, saved, confirm, setDirty]);
 
-  if (user === undefined) return <div className="a-loading">Carregando painel…</div>;
+  if (user === undefined) return <LoaderScreen label="Carregando painel" />;
 
   if (!user || route[0] === "login") {
     return (
@@ -253,7 +254,7 @@ function SyncPill() {
   if (!REMOTE) return <span className="a-sync tone-gray a-hide-sm" title="Versão offline: dados salvos neste navegador"><i /> Offline</span>;
   const map = { idle: ["green", "Na nuvem"], saved: ["green", "Salvo"], saving: ["amber", "Salvando…"], error: ["red", "Erro ao salvar"], conflict: ["red", "Conflito"] };
   const [tone, label] = map[sync.status] || map.idle;
-  return <span className={"a-sync tone-" + tone} role="status" title={sync.at ? "Última gravação " + relTime(sync.at) : "Conectado ao banco no Vercel"}><i /> {label}</span>;
+  return <span className={"a-sync tone-" + tone} role="status" title={sync.at ? "Última gravação " + relTime(sync.at) : "Conectado ao banco no Vercel"}>{sync.status === "saving" ? <Loader size={12} tone="mono" delay={false} label="" /> : <i />} {label}</span>;
 }
 
 function PasswordModal({ user, onClose, toast }) {
@@ -270,7 +271,7 @@ function PasswordModal({ user, onClose, toast }) {
   }
   return (
     <Modal title="Alterar senha" size="sm" onClose={onClose}
-      footer={<><Btn onClick={onClose}>Cancelar</Btn><Btn kind="primary" disabled={busy} onClick={save}>{busy ? "Salvando…" : "Salvar senha"}</Btn></>}>
+      footer={<><Btn onClick={onClose}>Cancelar</Btn><Btn kind="primary" disabled={busy} onClick={save}>{busy ? <Busy>Salvando…</Busy> : "Salvar senha"}</Btn></>}>
       {err && <div className="a-alert tone-error" role="alert"><AIcon name="alert" size={16} /> {err}</div>}
       <Input label="Senha atual" type="password" autoComplete="current-password" value={f.current} onChange={(current) => setF({ ...f, current })} />
       <Input label="Nova senha" type="password" autoComplete="new-password" value={f.next} onChange={(next) => setF({ ...f, next })} hint="Mínimo de 8 caracteres." />

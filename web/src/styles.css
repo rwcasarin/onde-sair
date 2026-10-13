@@ -1203,3 +1203,25 @@ footer.footer a:hover { color: #fff; }
 
 .footer-logo { display: block; height: 52px; color: #fff; }
 .footer-logo svg { height: 100%; width: auto; display: block; }
+
+/* =================================================================
+   Carregamento da marca (components/loader.jsx · também no index.html)
+   ================================================================= */
+.os-loader { display: inline-block; flex: none; overflow: visible; vertical-align: middle; }
+.os-loader polygon { transform-box: view-box; transform-origin: 200px 200px; animation: os-burst 1.4s cubic-bezier(.3,.7,.3,1) infinite; animation-delay: calc(var(--i) * .07s); }
+.os-loader-brand g:nth-child(4n+1) polygon { fill: var(--c-magenta); }
+.os-loader-brand g:nth-child(4n+2) polygon { fill: var(--c-orange); }
+.os-loader-brand g:nth-child(4n+3) polygon { fill: var(--c-teal); }
+.os-loader-brand g:nth-child(4n+4) polygon { fill: var(--c-yellow); }
+.os-loader-mono polygon { fill: currentColor; }
+.os-loader.is-delayed { animation: os-appear .2s ease-out .3s both; }
+@keyframes os-burst { 0% { transform: scale(.12); opacity: .2; } 40%, 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(.12); opacity: .2; } }
+@keyframes os-appear { from { opacity: 0; } to { opacity: 1; } }
+@keyframes os-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+.os-loader-screen { min-height: 100vh; display: grid; place-items: center; }
+.os-busy { display: inline-flex; align-items: center; gap: 8px; }
+.os-loader-inline { display: grid; place-items: center; padding: 48px 0; }
+@media (prefers-reduced-motion: reduce) {
+  .os-loader polygon { animation: none; }
+  .os-loader { animation: os-pulse 1.6s ease-in-out infinite !important; }
+}

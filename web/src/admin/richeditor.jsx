@@ -5,6 +5,7 @@ import { AIcon, Btn, Modal, Input, Textarea, Segmented, Field, useAdmin, compres
 import { sanitizeHtml, safeHref, safeImg, htmlToText, figureHtml, embedHtml, placeHtml, asHtml } from "../richtext.js";
 import { parseEmbed, mountEmbeds } from "../embeds.js";
 import { resolveMedia, setMedia } from "./store.js";
+import { Busy } from "../components/loader.jsx";
 
 // no editor, imagens e incorporados são blocos fechados (clique para editar)
 const embedLabel = (code) => { const e = parseEmbed(code); return e ? `${e.provider} · clique para editar` : "Código incorporado inválido · clique para editar"; };
@@ -245,7 +246,7 @@ function ImageDialog({ initial, editing, onClose, onSave, onRemove }) {
         onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add("over"); }} onDragLeave={(e) => e.currentTarget.classList.remove("over")}
         onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove("over"); onFile(e.dataTransfer.files[0]); }}>
         {src ? <img src={resolveMedia(src)} alt="" /> : <span className="a-hint">Arraste uma imagem para cá</span>}
-        {busy && <span className="a-img-busy">Enviando…</span>}
+        {busy && <span className="a-img-busy"><Busy>Enviando…</Busy></span>}
       </div>
       <div className="a-rte-imgsrc">
         <input ref={file} type="file" accept="image/*" hidden onChange={(e) => { onFile(e.target.files[0]); e.target.value = ""; }} />

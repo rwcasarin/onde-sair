@@ -3,6 +3,7 @@ import { go as goPath } from "../../router.js";
 import { OSLogo, OSIcon } from "../../components/brand.jsx";
 import { AIcon, Btn } from "../kit.jsx";
 import { login, ROLES, REMOTE } from "../store.js";
+import { Busy } from "../../components/loader.jsx";
 
 const DEMO = [
   ["admin@ondesair.com.br", "admin123", "admin"],
@@ -120,7 +121,7 @@ export function Login({ onLogin }) {
               </label>
 
               <Btn kind="primary" className="a-btn-block a-btn-lg" type="submit" disabled={busy || wait > 0}>
-                {busy ? "Entrando…" : wait ? `Aguarde ${wait}s` : "Entrar"}
+                {busy ? <Busy>Entrando…</Busy> : wait ? `Aguarde ${wait}s` : "Entrar"}
               </Btn>
             </form>
           )}
@@ -137,7 +138,7 @@ export function Login({ onLogin }) {
                 </div>
                 {errors.email && <span className="a-error" role="alert">{errors.email}</span>}
               </div>
-              <Btn kind="primary" className="a-btn-block a-btn-lg" type="submit" disabled={busy}>{busy ? "Enviando…" : "Pedir nova senha"}</Btn>
+              <Btn kind="primary" className="a-btn-block a-btn-lg" type="submit" disabled={busy}>{busy ? <Busy>Enviando…</Busy> : "Pedir nova senha"}</Btn>
               <button type="button" className="a-link a-login-alt" onClick={() => setMode("login")}><AIcon name="left" size={14} /> Voltar para o login</button>
             </form>
           )}

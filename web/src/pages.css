@@ -929,7 +929,7 @@
 .gmap { position: relative; overflow: hidden; border-radius: 10px; background: #F1EEE6; }
 .gmap-canvas { position: absolute; inset: 0; }
 .gmap-loading { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; color: var(--ink-3); font-size: 13px; background: #F1EEE6; z-index: 2; }
-.gmap-loading span { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--primary-soft); border-top-color: var(--primary); animation: gmap-spin .8s linear infinite; }
+
 @keyframes gmap-spin { to { transform: rotate(360deg); } }
 .gmap .map-pop { z-index: 5; }
 .map-pop { position: absolute; }

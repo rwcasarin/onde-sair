@@ -4,6 +4,7 @@ import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { STATUS, setMedia, removeMedia, getDB, can } from "./store.js";
 import { currentPath, href } from "../router.js";
+import { Busy } from "../components/loader.jsx";
 
 // ---------------------------------------------------------------------
 // Contexto do painel: usuário, navegação, toasts, confirmação
@@ -420,7 +421,7 @@ export function ImageField({ label, path, hint, ratio = "16 / 10", compact }) {
         onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove("over"); onFile(e.dataTransfer.files[0]); }}
       >
         <ImageSlot key={path + uploaded} src={path} hint={hint} compact={compact} />
-        {busy && <span className="a-img-busy">Enviando…</span>}
+        {busy && <span className="a-img-busy"><Busy>Enviando…</Busy></span>}
       </div>
       <div className="a-img-actions">
         <input ref={input} type="file" accept="image/*" hidden onChange={(e) => { onFile(e.target.files[0]); e.target.value = ""; }} />
