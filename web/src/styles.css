@@ -1209,10 +1209,7 @@ footer.footer a:hover { color: #fff; }
    ================================================================= */
 .os-loader { display: inline-block; flex: none; overflow: visible; vertical-align: middle; }
 .os-loader polygon { transform-box: view-box; transform-origin: 200px 200px; animation: os-burst 1.4s cubic-bezier(.3,.7,.3,1) infinite; animation-delay: calc(var(--i) * .07s); }
-.os-loader-brand g:nth-child(4n+1) polygon { fill: var(--c-magenta); }
-.os-loader-brand g:nth-child(4n+2) polygon { fill: var(--c-orange); }
-.os-loader-brand g:nth-child(4n+3) polygon { fill: var(--c-teal); }
-.os-loader-brand g:nth-child(4n+4) polygon { fill: var(--c-yellow); }
+.os-loader-brand polygon { fill: var(--c-magenta); }
 .os-loader-mono polygon { fill: currentColor; }
 .os-loader.is-delayed { animation: os-appear .2s ease-out .3s both; }
 @keyframes os-burst { 0% { transform: scale(.12); opacity: .2; } 40%, 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(.12); opacity: .2; } }

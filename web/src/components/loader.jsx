@@ -1,5 +1,5 @@
 // Carregamento da marca: o asterisco com os raios saindo do centro, um após o outro, e voltando.
-// tone "brand" = raios coloridos (telas e áreas grandes); "mono" = cor do texto (dentro de botões e selos).
+// tone "brand" = magenta da marca (telas e áreas grandes); "mono" = cor do texto (dentro de botões e selos).
 // Só aparece se a espera passar de 0,3 s (sem piscar em conexões rápidas); com "reduzir movimento", só pulsa.
 export function Loader({ size = 56, tone = "brand", label = "Carregando", delay = true, className = "" }) {
   return (
