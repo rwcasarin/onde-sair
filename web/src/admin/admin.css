@@ -721,3 +721,8 @@ a.a-paused-pill { text-decoration: none; }
 .a-day-name { font-weight: 600; font-size: 13.5px; }
 .a-day-hours .a-link, .a-day-std { justify-self: end; font-size: 12.5px; }
 @media (max-width: 720px) { .a-day-hours li { grid-template-columns: 1fr 1fr; } .a-day-name { grid-column: 1 / -1; } }
+
+/* Prévia da página de manutenção (Configurações › Pausas) */
+.a-maint-preview { padding: 22px 20px; border: 1px dashed var(--a-line, #d9d5e6); border-radius: 10px; text-align: center; background: #fff; }
+.a-maint-preview strong { display: block; font-family: var(--serif, Georgia, serif); font-size: 26px; color: #1E1550; }
+.a-maint-preview p { margin: 6px 0 0; font-size: 13px; color: #555; }

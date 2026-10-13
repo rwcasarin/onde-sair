@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, ImageField, useAdmin, useDraft } from "../kit.jsx";
 import { SHARE_DEFAULT_IMG } from "../../../shared/share.js";
-import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT, ROTEIROS_PAUSED_TEXT, EVENTS_PAUSED_TEXT } from "../store.js";
+import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT, ROTEIROS_PAUSED_TEXT, EVENTS_PAUSED_TEXT, MAINTENANCE_TITLE, MAINTENANCE_TEXT } from "../store.js";
 
-const TABS = [["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["pausas", "Pausas"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["avancado", "Avançado"], ["dados", "Dados"]];
+const TABS = [["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["pausas", "Pausas"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["dados", "Dados"]];
 
 export function SettingsPage({ initialTab }) {
   const { db, user, toast, saved, confirm, setDirty } = useAdmin();
   const { draft, set, dirty, commit } = useDraft(db.settings);
-  const wanted = initialTab === "contas" || initialTab === "roteiros" ? "pausas" : initialTab;   // endereços antigos/atalhos
+  const wanted = ["contas", "roteiros", "avancado"].includes(initialTab) ? "pausas" : initialTab;   // endereços antigos/atalhos
   const [tab, setTab] = useState(TABS.some(([k]) => k === wanted) ? wanted : "geral");
   const file = useRef(null);
   useEffect(() => { setDirty(dirty); return () => setDirty(false); }, [dirty, setDirty]);
@@ -93,6 +93,26 @@ export function SettingsPage({ initialTab }) {
       )}
 
       {tab === "pausas" && (<>
+        <Card title="Modo manutenção" subtitle="Tira o site inteiro do ar por alguns instantes. Use só quando as pausas abaixo não bastarem.">
+          <div className={"a-alert" + (draft.maintenance ? " tone-error" : "")}>
+            <AIcon name="alert" size={16} />
+            <div>
+              <Toggle label="Modo manutenção" checked={!!draft.maintenance} onChange={(maintenance) => set({ maintenance })}
+                hint={draft.maintenance ? "Ligado: assim que você salvar, todas as páginas do site mostram a mensagem abaixo." : "Desligado: o site funciona normalmente."} />
+            </div>
+          </div>
+          <span className="a-label">Enquanto estiver ligado</span>
+          <ul className="a-checklist-plain">
+            <li>Todas as páginas do site mostram só a mensagem de manutenção.</li>
+            <li>Lugares, roteiros, eventos, Radar, contas e buscas ficam fora do ar.</li>
+            <li>O painel continua funcionando normalmente.</li>
+          </ul>
+          <Input label="Título" value={draft.maintenanceTitle || ""} placeholder={MAINTENANCE_TITLE} onChange={(maintenanceTitle) => set({ maintenanceTitle })} maxCount={40} />
+          <Textarea label="Mensagem" value={draft.maintenanceMessage || ""} placeholder={MAINTENANCE_TEXT} onChange={(maintenanceMessage) => set({ maintenanceMessage })} rows={2} maxCount={200}
+            hint="Em branco, usa o texto padrão." />
+          <span className="a-label">Prévia</span>
+          <div className="a-maint-preview"><strong>{draft.maintenanceTitle || MAINTENANCE_TITLE}</strong><p>{draft.maintenanceMessage || MAINTENANCE_TEXT}</p></div>
+        </Card>
         <PauseCard title="Pausar contas e interações" label="Pausar contas e interações" value={acc} onChange={setAcc} defaultText={ACCOUNTS_PAUSED_TEXT}
           noBarHint="Sem faixa: o aviso aparece só na tela de pausa das áreas de conta."
           effects={[
@@ -127,6 +147,9 @@ export function SettingsPage({ initialTab }) {
           <Toggle label="Esconder também a agenda de eventos" checked={evp.hideCatalog} onChange={(hideCatalog) => setEvp({ hideCatalog })}
             hint={evp.hideCatalog ? "Ligado: nenhum evento aparece no site durante a pausa." : "Desligado: só o envio pelo site fica pausado."} />
         </PauseCard>
+        <Card title="Newsletter">
+          <Toggle label="Newsletter ativa" hint="Mostra o formulário de inscrição." checked={draft.newsletter} onChange={(newsletter) => set({ newsletter })} />
+        </Card>
       </>)}
 
       {tab === "redes" && (
@@ -153,18 +176,6 @@ export function SettingsPage({ initialTab }) {
           </ol>
         </Card>
       </>)}
-
-      {tab === "avancado" && (
-        <Card>
-          <Toggle label="Newsletter ativa" hint="Mostra o formulário de inscrição." checked={draft.newsletter} onChange={(newsletter) => set({ newsletter })} />
-          <div className={"a-alert" + (draft.maintenance ? " tone-error" : "")}>
-            <AIcon name="alert" size={16} />
-            <div>
-              <Toggle label="Modo manutenção" hint="O site mostra uma página de “voltamos já”. O painel continua acessível." checked={draft.maintenance} onChange={(maintenance) => set({ maintenance })} />
-            </div>
-          </div>
-        </Card>
-      )}
 
       {tab === "dados" && (
         <div className="a-grid-2">
