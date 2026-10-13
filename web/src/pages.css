@@ -134,6 +134,11 @@
 .check-row input { width: 16px; height: 16px; margin: 0; accent-color: var(--heading); flex-shrink: 0; }
 .check-row em { font-style: normal; color: var(--ink-3); }
 .check-row.boxed { border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; background: var(--paper); }
+.check-row.is-off { opacity: .45; cursor: default; }
+.filter-search-sm { height: 36px; margin-bottom: 8px; font-size: 13px; }
+.filter-empty { margin: 4px 0; font-size: 12.5px; color: var(--ink-3); }
+.filters-close, .filters-foot, .filters-backdrop { display: none; }
+.filters-head .link-btn { margin-left: auto; }
 .select-wrap { position: relative; display: block; }
 .select-wrap select {
   appearance: none; -webkit-appearance: none; width: 100%;
@@ -489,8 +494,18 @@
 }
 @media (max-width: 900px) {
   .listing-layout { grid-template-columns: 1fr; }
+  /* celular: os filtros abrem numa gaveta, com o total de resultados no rodapé */
   .filters { display: none; }
-  .filters.open { display: block; }
+  .filters.open {
+    display: block; position: fixed; z-index: 120; inset: 0 0 0 auto; width: min(420px, 100%);
+    overflow-y: auto; border-radius: 0; border: 0; padding: 0 20px; background: #FBFAF7; box-shadow: -12px 0 40px rgba(30,21,80,.18);
+  }
+  .filters.open .filters-head { position: sticky; top: 0; z-index: 2; gap: 12px; align-items: center; margin: 0 -20px; padding: 16px 20px 12px; background: #FBFAF7; border-bottom: 1px solid var(--line); }
+  .filters.open .filters-close { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--heading); }
+  .filters.open .filters-foot { display: block; position: sticky; bottom: 0; margin: 12px -20px 0; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); background: #FBFAF7; border-top: 1px solid var(--line); }
+  .filters.open .filters-head + .filter-block { border-top: 0; }
+  .filters-backdrop { display: block; position: fixed; inset: 0; z-index: 110; background: rgba(30,21,80,.35); }
+  body.filters-lock { overflow: hidden; }
   .filters-toggle { display: inline-flex; }
   .guide { grid-template-columns: 1fr; height: auto; }
   .guide-list { max-height: 280px; }

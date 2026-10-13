@@ -130,10 +130,6 @@ function RoteiroForm({ initial, isNew }) {
               <Input label="Tempo total" value={draft.stats.tempo} onChange={(v) => setStat("tempo", v)} placeholder="6 a 8 horas" />
               <Input label="Ideal para" value={draft.stats.ideal} onChange={(v) => setStat("ideal", v)} placeholder="Casais, amigos" />
             </div>
-            <Field label="Investimento">
-              <Segmented label="Investimento" value={draft.stats.invest} onChange={(v) => set({ stats: { ...draft.stats, invest: v, investLabel: ["Grátis", "Econômico", "Moderado", "Especial"][v] } })}
-                options={[[0, "Grátis"], [1, "$ Econômico"], [2, "$$ Moderado"], [3, "$$$ Especial"]]} />
-            </Field>
             <div className="a-form-grid a-form-grid-3">
               <Input label="Melhor horário" value={draft.tips.horario} onChange={(v) => setTip("horario", v)} />
               <Input label="Melhor época" value={draft.tips.epoca} onChange={(v) => setTip("epoca", v)} />

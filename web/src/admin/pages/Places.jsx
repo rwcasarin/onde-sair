@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SEED_TYPES, PRICE_RANGE, MOMENTOS, AMBIENTES, placeImg, placeGallery } from "../../data.js";
+import { SEED_TYPES, MOMENTOS, AMBIENTES, placeImg, placeGallery } from "../../data.js";
 import { placesNav } from "./Types.jsx";
 const typesOf = (db) => db.types?.length ? db.types : SEED_TYPES;
 import { ListingCard, MapArt } from "../../components/site.jsx";
@@ -161,10 +161,6 @@ function PlaceForm({ initial, isNew }) {
               <Input label="WhatsApp" value={draft.whatsapp || ""} onChange={(v) => set({ whatsapp: v })} type="tel" placeholder="(15) 99999-9999"
                 error={errors.whatsapp} hint="Número com DDD (celular ou fixo do WhatsApp Business). Vira o botão de WhatsApp na página do lugar." />
             </div>
-            <Field label="Faixa de preço por pessoa">
-              <Segmented label="Faixa de preço" value={draft.priceLevel} onChange={(v) => set({ priceLevel: v })}
-                options={[0, 1, 2, 3].map(l => [l, l === 0 ? "Grátis" : "$".repeat(l) + " · " + PRICE_RANGE[l]])} />
-            </Field>
             <div className="a-form-grid">
               <PillPicker label="Momento" value={draft.momento} onChange={(momento) => set({ momento })} options={MOMENTOS.map(m => [m, m])} />
               <PillPicker label="Ambiente" value={draft.ambiente} onChange={(ambiente) => set({ ambiente })} options={AMBIENTES.map(m => [m, m])} />
