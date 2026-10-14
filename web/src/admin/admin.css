@@ -726,3 +726,17 @@ a.a-paused-pill { text-decoration: none; }
 .a-maint-preview { padding: 22px 20px; border: 1px dashed var(--a-line, #d9d5e6); border-radius: 10px; text-align: center; background: #fff; }
 .a-maint-preview strong { display: block; font-family: var(--serif, Georgia, serif); font-size: 26px; color: #1E1550; }
 .a-maint-preview p { margin: 6px 0 0; font-size: 13px; color: #555; }
+
+/* Galeria do lugar (Lugares › Imagens) */
+.a-photos { display: grid; gap: 14px; }
+.a-photos-drop { display: grid; justify-items: center; gap: 6px; padding: 22px; border: 2px dashed #CFC8E6; border-radius: 12px; text-align: center; color: #3B2A7C; background: #FBFAFF; }
+.a-photos-drop.over { border-color: #EE2A6E; background: #FFF4F8; }
+.a-photos-drop small { color: #6B6490; }
+.a-photo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.a-photo-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 16px; align-items: start; padding: 12px; border: 1px solid #E6E2F0; border-radius: 10px; background: #fff; }
+.a-photo-thumb { position: relative; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; }
+.a-photo-thumb .img-slot { position: absolute; inset: 0; }
+.a-photo-n { position: absolute; top: 6px; left: 6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #1E1550; color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.a-photo-fields { display: grid; gap: 4px; min-width: 0; }
+.a-photo-actions { display: flex; flex-direction: column; gap: 4px; }
+@media (max-width: 760px) { .a-photo-row { grid-template-columns: 1fr; } .a-photo-actions { flex-direction: row; } }

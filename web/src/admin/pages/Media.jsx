@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { placeImg, placeGallery, roteiroImg, vibeImg } from "../../data.js";
+import { placeImg, roteiroImg, vibeImg } from "../../data.js";
+import { photosForEdit } from "../../photos.js";
 import { Badge, Card, ImageField, PageHeader, Toolbar, FilterSelect, useAdmin, useImageStatus, Empty, Btn } from "../kit.jsx";
 
 // Todos os espaços de imagem que o site usa, derivados do conteúdo
@@ -14,7 +15,7 @@ export function expectedImages(db) {
   add("images/vibes/lugares.jpg", "Página Lugares", "Vibes", "16 / 7");
   db.places.forEach(p => {
     add(placeImg(p.id), `${p.name} · capa`, "Lugares");
-    placeGallery(p.id).forEach((g, i) => add(g, `${p.name} · galeria ${i + 1}`, "Lugares", "3 / 4"));
+    photosForEdit(p).forEach((g, i) => add(g.path, `${p.name} · galeria ${i + 1}`, "Lugares", "4 / 3"));
   });
   db.roteiros.forEach(r => {
     add(roteiroImg(r.id), `${r.title} · capa`, "Roteiros");

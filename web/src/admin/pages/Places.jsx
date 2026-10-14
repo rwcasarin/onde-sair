@@ -1,14 +1,16 @@
-import { useState } from "react";
-import { SEED_TYPES, MOMENTOS, AMBIENTES, placeImg, placeGallery } from "../../data.js";
+import { useRef, useState } from "react";
+import { SEED_TYPES, MOMENTOS, AMBIENTES, placeImg } from "../../data.js";
+import { photosForEdit, blankPhoto, safeUrl, MAX_PHOTOS } from "../../photos.js";
 import { placesNav } from "./Types.jsx";
 const typesOf = (db) => db.types?.length ? db.types : SEED_TYPES;
 import { ListingCard, MapArt } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
   AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Check,
-  PageHeader, useAdmin, useDraft,
+  PageHeader, useAdmin, useDraft, compressImage,
 } from "../kit.jsx";
-import { slugify, addCity, addBairro, SITE } from "../store.js";
+import { slugify, addCity, addBairro, SITE, setMedia, removeMedia } from "../store.js";
+import { Busy } from "../../components/loader.jsx";
 import { AddressAutocomplete, CreatableField, Pending, findCity, findBairro } from "./location.jsx";
 import { PlaceMap } from "../../components/placemap.jsx";
 import { loadGoogle, addressOf } from "../../maps.js";
@@ -57,12 +59,13 @@ export function PlacesList() {
 const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
   affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
-  priceLevel: 2, open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", note: "",
+  photos: [], coverCaption: "", coverCredit: "", open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", note: "",
   showGallery: true,
   map: { x: 50, y: 50 }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
 
 const RULES = [
+  ["photos", (d) => (d.photos || []).every(ph => !ph.link || safeUrl(ph.link)), "Há um link de legenda inválido na galeria (use um endereço como www.site.com.br)."],
   ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
   ["name", (d) => d.name.trim().length >= 2, "Dê um nome ao lugar."],
   ["type", (d) => !!d.type, "Escolha o tipo.", true],
@@ -78,7 +81,7 @@ export function PlaceEditor({ id }) {
   const isNew = id === "novo";
   const found = db.places.find(p => p.id === id);
   if (!isNew && !found) return <NotFoundItem what="Lugar" path="lugares" />;
-  return <PlaceForm initial={isNew ? { ...BLANK, city: db.settings.defaultCity || BLANK.city, by: `Curadoria · ${user.name.split(" ")[0]}` } : found} isNew={isNew} />;
+  return <PlaceForm initial={isNew ? { ...BLANK, city: db.settings.defaultCity || BLANK.city, by: `Curadoria · ${user.name.split(" ")[0]}` } : { ...found, photos: photosForEdit(found) }} isNew={isNew} />;
 }
 
 function PlaceForm({ initial, isNew }) {
@@ -181,15 +184,16 @@ function PlaceForm({ initial, isNew }) {
           <Card title="Fotos do lugar" subtitle="Envie fotos horizontais com boa luz. Elas são comprimidas automaticamente.">
             <Toggle label="Mostrar a seção Fotos do lugar na página" checked={draft.showGallery !== false} onChange={(showGallery) => set({ showGallery })} />
             <ImageField label="Foto principal (capa e cards)" path={placeImg(previewId)} hint="16:10 · mín. 1400 px" />
-            {isNew && <p className="a-hint">Salve o lugar para liberar o envio da galeria.</p>}
-            {!isNew && (
-              <>
-                <span className="a-label">Galeria (4 fotos)</span>
-                <div className="a-gallery-grid">
-                  {placeGallery(previewId).map((p, i) => <ImageField key={p} path={p} hint={`Foto ${i + 1} · 3:4`} ratio="3 / 4" compact />)}
-                </div>
-              </>
-            )}
+            <div className="a-form-grid">
+              <Input label="Legenda da foto principal" value={draft.coverCaption || ""} onChange={(coverCaption) => set({ coverCaption })} maxCount={160}
+                hint="Aparece quando a foto é aberta na galeria." />
+              <Input label="Crédito da foto principal" value={draft.coverCredit || ""} onChange={(coverCredit) => set({ coverCredit })} placeholder="Foto: @perfil ou nome" maxCount={60} />
+            </div>
+          </Card>
+          <Card title="Galeria" subtitle={`Até ${MAX_PHOTOS} fotos, na ordem em que aparecem no site. Clicar numa foto abre a galeria em tela cheia, com legendas e miniaturas.`}>
+            {errors.photos && <p className="a-error" role="alert">{errors.photos}</p>}
+            {isNew ? <p className="a-hint">Salve o lugar para liberar o envio da galeria.</p>
+              : <PhotoGallery id={previewId} photos={draft.photos || []} onChange={(photos) => set({ photos })} />}
           </Card>
         </>)}
 
@@ -378,3 +382,76 @@ export function IconPicker({ value, onChange, icons = REASON_ICONS }) {
 }
 
 export { Check };
+
+// ---------------------------------------------------------------------
+// Galeria do lugar: envio de várias fotos, ordem e legenda (texto, crédito e link) de cada uma
+// ---------------------------------------------------------------------
+function PhotoGallery({ id, photos, onChange }) {
+  const { user, toast, confirm } = useAdmin();
+  const input = useRef(null);
+  const [busy, setBusy] = useState(0);
+  const [over, setOver] = useState(false);
+  const room = MAX_PHOTOS - photos.length;
+  const upd = (k, patch) => onChange(photos.map((p, i) => i === k ? { ...p, ...patch } : p));
+  const move = (k, d) => { const n = [...photos]; [n[k], n[k + d]] = [n[k + d], n[k]]; onChange(n); };
+
+  async function add(files) {
+    const list = [...files].filter(f => f.type.startsWith("image/")).slice(0, Math.max(0, room));
+    if (!list.length) return toast(room ? "Escolha arquivos de imagem." : `A galeria já tem ${MAX_PHOTOS} fotos.`, "error");
+    if (files.length > list.length && room) toast(`Só cabem mais ${room} foto(s); as demais ficaram de fora.`, "error");
+    setBusy(list.length);
+    const added = [];
+    for (const [k, f] of list.entries()) {
+      try {
+        if (f.size > 15 * 1024 * 1024) throw new Error("Arquivo acima de 15 MB.");
+        const path = `images/lugares/${id}-f${Date.now().toString(36)}${k}.jpg`;
+        await setMedia(path, await compressImage(f), user);
+        added.push(blankPhoto(path));
+      } catch (e) { toast(`${f.name}: ${e.message || "não foi possível enviar."}`, "error"); }
+      setBusy(n => n - 1);
+    }
+    if (added.length) { onChange([...photos, ...added]); toast(added.length === 1 ? "Foto adicionada. Salve o lugar para publicar." : `${added.length} fotos adicionadas. Salve o lugar para publicar.`, "success"); }
+  }
+  async function remove(k) {
+    if (!(await confirm({ title: "Remover esta foto?", text: "Ela sai da galeria e do armazenamento.", ok: "Remover", danger: true }))) return;
+    const ph = photos[k];
+    onChange(photos.filter((_, i) => i !== k));
+    try { await removeMedia(ph.path, user); } catch { /* já não existia */ }
+  }
+
+  return (
+    <div className="a-photos">
+      <div className={"a-photos-drop" + (over ? " over" : "")}
+        onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
+        onDrop={(e) => { e.preventDefault(); setOver(false); add(e.dataTransfer.files); }}>
+        <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
+        <AIcon name="image" size={22} />
+        <span>{busy ? <Busy>Enviando {busy} foto(s)…</Busy> : <>Arraste fotos para cá ou <button type="button" className="a-link" onClick={() => input.current?.click()} disabled={!room}>escolha no computador</button></>}</span>
+        <small>{photos.length} de {MAX_PHOTOS} · horizontais ou verticais · comprimidas automaticamente</small>
+      </div>
+      {photos.length === 0 && <p className="a-hint">Nenhuma foto na galeria ainda.</p>}
+      <ol className="a-photo-list">
+        {photos.map((ph, k) => (
+          <li key={ph.path} className="a-photo-row">
+            <div className="a-photo-thumb"><ImageSlot src={ph.path} alt="" compact /><span className="a-photo-n">{k + 1}</span></div>
+            <div className="a-photo-fields">
+              <Input label="Legenda" value={ph.caption} onChange={(caption) => upd(k, { caption })} maxCount={160} placeholder="Ex.: O salão principal, com vista para o lago" />
+              <div className="a-form-grid">
+                <Input label="Crédito" value={ph.credit} onChange={(credit) => upd(k, { credit })} maxCount={60} placeholder="Foto: @perfil ou nome" />
+                <Input label="Descrição da imagem" value={ph.alt} onChange={(alt) => upd(k, { alt })} maxCount={140} hint="Para leitores de tela. Em branco, usa a legenda." />
+                <Input label="Link da legenda" value={ph.link} onChange={(link) => upd(k, { link: link.trim() })} placeholder="www.site.com.br/cardapio"
+                  error={ph.link && !safeUrl(ph.link) ? "Endereço inválido." : undefined} />
+                <Input label="Texto do link" value={ph.linkLabel} onChange={(linkLabel) => upd(k, { linkLabel })} maxCount={40} placeholder="Saiba mais" />
+              </div>
+            </div>
+            <div className="a-photo-actions">
+              <Btn size="sm" kind="ghost" icon="up" aria-label="Subir" disabled={k === 0} onClick={() => move(k, -1)} />
+              <Btn size="sm" kind="ghost" icon="down" aria-label="Descer" disabled={k === photos.length - 1} onClick={() => move(k, 1)} />
+              <Btn size="sm" kind="ghost" icon="trash" aria-label="Remover foto" onClick={() => remove(k)} />
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, placeGallery, roteiroImg } from "../data.js";
+import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
@@ -12,6 +12,9 @@ import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
 import { roteiroVibes } from "../vibes.js";
 import { NotFound } from "./notfound.jsx";
+import { Lightbox } from "../components/lightbox.jsx";
+import { placePhotos, placeSlides } from "../photos.js";
+import { currentPath, HASH_MODE } from "../router.js";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -59,22 +62,31 @@ function DetalheView({ p }) {
   const nav = useNav();
   const { faves, toggle } = useFaves();
   const { paused } = useAccount();
-  // seção de fotos pode ser escondida no admin
-  const showFotos = p.showGallery !== false;
+  // fotos: a seção só aparece com fotos enviadas (e pode ser escondida no painel)
+  const photos = placePhotos(p), slides = placeSlides(p);
+  const coverOffset = slides.length - photos.length;            // 1 quando a foto principal entra na galeria
+  const showFotos = p.showGallery !== false && photos.length > 0;
+  // galeria em tela cheia; ?foto=N no endereço abre direto na foto N
+  const [lb, setLb] = useState(() => { const n = +new URLSearchParams(currentPath().split("?")[1] || "").get("foto"); return n >= 1 && n <= slides.length ? n - 1 : null; });
+  function setFotoParam(k) {
+    const q = new URLSearchParams(currentPath().split("?")[1] || "");
+    if (k == null) q.delete("foto"); else q.set("foto", String(k + 1));
+    const url = currentPath().split("?")[0] + (q.toString() ? "?" + q : "");
+    history.replaceState(history.state, "", HASH_MODE ? "#" + url : url);
+  }
+  const openPhoto = (k) => setLb(k);
+  const closePhotos = () => { setLb(null); setFotoParam(null); };
   // motivos e vibes sem conteúdo (ou vibe desativada no painel) não aparecem
   const reasons = (p.reasons || []).filter(([, text]) => filled(text));
   const vibeNames = (p.affs || []).map(affById).filter(Boolean).map(a => a.label.toLowerCase().replace(/^(para|pra) /, ""));
   const site = siteHref(p.site), tel = telHref(p.phone);
   const [tab, setTab] = useState("visao");
-  const [shift, setShift] = useState(0);
   const [shared, setShared] = useState(false);
   const [mapSel, setMapSel] = useState(null);       // pin selecionado no mapa "Onde fica"
   const saved = faves.has(p.id);
   const insta = instaProfile(p.insta);
   const whats = whatsappLink(p.whatsapp);
 
-  const gallery = placeGallery(p.id);
-  const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
 
   // "Confira também": na mesma cidade, os com mais vibes em comum primeiro (mesmo tipo desempata)
   const placeCity = CITIES.find(c => c.id === p.city);
@@ -136,6 +148,7 @@ function DetalheView({ p }) {
                 <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
               </button>}
               <AddToRoteiro place={p} className="act-btn act-sm" iconSize={17} compact />
+              {slides.length > 0 && <button className="act-btn act-sm" onClick={() => openPhoto(0)} aria-label={`Ver fotos (${slides.length})`}><Icon name="camera" size={17} /><span className="act-label">Ver fotos ({slides.length})</span></button>}
               <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
             </div>
           </div>
@@ -191,21 +204,25 @@ function DetalheView({ p }) {
           <div>
             <div className="h2-head">
               <h2>Fotos do lugar</h2>
+              {slides.length > 1 && <button type="button" className="h2-link" onClick={() => openPhoto(0)}>Ver todas as fotos ({slides.length}) <Icon name="arrow" size={16} /></button>}
             </div>
-            <div className="gallery gallery-wide">
-              {shown.map((src, i) => (
-                <ImageSlot key={src} className="gallery-img" src={src} alt={`${p.name} — foto ${i + 1}`} hint="3:4">
-                  {i === 0 && (
-                    <div className="gallery-nav">
-                      <button aria-label="Foto anterior" onClick={() => setShift((shift + gallery.length - 1) % gallery.length)}><Icon name="left" size={16} /></button>
-                      <button aria-label="Próxima foto" onClick={() => setShift((shift + 1) % gallery.length)}><Icon name="right" size={16} /></button>
-                    </div>
-                  )}
-                </ImageSlot>
-              ))}
+            {/* mosaico: a primeira grande e até 4 menores; a última mostra quantas faltam */}
+            <div className={"photo-mosaic n-" + Math.min(photos.length, 5)}>
+              {photos.slice(0, 5).map((ph, k) => {
+                const more = k === 4 && photos.length > 5 ? photos.length - 5 : 0;
+                return (
+                  <button key={ph.path} type="button" className="photo-tile" onClick={() => openPhoto(k + coverOffset)}
+                    aria-label={(ph.caption || `${p.name} — foto ${k + 1}`) + (more ? ` (mais ${more} fotos)` : "")}>
+                    <ImageSlot src={ph.path} alt={ph.alt || ph.caption || `${p.name} — foto ${k + 1}`} />
+                    {ph.caption && !more && <span className="photo-tile-cap">{ph.caption}</span>}
+                    {more > 0 && <span className="photo-tile-more">+{more} fotos</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>}
+        {lb != null && slides.length > 0 && <Lightbox photos={slides} index={Math.min(lb, slides.length - 1)} title={p.name} onClose={closePhotos} onIndex={setFotoParam} />}
 
         {/* 4 · Onde fica (70%) + Informações úteis (30%) */}
         <section className="place-row split-70-30" id="sec-chegar">
