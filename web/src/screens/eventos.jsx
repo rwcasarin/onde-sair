@@ -188,8 +188,8 @@ export function Evento({ id }) {
   // só as fotos que foram enviadas; sem nenhuma, a seção some
   const gallery = eventGallery(e.id).filter(hasMedia);
   const showFotos = e.showGallery !== false && gallery.length > 0;
-  const slides = [...(hasMedia(eventImg(e.id)) ? [eventImg(e.id)] : []), ...gallery].map(path => ({ path }));
-  const coverOffset = slides.length - gallery.length;
+  const slides = gallery.map(path => ({ path }));   // a imagem principal não entra na galeria
+  const coverOffset = 0;
   const tabs = [["visao", "Visão geral"], ...(reasons.length ? [["porque", "Por que ir"]] : []), ...(showFotos ? [["fotos", "Fotos"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
   const calWhere = [where, address].filter(Boolean).join(", ");
   const pageUrl = typeof location !== "undefined" ? location.origin + eventPath(e) : "";

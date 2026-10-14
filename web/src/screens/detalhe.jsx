@@ -13,7 +13,7 @@ import { instaProfile } from "../insta.js";
 import { roteiroVibes } from "../vibes.js";
 import { NotFound } from "./notfound.jsx";
 import { Lightbox } from "../components/lightbox.jsx";
-import { placePhotos, placeSlides } from "../photos.js";
+import { placePhotos } from "../photos.js";
 import { currentPath, HASH_MODE } from "../router.js";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
@@ -63,8 +63,8 @@ function DetalheView({ p }) {
   const { faves, toggle } = useFaves();
   const { paused } = useAccount();
   // fotos: a seção só aparece com fotos enviadas (e pode ser escondida no painel)
-  const photos = placePhotos(p), slides = placeSlides(p);
-  const coverOffset = slides.length - photos.length;            // 1 quando a foto principal entra na galeria
+  const photos = placePhotos(p), slides = photos;               // a foto principal não entra na galeria
+  const coverOffset = 0;
   const showFotos = p.showGallery !== false && photos.length > 0;
   // galeria em tela cheia; ?foto=N no endereço abre direto na foto N
   const [lb, setLb] = useState(() => { const n = +new URLSearchParams(currentPath().split("?")[1] || "").get("foto"); return n >= 1 && n <= slides.length ? n - 1 : null; });

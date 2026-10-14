@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SEED_TYPES, MOMENTOS, AMBIENTES, placeImg } from "../../data.js";
 import { photosForEdit, blankPhoto, safeUrl, MAX_PHOTOS } from "../../photos.js";
 import { placesNav } from "./Types.jsx";
@@ -9,8 +9,8 @@ import {
   AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, PillPicker, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, Check,
   PageHeader, useAdmin, useDraft, compressImage,
 } from "../kit.jsx";
-import { slugify, addCity, addBairro, SITE, setMedia, removeMedia } from "../store.js";
-import { Busy } from "../../components/loader.jsx";
+import { slugify, addCity, addBairro, SITE, setMedia, removeMedia, resolveMedia } from "../store.js";
+import { Busy, Loader } from "../../components/loader.jsx";
 import { AddressAutocomplete, CreatableField, Pending, findCity, findBairro } from "./location.jsx";
 import { PlaceMap } from "../../components/placemap.jsx";
 import { loadGoogle, addressOf } from "../../maps.js";
@@ -59,7 +59,7 @@ export function PlacesList() {
 const BLANK = {
   name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
   affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
-  photos: [], coverCaption: "", coverCredit: "", open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", note: "",
+  photos: [], open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", note: "",
   showGallery: true,
   map: { x: 50, y: 50 }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
 };
@@ -183,17 +183,13 @@ function PlaceForm({ initial, isNew }) {
         {tab === "imagens" && (<>
           <Card title="Fotos do lugar" subtitle="Envie fotos horizontais com boa luz. Elas são comprimidas automaticamente.">
             <Toggle label="Mostrar a seção Fotos do lugar na página" checked={draft.showGallery !== false} onChange={(showGallery) => set({ showGallery })} />
-            <ImageField label="Foto principal (capa e cards)" path={placeImg(previewId)} hint="16:10 · mín. 1400 px" />
-            <div className="a-form-grid">
-              <Input label="Legenda da foto principal" value={draft.coverCaption || ""} onChange={(coverCaption) => set({ coverCaption })} maxCount={160}
-                hint="Aparece quando a foto é aberta na galeria." />
-              <Input label="Crédito da foto principal" value={draft.coverCredit || ""} onChange={(coverCredit) => set({ coverCredit })} placeholder="Foto: @perfil ou nome" maxCount={60} />
-            </div>
+            <ImageField label="Foto principal (topo da página e card)" path={placeImg(previewId)} hint="16:10 · mín. 1400 px" />
+            <p className="a-hint">Ela ilustra o topo da página e o card do lugar; não entra na galeria.</p>
           </Card>
           <Card title="Galeria" subtitle={`Até ${MAX_PHOTOS} fotos, na ordem em que aparecem no site. Clicar numa foto abre a galeria em tela cheia, com legendas e miniaturas.`}>
             {errors.photos && <p className="a-error" role="alert">{errors.photos}</p>}
             {isNew ? <p className="a-hint">Salve o lugar para liberar o envio da galeria.</p>
-              : <PhotoGallery id={previewId} photos={draft.photos || []} onChange={(photos) => set({ photos })} />}
+              : <PhotoGallery id={previewId} photos={draft.photos || []} onChange={(v) => set(d => ({ photos: typeof v === "function" ? v(d.photos || []) : v }))} />}
           </Card>
         </>)}
 
@@ -384,40 +380,157 @@ export function IconPicker({ value, onChange, icons = REASON_ICONS }) {
 export { Check };
 
 // ---------------------------------------------------------------------
-// Galeria do lugar: envio de várias fotos, ordem e legenda (texto, crédito e link) de cada uma
+// Galeria do lugar: envio de várias fotos (com andamento de cada uma), ordem por arrastar ou
+// pelas setas, trocar a imagem mantendo a legenda, usar como foto principal e remover.
 // ---------------------------------------------------------------------
+const newPath = (id, k = 0) => `images/lugares/${id}-f${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}${k}.jpg`;
+const MIN_WIDTH = 1000;   // abaixo disso, a foto fica borrada na galeria em tela cheia
+
+// lê uma imagem já enviada (para copiá-la como foto principal)
+async function mediaAsDataUrl(path) {
+  const blob = await (await fetch(resolveMedia(path))).blob();
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+}
+
 function PhotoGallery({ id, photos, onChange }) {
   const { user, toast, confirm } = useAdmin();
-  const input = useRef(null);
-  const [busy, setBusy] = useState(0);
+  const input = useRef(null), replaceInput = useRef(null), replaceAt = useRef(null);
+  const [queue, setQueue] = useState([]);          // envios em andamento ou com erro: { key, file, name, status, error }
+  const [busy, setBusy] = useState({});            // por foto: "trocando" | "removendo" | "capa"
   const [over, setOver] = useState(false);
-  const room = MAX_PHOTOS - photos.length;
-  const upd = (k, patch) => onChange(photos.map((p, i) => i === k ? { ...p, ...patch } : p));
-  const move = (k, d) => { const n = [...photos]; [n[k], n[k + d]] = [n[k + d], n[k]]; onChange(n); };
+  const [drag, setDrag] = useState(null);          // { from, to } ao arrastar uma foto
+  const [dims, setDims] = useState({});            // tamanho real de cada foto (aviso de foto pequena)
+  const [view, setView] = useState("lista");       // "lista" (com legendas) ou "grade" (só miniaturas, para ordenar)
+  const sending = queue.filter(q => q.status === "enviando").length;
+  const room = MAX_PHOTOS - photos.length - sending;
 
-  async function add(files) {
-    const list = [...files].filter(f => f.type.startsWith("image/")).slice(0, Math.max(0, room));
-    if (!list.length) return toast(room ? "Escolha arquivos de imagem." : `A galeria já tem ${MAX_PHOTOS} fotos.`, "error");
-    if (files.length > list.length && room) toast(`Só cabem mais ${room} foto(s); as demais ficaram de fora.`, "error");
-    setBusy(list.length);
-    const added = [];
-    for (const [k, f] of list.entries()) {
-      try {
-        if (f.size > 15 * 1024 * 1024) throw new Error("Arquivo acima de 15 MB.");
-        const path = `images/lugares/${id}-f${Date.now().toString(36)}${k}.jpg`;
-        await setMedia(path, await compressImage(f), user);
-        added.push(blankPhoto(path));
-      } catch (e) { toast(`${f.name}: ${e.message || "não foi possível enviar."}`, "error"); }
-      setBusy(n => n - 1);
+  // mede as fotos para avisar quando forem pequenas demais
+  useEffect(() => {
+    photos.forEach(ph => {
+      if (dims[ph.path]) return;
+      const im = new Image();
+      im.onload = () => setDims(d => ({ ...d, [ph.path]: [im.naturalWidth, im.naturalHeight] }));
+      im.src = resolveMedia(ph.path);
+    });
+  }, [photos]); // eslint-disable-line
+
+  const upd = (k, patch) => onChange(photos.map((p, i) => i === k ? { ...p, ...patch } : p));
+  const moveTo = (from, to) => {
+    if (from === to || to < 0 || to >= photos.length) return;
+    const n = [...photos]; const [it] = n.splice(from, 1); n.splice(to, 0, it); onChange(n);
+  };
+  const setBusyOf = (path, v) => setBusy(b => { const n = { ...b }; if (v) n[path] = v; else delete n[path]; return n; });
+
+  // envia um arquivo e devolve o caminho salvo
+  async function upload(file, k = 0) {
+    if (!file.type.startsWith("image/")) throw new Error("não é uma imagem.");
+    if (file.size > 15 * 1024 * 1024) throw new Error("arquivo acima de 15 MB.");
+    const path = newPath(id, k);
+    await setMedia(path, await compressImage(file), user);
+    return path;
+  }
+  async function send(items) {
+    // até 2 envios ao mesmo tempo; cada foto entra na lista assim que termina, na ordem escolhida
+    const done = new Map();
+    let next = 0;
+    const order = items.map(it => it.key);
+    const flush = () => {
+      const ready = [];
+      while (order.length && done.has(order[0])) { const p = done.get(order.shift()); if (p) ready.push(blankPhoto(p)); }
+      if (ready.length) onChange(cur => [...cur, ...ready]);
+    };
+    async function worker() {
+      while (next < items.length) {
+        const it = items[next++];
+        try {
+          const path = await upload(it.file, next);
+          done.set(it.key, path);
+          setQueue(q => q.filter(x => x.key !== it.key));
+        } catch (e) {
+          done.set(it.key, null);
+          setQueue(q => q.map(x => x.key === it.key ? { ...x, status: "erro", error: e.message || "falha no envio." } : x));
+        }
+        flush();
+      }
     }
-    if (added.length) { onChange([...photos, ...added]); toast(added.length === 1 ? "Foto adicionada. Salve o lugar para publicar." : `${added.length} fotos adicionadas. Salve o lugar para publicar.`, "success"); }
+    await Promise.all([worker(), worker()]);
+    const ok = items.filter(it => done.get(it.key)).length;
+    if (ok) toast(ok === 1 ? "Foto enviada. Salve o lugar para publicar." : `${ok} fotos enviadas. Salve o lugar para publicar.`, "success");
+  }
+  function add(files) {
+    const all = [...files];
+    const list = all.filter(f => f.type.startsWith("image/")).slice(0, Math.max(0, room));
+    if (!list.length) return toast(room > 0 ? "Escolha arquivos de imagem." : `A galeria já tem ${MAX_PHOTOS} fotos.`, "error");
+    if (all.length > list.length) toast(room > 0 ? `Só cabem mais ${room} foto(s); as demais ficaram de fora.` : "Só arquivos de imagem são aceitos.", "error");
+    const items = list.map((file, k) => ({ key: Date.now().toString(36) + k + Math.random(), file, name: file.name, status: "enviando" }));
+    setQueue(q => [...q, ...items]);
+    send(items);
+  }
+  function retry(it) {
+    const again = { ...it, status: "enviando", error: "" };
+    setQueue(q => q.map(x => x.key === it.key ? again : x));
+    send([again]);
+  }
+
+  async function replace(k, file) {
+    const ph = photos[k]; if (!file || !ph) return;
+    setBusyOf(ph.path, "trocando");
+    try {
+      const path = await upload(file, k);
+      onChange(cur => cur.map(p => p.path === ph.path ? { ...p, path } : p));
+      setDims(d => { const n = { ...d }; delete n[ph.path]; return n; });
+      removeMedia(ph.path, user).catch(() => {});
+      toast("Foto trocada. A legenda foi mantida.", "success");
+    } catch (e) { toast(`Não foi possível trocar: ${e.message || "falha no envio."}`, "error"); }
+    setBusyOf(ph.path, null);
+  }
+  async function makeCover(k) {
+    const ph = photos[k];
+    if (!(await confirm({ title: "Usar como foto principal?", text: "Ela passa a ser a foto do topo da página e do card do lugar. A foto continua na galeria.", ok: "Usar como principal" }))) return;
+    setBusyOf(ph.path, "capa");
+    try {
+      await setMedia(placeImg(id), await mediaAsDataUrl(ph.path), user);
+      toast("Foto principal atualizada.", "success");
+    } catch (e) { toast(`Não foi possível copiar a foto: ${e.message}`, "error"); }
+    setBusyOf(ph.path, null);
   }
   async function remove(k) {
-    if (!(await confirm({ title: "Remover esta foto?", text: "Ela sai da galeria e do armazenamento.", ok: "Remover", danger: true }))) return;
     const ph = photos[k];
-    onChange(photos.filter((_, i) => i !== k));
+    if (!(await confirm({ title: "Remover esta foto?", text: "Ela sai da galeria e do armazenamento.", ok: "Remover", danger: true }))) return;
+    setBusyOf(ph.path, "removendo");
     try { await removeMedia(ph.path, user); } catch { /* já não existia */ }
+    onChange(cur => cur.filter(p => p.path !== ph.path));
+    setBusyOf(ph.path, null);
   }
+
+  // arrastar para reordenar (ponteiro: funciona com mouse e no toque)
+  const list = useRef(null);
+  function startDrag(k, e) {
+    if (busy[photos[k].path]) return;
+    e.preventDefault();
+    const items = [...list.current.querySelectorAll("[data-photo]")];
+    const boxes = items.map(r => r.getBoundingClientRect());
+    let to = k;
+    setDrag({ from: k, to: k });
+    const onMove = (ev) => {
+      const x = ev.clientX, y = ev.clientY;
+      if (view === "lista") to = boxes.filter(r => r.top + r.height / 2 < y).length;     // posição de inserção (0..n)
+      else {                                                                             // grade: antes ou depois da miniatura mais próxima
+        let best = 0, dist = Infinity;
+        boxes.forEach((r, i) => { const d = Math.hypot(r.left + r.width / 2 - x, r.top + r.height / 2 - y); if (d < dist) { dist = d; best = i; } });
+        to = x > boxes[best].left + boxes[best].width / 2 ? best + 1 : best;
+      }
+      setDrag({ from: k, to });
+      if (y < 80) window.scrollBy(0, -12); else if (y > innerHeight - 80) window.scrollBy(0, 12);
+    };
+    const onUp = () => {
+      document.removeEventListener("pointermove", onMove); document.removeEventListener("pointerup", onUp);
+      setDrag(null);
+      moveTo(k, to > k ? to - 1 : to);
+    };
+    document.addEventListener("pointermove", onMove); document.addEventListener("pointerup", onUp);
+  }
+  const BUSY_LABEL = { trocando: "Trocando…", removendo: "Removendo…", capa: "Copiando…" };
 
   return (
     <div className="a-photos">
@@ -425,33 +538,95 @@ function PhotoGallery({ id, photos, onChange }) {
         onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
         onDrop={(e) => { e.preventDefault(); setOver(false); add(e.dataTransfer.files); }}>
         <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
-        <AIcon name="image" size={22} />
-        <span>{busy ? <Busy>Enviando {busy} foto(s)…</Busy> : <>Arraste fotos para cá ou <button type="button" className="a-link" onClick={() => input.current?.click()} disabled={!room}>escolha no computador</button></>}</span>
-        <small>{photos.length} de {MAX_PHOTOS} · horizontais ou verticais · comprimidas automaticamente</small>
+        <input ref={replaceInput} type="file" accept="image/*" hidden onChange={(e) => { replace(replaceAt.current, e.target.files[0]); e.target.value = ""; }} />
+        <AIcon name="upload" size={22} />
+        <span>Arraste fotos para cá ou <button type="button" className="a-link" onClick={() => input.current?.click()} disabled={room <= 0}>escolha no computador</button></span>
+        <small>{photos.length} de {MAX_PHOTOS}{sending ? ` · enviando ${sending}` : ""} · mín. {MIN_WIDTH} px de largura · comprimidas automaticamente</small>
       </div>
-      {photos.length === 0 && <p className="a-hint">Nenhuma foto na galeria ainda.</p>}
-      <ol className="a-photo-list">
-        {photos.map((ph, k) => (
-          <li key={ph.path} className="a-photo-row">
-            <div className="a-photo-thumb"><ImageSlot src={ph.path} alt="" compact /><span className="a-photo-n">{k + 1}</span></div>
-            <div className="a-photo-fields">
-              <Input label="Legenda" value={ph.caption} onChange={(caption) => upd(k, { caption })} maxCount={160} placeholder="Ex.: O salão principal, com vista para o lago" />
-              <div className="a-form-grid">
-                <Input label="Crédito" value={ph.credit} onChange={(credit) => upd(k, { credit })} maxCount={60} placeholder="Foto: @perfil ou nome" />
-                <Input label="Descrição da imagem" value={ph.alt} onChange={(alt) => upd(k, { alt })} maxCount={140} hint="Para leitores de tela. Em branco, usa a legenda." />
-                <Input label="Link da legenda" value={ph.link} onChange={(link) => upd(k, { link: link.trim() })} placeholder="www.site.com.br/cardapio"
-                  error={ph.link && !safeUrl(ph.link) ? "Endereço inválido." : undefined} />
-                <Input label="Texto do link" value={ph.linkLabel} onChange={(linkLabel) => upd(k, { linkLabel })} maxCount={40} placeholder="Saiba mais" />
+
+      {photos.length > 1 && (
+        <div className="a-photos-bar">
+          <p className="a-hint">{view === "lista" ? <>Arraste pelo <AIcon name="grip" size={13} /> para mudar a ordem (ou use as setas).</> : "Arraste as miniaturas para mudar a ordem."} A primeira foto é a maior do mosaico.</p>
+          <div className="a-seg" role="group" aria-label="Visualização">
+            <button type="button" className={view === "lista" ? "on" : ""} aria-pressed={view === "lista"} onClick={() => setView("lista")}>Lista com legendas</button>
+            <button type="button" className={view === "grade" ? "on" : ""} aria-pressed={view === "grade"} onClick={() => setView("grade")}>Grade para ordenar</button>
+          </div>
+        </div>
+      )}
+      {view === "grade" && (
+        <ol ref={list} className={"a-photo-grid" + (drag ? " is-dragging" : "")}>
+          {photos.map((ph, k) => (
+            <li key={ph.path} data-photo={k} onPointerDown={(e) => startDrag(k, e)}
+              className={"a-photo-cell" + (drag?.from === k ? " is-drag" : "") + (drag && drag.to === k && drag.from !== k ? " drop-before" : "") + (drag && drag.to === k + 1 && k === photos.length - 1 && drag.from !== k ? " drop-after" : "")}
+              title={ph.caption || `Foto ${k + 1}`}>
+              <ImageSlot key={ph.path} src={ph.path} alt="" compact />
+              <span className="a-photo-n">{k + 1}</span>
+              {busy[ph.path] && <span className="a-photo-busy"><Loader size={26} label={BUSY_LABEL[busy[ph.path]]} /></span>}
+            </li>
+          ))}
+          {queue.filter(q => q.status === "enviando").map(it => <li key={it.key} className="a-photo-cell is-pending"><span className="a-photo-busy"><Loader size={26} label="Enviando" /></span></li>)}
+        </ol>
+      )}
+      {photos.length === 0 && !queue.length && <p className="a-hint">Nenhuma foto na galeria ainda.</p>}
+
+      {view === "lista" && <ol ref={list} className={"a-photo-list" + (drag ? " is-dragging" : "")}>
+        {photos.map((ph, k) => {
+          const b = busy[ph.path], d = dims[ph.path], small = d && d[0] < MIN_WIDTH;
+          return (
+            <li key={ph.path} data-photo={k} className={"a-photo-row" + (drag?.from === k ? " is-drag" : "") + (drag && drag.to === k && drag.from !== k ? " drop-before" : "") + (drag && drag.to === photos.length && k === photos.length - 1 && drag.from !== k ? " drop-after" : "")}
+>
+              <span className="a-photo-grip" onPointerDown={(e) => startDrag(k, e)} title="Arraste para mudar a ordem" aria-hidden="true"><AIcon name="grip" size={18} /></span>
+              <div className="a-photo-thumb">
+                <ImageSlot key={ph.path} src={ph.path} alt="" compact />
+                <span className="a-photo-n">{k + 1}</span>
+                {b && <span className="a-photo-busy"><Loader size={34} label={BUSY_LABEL[b]} /><em>{BUSY_LABEL[b]}</em></span>}
               </div>
+              <div className="a-photo-fields">
+                {d && <span className={"a-photo-size" + (small ? " warn" : "")}>{d[0]}×{d[1]} px{small ? " · foto pequena, pode ficar borrada em tela cheia" : ""}</span>}
+                <Input label="Legenda" value={ph.caption} onChange={(caption) => upd(k, { caption })} maxCount={160} placeholder="Ex.: O salão principal, com vista para o lago" />
+                <div className="a-form-grid">
+                  <Input label="Crédito" value={ph.credit} onChange={(credit) => upd(k, { credit })} maxCount={60} placeholder="Foto: @perfil ou nome" />
+                  <Input label="Descrição da imagem" value={ph.alt} onChange={(alt) => upd(k, { alt })} maxCount={140} hint="Para leitores de tela. Em branco, usa a legenda." />
+                  <Input label="Link da legenda" value={ph.link} onChange={(link) => upd(k, { link: link.trim() })} placeholder="www.site.com.br/cardapio"
+                    error={ph.link && !safeUrl(ph.link) ? "Endereço inválido." : undefined} />
+                  <Input label="Texto do link" value={ph.linkLabel} onChange={(linkLabel) => upd(k, { linkLabel })} maxCount={40} placeholder="Saiba mais" />
+                </div>
+                <div className="a-photo-tools">
+                  <Btn size="sm" icon="refresh" disabled={!!b} onClick={() => { replaceAt.current = k; replaceInput.current?.click(); }}>Trocar foto</Btn>
+                  <Btn size="sm" icon="image" disabled={!!b} onClick={() => makeCover(k)}>Usar como principal</Btn>
+                  <Btn size="sm" kind="ghost" icon="trash" disabled={!!b} onClick={() => remove(k)}>Remover</Btn>
+                </div>
+              </div>
+              <div className="a-photo-actions">
+                <Btn size="sm" kind="ghost" icon="up" aria-label="Subir" disabled={k === 0 || !!b} onClick={() => moveTo(k, k - 1)} />
+                <Btn size="sm" kind="ghost" icon="down" aria-label="Descer" disabled={k === photos.length - 1 || !!b} onClick={() => moveTo(k, k + 1)} />
+              </div>
+            </li>
+          );
+        })}
+        {queue.map(it => (
+          <li key={it.key} className={"a-photo-row a-photo-pending" + (it.status === "erro" ? " is-error" : "")}>
+            <span className="a-photo-grip" aria-hidden="true" />
+            <div className="a-photo-thumb">
+              {it.status === "enviando" ? <span className="a-photo-busy"><Loader size={34} label="Enviando" /><em>Enviando…</em></span>
+                : <span className="a-photo-busy is-error"><AIcon name="alert" size={22} /><em>Não enviada</em></span>}
             </div>
-            <div className="a-photo-actions">
-              <Btn size="sm" kind="ghost" icon="up" aria-label="Subir" disabled={k === 0} onClick={() => move(k, -1)} />
-              <Btn size="sm" kind="ghost" icon="down" aria-label="Descer" disabled={k === photos.length - 1} onClick={() => move(k, 1)} />
-              <Btn size="sm" kind="ghost" icon="trash" aria-label="Remover foto" onClick={() => remove(k)} />
+            <div className="a-photo-fields">
+              <strong className="a-photo-name">{it.name}</strong>
+              {it.status === "enviando" ? <span className="a-hint">Comprimindo e enviando a foto…</span>
+                : <span className="a-error">{it.error}</span>}
+              {it.status === "erro" && (
+                <div className="a-photo-tools">
+                  <Btn size="sm" icon="refresh" onClick={() => retry(it)}>Tentar de novo</Btn>
+                  <Btn size="sm" kind="ghost" onClick={() => setQueue(q => q.filter(x => x.key !== it.key))}>Descartar</Btn>
+                </div>
+              )}
             </div>
+            <div className="a-photo-actions" />
           </li>
         ))}
-      </ol>
+      </ol>}
+      {view === "grade" && queue.some(q => q.status === "erro") && <p className="a-error">Algumas fotos não foram enviadas. Veja em “Lista com legendas” para tentar de novo.</p>}
     </div>
   );
 }
