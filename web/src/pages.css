@@ -1232,3 +1232,75 @@ a.btn-pill { text-decoration: none; }
 .my-ev-status.is-ok { background: #CDEFE2; color: #0E6B4F; }
 .my-ev-status.is-no { background: #EEECF3; color: #5E5873; }
 @media (max-width: 900px) { .ev-side { position: static; } }
+
+/* =================================================================
+   Fotos do lugar: mosaico (página) + galeria em tela cheia (components/lightbox.jsx)
+   ================================================================= */
+.photo-mosaic { display: grid; gap: 8px; height: 420px; }
+.photo-mosaic.n-1 { grid-template-columns: 1fr; }
+.photo-mosaic.n-2 { grid-template-columns: 1fr 1fr; }
+.photo-mosaic.n-3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+.photo-mosaic.n-4, .photo-mosaic.n-5 { grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.photo-mosaic.n-3 .photo-tile:first-child, .photo-mosaic.n-4 .photo-tile:first-child, .photo-mosaic.n-5 .photo-tile:first-child { grid-row: span 2; }
+.photo-mosaic.n-4 .photo-tile:nth-child(4) { grid-column: span 2; }
+.photo-tile { position: relative; display: block; min-width: 0; padding: 0; border: 0; border-radius: 8px; overflow: hidden; background: var(--primary-soft); cursor: zoom-in; }
+.photo-tile .img-slot { position: absolute; inset: 0; }
+.photo-tile img { transition: transform .35s ease; }
+.photo-tile:hover img, .photo-tile:focus-visible img { transform: scale(1.04); }
+.photo-tile:focus-visible { outline: 3px solid var(--c-teal); outline-offset: 2px; }
+.photo-tile-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 12px 10px; font-size: 12.5px; line-height: 1.35; color: #fff; text-align: left;
+  background: linear-gradient(to top, rgba(20,14,48,.75), rgba(20,14,48,0)); opacity: 0; transition: opacity .2s; }
+.photo-tile:hover .photo-tile-cap, .photo-tile:focus-visible .photo-tile-cap { opacity: 1; }
+.photo-tile-more { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(30,21,80,.55); color: #fff; font-size: 20px; font-weight: 700; }
+.h2-head button.h2-link { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; }
+@media (max-width: 760px) {
+  .photo-mosaic, .photo-mosaic.n-3, .photo-mosaic.n-4, .photo-mosaic.n-5 { height: auto; grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-auto-rows: 130px; }
+  .photo-mosaic.n-1 { grid-template-columns: 1fr; grid-auto-rows: 240px; }
+  .photo-mosaic .photo-tile:first-child { grid-column: 1 / -1; grid-row: auto; height: 230px; }
+  .photo-mosaic.n-4 .photo-tile:nth-child(4) { grid-column: auto; }
+  .photo-mosaic.n-2 .photo-tile:nth-child(2), .photo-mosaic.n-4 .photo-tile:nth-child(4) { grid-column: 1 / -1; }
+  .photo-tile-cap { opacity: 1; }
+}
+
+/* Galeria em tela cheia */
+body.lb-lock { overflow: hidden; }
+.lb { position: fixed; inset: 0; z-index: 300; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; background: #100B26; color: #fff; isolation: isolate;
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+.lb-top { display: flex; align-items: center; gap: 16px; padding: 14px 18px; }
+.lb-count { font-size: 13px; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.75); min-width: 60px; }
+.lb-title { flex: 1; min-width: 0; font-family: var(--serif); font-size: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-tools { display: flex; gap: 8px; margin-left: auto; }
+.lb-btn { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.06); color: #fff; cursor: pointer; }
+.lb-btn:hover { background: rgba(255,255,255,.16); }
+.lb-stage { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; min-height: 0; padding: 0 8px; }
+.lb-figure { grid-column: 2; min-width: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; height: 100%; min-height: 0; padding-bottom: 8px; }
+.lb-frame { min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 6px; cursor: zoom-in; }
+.lb-frame.is-zoom { cursor: zoom-out; }
+.lb-frame img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; transition: transform .25s ease; animation: lb-in .25s ease; }
+@keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
+.lb-caption { max-width: 760px; justify-self: center; text-align: center; display: grid; gap: 6px; }
+.lb-caption p { margin: 0; font-size: 15px; line-height: 1.45; }
+.lb-caption-meta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 16px; font-size: 13px; }
+.lb-credit { color: rgba(255,255,255,.65); }
+.lb-link { display: inline-flex; align-items: center; gap: 6px; color: #fff; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.lb-nav { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 999px; border: 0; background: rgba(255,255,255,.1); color: #fff; cursor: pointer; justify-self: center; }
+.lb-nav:hover { background: rgba(255,255,255,.22); }
+.lb-prev { grid-column: 1; grid-row: 1; }
+.lb-next { grid-column: 3; grid-row: 1; }
+.lb-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 10px 18px 16px; justify-content: safe center; scrollbar-width: thin; }
+.lb-thumb { flex: none; width: 76px; height: 54px; padding: 0; border: 2px solid transparent; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,.08); opacity: .55; cursor: pointer; transition: opacity .15s; }
+.lb-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lb-thumb:hover { opacity: .85; }
+.lb-thumb.on { opacity: 1; border-color: var(--c-magenta); }
+.lb button:focus-visible, .lb a:focus-visible { outline: 3px solid var(--c-teal); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .lb { overflow: hidden; }
+  .lb-stage { grid-template-columns: minmax(0, 1fr); padding: 0; overflow: hidden; }
+  .lb-figure { grid-column: 1; }
+  .lb-nav { position: absolute; top: 40%; width: 40px; height: 40px; background: rgba(0,0,0,.35); z-index: 2; }
+  .lb-prev { left: 8px; } .lb-next { right: 8px; }
+  .lb-caption { padding: 0 16px; }
+  .lb-thumb { width: 60px; height: 44px; }
+  .lb-title { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .lb-frame img, .photo-tile img { transition: none; animation: none; } }

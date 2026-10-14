@@ -10,6 +10,7 @@ import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
 import { whatsappLink } from "./detalhe.jsx";
 import { NotFound } from "./notfound.jsx";
+import { Lightbox } from "../components/lightbox.jsx";
 import { slugify, hasMedia } from "../admin/store.js";
 import { eventPath } from "../router.js";
 import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, CheckRow, ResultsBar, ActiveChips, PRICE_LEVELS, eventPriceLevel, sortBy, fslug } from "../filters.jsx";
@@ -167,7 +168,7 @@ export function Evento({ id }) {
   const e = EVENTS.find(x => x.id === id);
   const [tab, setTab] = useState("visao");
   const [shared, setShared] = useState(false);
-  const [shift, setShift] = useState(0);
+  const [lb, setLb] = useState(null);           // galeria em tela cheia
   if (!e) return <NotFound />;
   // horário: o do dia de hoje (se o evento acontece hoje); dá para escolher outro dia
   const days = eventDays(e);
@@ -187,7 +188,8 @@ export function Evento({ id }) {
   // só as fotos que foram enviadas; sem nenhuma, a seção some
   const gallery = eventGallery(e.id).filter(hasMedia);
   const showFotos = e.showGallery !== false && gallery.length > 0;
-  const shown = gallery.map((_, i) => gallery[(i + shift) % gallery.length]);
+  const slides = [...(hasMedia(eventImg(e.id)) ? [eventImg(e.id)] : []), ...gallery].map(path => ({ path }));
+  const coverOffset = slides.length - gallery.length;
   const tabs = [["visao", "Visão geral"], ...(reasons.length ? [["porque", "Por que ir"]] : []), ...(showFotos ? [["fotos", "Fotos"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
   const calWhere = [where, address].filter(Boolean).join(", ");
   const pageUrl = typeof location !== "undefined" ? location.origin + eventPath(e) : "";
@@ -333,22 +335,19 @@ export function Evento({ id }) {
         {showFotos && (
           <section className="place-row" id="sec-fotos">
             <div>
-              <div className="h2-head"><h2>Fotos do evento</h2></div>
-              <div className="gallery gallery-wide">
-                {shown.map((src, i) => (
-                  <ImageSlot key={src} className="gallery-img" src={src} alt={`${e.title} — foto ${i + 1}`} hint="3:4">
-                    {i === 0 && (
-                      <div className="gallery-nav">
-                        <button aria-label="Foto anterior" onClick={() => setShift((shift + gallery.length - 1) % gallery.length)}><Icon name="left" size={16} /></button>
-                        <button aria-label="Próxima foto" onClick={() => setShift((shift + 1) % gallery.length)}><Icon name="right" size={16} /></button>
-                      </div>
-                    )}
-                  </ImageSlot>
+              <div className="h2-head"><h2>Fotos do evento</h2>{slides.length > 1 && <button type="button" className="h2-link" onClick={() => setLb(0)}>Ver todas as fotos ({slides.length}) <Icon name="arrow" size={16} /></button>}</div>
+              <div className={"photo-mosaic n-" + Math.min(gallery.length, 5)}>
+                {gallery.slice(0, 5).map((src, k) => (
+                  <button key={src} type="button" className="photo-tile" onClick={() => setLb(k + coverOffset)} aria-label={`${e.title} — foto ${k + 1}`}>
+                    <ImageSlot src={src} alt={`${e.title} — foto ${k + 1}`} />
+                    {k === 4 && gallery.length > 5 && <span className="photo-tile-more">+{gallery.length - 5} fotos</span>}
+                  </button>
                 ))}
               </div>
             </div>
           </section>
         )}
+        {lb != null && <Lightbox photos={slides} index={lb} title={e.title} onClose={() => setLb(null)} />}
 
         {/* Onde fica (70%) + card do lugar (30%) */}
         <section className="place-row split-70-30" id="sec-chegar">
