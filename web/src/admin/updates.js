@@ -273,6 +273,84 @@ function noPrices(d) {
 }
 
 // Em ordem de aplicação. Nunca altere o id de uma atualização já publicada.
+
+// ---------------------------------------------------------------------
+// Cadastro novo de Sorocaba (public/data/cadastro-sorocaba-2026-10.json):
+// troca todo o catálogo de lugares pelo do arquivo, mantendo só o Rino Beer.
+// Os lugares apagados ficam guardados em db.backups (fora do site público).
+// Lugares que já existiam e voltam no arquivo mantêm id, endereço na URL e fotos.
+// ---------------------------------------------------------------------
+const IMPORT_FILE = "/data/cadastro-sorocaba-2026-10.json";
+const KEEP = ["rino-beer"];
+const SAME_PLACE = {           // lugar atual → slug no arquivo
+  "fraters-pub": "frater-s-pub",
+  "carneada": "carneada-restaurante-bar-y-parrila",
+  "sophies-bbq": "sophie-s-bbq",
+  "parque-das-aguas": "parque-das-aguas",
+  "parque-agua-vermelha": "parque-natural-da-agua-vermelha-joao-cancio-pereira",
+};
+// só no site oficial: as prévias usam o mesmo banco e o servidor de testes tem a semente
+export const importAllowed = () => {
+  try { if (sessionStorage.getItem("os-force-import") === "1") return true; } catch { /* sem storage */ }
+  return typeof location !== "undefined" && /(^|\.)ondesair\.com\.br$/.test(location.hostname);
+};
+
+export function importSorocaba(d, at, rows) {
+  const BY = "Importação · Onde Sair";
+  const city = d.cities.find(c => c.id === "sorocaba");
+  const bySlug = new Map(rows.map(r => [r.slug, r]));
+  const reuse = new Map();       // slug do arquivo → lugar atual
+  for (const [id, slug] of Object.entries(SAME_PLACE)) {
+    const old = d.places.find(p => p.id === id);
+    if (old && bySlug.has(slug)) reuse.set(slug, old);
+  }
+  const removed = d.places.filter(p => !KEEP.includes(p.id) && ![...reuse.values()].includes(p));
+  const kept = d.places.filter(p => KEEP.includes(p.id));
+  d.backups = [...(d.backups || []), { id: "lugares-" + at, at, label: "Lugares antes do cadastro novo de Sorocaba", places: clone(d.places.filter(p => !KEEP.includes(p.id))) }];
+
+  const ids = new Set(kept.map(p => p.id)), slugs = new Set(kept.map(p => p.slug));
+  const uniq = (set, v) => { let x = v, i = 2; while (set.has(x)) x = `${v}-${i++}`; set.add(x); return x; };
+  const fresh = rows.map(r => {
+    const old = reuse.get(r.slug);
+    const id = old ? old.id : uniq(ids, r.slug);
+    if (old) ids.add(id);
+    const slug = old ? uniq(slugs, old.slug) : uniq(slugs, r.slug);
+    const ok = !!(r.bairro && r.end);
+    return {
+      id, slug, name: r.name, sub: r.sub || "", cuisine: r.cuisine || "", tagline: r.tagline || "", desc: r.desc || "",
+      dica: r.dica || "", by: r.by || "Equipe Onde Sair", note: r.note || "", reasons: clone(r.reasons || []),
+      type: r.type, open: r.open || "", phone: r.phone || "", whatsapp: r.whatsapp || "", site: r.site || "", insta: r.insta || "",
+      momento: [...(r.momento || [])], ambiente: [...(r.ambiente || [])], affs: [...(r.affs || [])], tags: [...(r.tags || [])],
+      showGallery: old ? !!old.showGallery : !!r.showGallery, photos: old ? clone(old.photos || []) : [],
+      end: r.end || "", city: r.city || "sorocaba", bairro: r.bairro || "", cep: r.cep || "", geo: r.geo ? { ...r.geo } : null, placeId: r.placeId || "",
+      map: old?.map ? { ...old.map } : { x: 50, y: 50, label: "" },
+      seo: { title: r.seo?.title || "", desc: r.seo?.desc || "" },
+      status: ok ? "publicado" : "rascunho",
+      createdAt: old?.createdAt || at, updatedAt: at, updatedBy: BY, ...(ok ? { publishedAt: old?.publishedAt || at } : {}),
+    };
+  });
+  d.places = [...kept, ...fresh];
+
+  // referências aos lugares apagados
+  const gone = new Map(removed.map(p => [p.id, p]));
+  if (d.home?.tips) d.home = { ...d.home, tips: d.home.tips.filter(t => !gone.has(t.place)) };
+  const dropFig = (body = "") => body.replace(/<figure class="place" data-place="([\w-]+)"><\/figure>/g, (m, id) => gone.has(id) ? "" : m);
+  d.stories = (d.stories || []).map(s => s.places?.some(id => gone.has(id)) || dropFig(s.body) !== (s.body || "")
+    ? { ...s, places: (s.places || []).filter(id => !gone.has(id)), ...(s.body != null ? { body: dropFig(s.body) } : {}) } : s);
+  d.roteiros = (d.roteiros || []).map(r => !(r.steps || []).some(s => gone.has(s.place)) ? r : {
+    ...r, steps: r.steps.map(s => gone.has(s.place) ? { ...s, place: "", title: s.title || gone.get(s.place).name, bairro: s.bairro || gone.get(s.place).bairro || "" } : s),
+  });
+  d.events = (d.events || []).map(e => gone.has(e.venue) ? { ...e, venue: "", venueName: e.venueName || gone.get(e.venue).name } : e);
+
+  // bairros novos na cidade
+  if (city) {
+    const missing = [...new Set(fresh.map(p => p.bairro).filter(Boolean))].filter(b => !city.bairros.some(x => norm(x) === norm(b)));
+    if (missing.length) d.cities = d.cities.map(c => c === city ? { ...c, bairros: [...c.bairros, ...missing].sort((a, b) => a.localeCompare(b, "pt-BR")) } : c);
+  }
+  return [`${fresh.length} lugares`, `${removed.length} removidos (guardados no backup)`];
+}
+const clone = (x) => JSON.parse(JSON.stringify(x));
+
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
   { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
@@ -287,6 +365,10 @@ const UPDATES = [
   { id: "2026-10-eventos", label: "eventos: categorias e agenda de exemplo", apply: seedEvents },
   { id: "2026-10-vibes-e-tipos", label: "vibes e tipos de lugar oficiais", apply: taxonomy2026 },
   { id: "2026-10-sem-precos", label: "textos de exemplo sem menção a preço", apply: noPrices },
+  // assíncrona: baixa o arquivo; só o painel aplica, e só no site oficial (ver importAllowed)
+  { id: "2026-10-cadastro-sorocaba", label: "cadastro novo de lugares de Sorocaba", async: true, allowed: importAllowed,
+    load: () => fetch(IMPORT_FILE, { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error("arquivo " + r.status); return r.json(); }),
+    apply: importSorocaba },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.
@@ -295,8 +377,23 @@ export function applyUpdates(d, at = new Date().toISOString()) {
   const done = new Set(d.updates || []);
   const applied = [];
   for (const u of UPDATES) {
-    if (done.has(u.id)) continue;
+    if (done.has(u.id) || u.async) continue;
     const names = u.apply(d, at);
+    d.updates = [...(d.updates || []), u.id];
+    applied.push({ id: u.id, label: u.label, names });
+  }
+  return applied;
+}
+
+// Atualizações que dependem de baixar dados (só no painel do administrador)
+export async function applyAsyncUpdates(d, at = new Date().toISOString()) {
+  const done = new Set(d.updates || []);
+  const applied = [];
+  for (const u of UPDATES) {
+    if (!u.async || done.has(u.id) || (u.allowed && !u.allowed())) continue;
+    let data;
+    try { data = await u.load(); } catch { continue; }      // tenta de novo na próxima abertura
+    const names = u.apply(d, at, data);
     d.updates = [...(d.updates || []), u.id];
     applied.push({ id: u.id, label: u.label, names });
   }

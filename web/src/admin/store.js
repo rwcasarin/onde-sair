@@ -14,7 +14,7 @@ import {
   VIBE_TO_ROTEIRO, BRAND_VALUES, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS, RADAR_CATEGORIES, TYPES, SEED_TYPES,
   EVENTS, EVENT_CATEGORIES, SEED_EVENT_CATEGORIES,
 } from "../data.js";
-import { applyUpdates } from "./updates.js";
+import { applyUpdates, applyAsyncUpdates } from "./updates.js";
 
 const KEY = "onde-sair-cms-v1";
 const SESSION_KEY = "onde-sair-cms-session";
@@ -243,7 +243,7 @@ export async function adminLoad() {
   adminLoaded = true;
   // conteúdo novo do código (updates.js): grava no servidor na primeira carga de um administrador,
   // único perfil que pode mexer em cidades e publicar tudo de uma vez
-  if (can(r.user, "settings.edit") && logUpdates(db, applyUpdates(db))) { syncPublic(); notify(); await pushRemote(); return; }
+  if (can(r.user, "settings.edit") && logUpdates(db, [...applyUpdates(db), ...await applyAsyncUpdates(db)])) { syncPublic(); notify(); await pushRemote(); return; }
   notify();
 }
 
