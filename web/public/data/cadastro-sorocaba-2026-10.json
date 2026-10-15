@@ -101,7 +101,7 @@
     "placeId": "ChIJUfF0O2Fhz5QRH1ajgoBHr6s"
   },
   {
-    "name": "Bom Beef Burgers Sorocaba",
+    "name": "Bom Beef Burgers",
     "slug": "bom-beef-burgers-sorocaba",
     "sub": "Hamburgueria",
     "cuisine": "Hambúrguer",
@@ -153,7 +153,7 @@
     "placeId": "ChIJ14dXZVKLxZQRrnCJIFpmrv4"
   },
   {
-    "name": "Restaurante Horse BBQ - Smoke´n Grill",
+    "name": "Horse BBQ Smoke'n Grill",
     "slug": "restaurante-horse-bbq-smoke-n-grill",
     "sub": "Smoke & grill",
     "cuisine": "Grill e churrasco",
@@ -212,7 +212,7 @@
     },
     "placeId": "ChIJKT_fR6hhz5QRw9IgdNDVEG8",
     "seo": {
-      "title": "Restaurante Horse BBQ - Smoke´n Grill · Onde Sair"
+      "title": "Horse BBQ Smoke'n Grill · Onde Sair"
     }
   },
   {
@@ -482,7 +482,7 @@
     "placeId": "ChIJ570-ynphz5QRhqbhIp4Smg8"
   },
   {
-    "name": "Izumi - Culinária Japonesa",
+    "name": "Izumi",
     "slug": "izumi-culinaria-japonesa",
     "sub": "Japonês",
     "cuisine": "Japonesa",
@@ -823,7 +823,7 @@
     "placeId": "ChIJKawRQbb1xZQRBQHVxcOvb-M"
   },
   {
-    "name": "Raffa & Gio | Pizza Napoletana | Unidade Jardim Paulistano",
+    "name": "Raffa & Gio",
     "slug": "raffa-gio-pizza-napoletana-unidade-jardim-paulistano",
     "sub": "Pizzaria napolitana",
     "cuisine": "Pizza napolitana",
@@ -880,7 +880,7 @@
     "placeId": "ChIJjd0Tio6LxZQRiRVVl3HkU_o"
   },
   {
-    "name": "Janela Bar | Sorocaba",
+    "name": "Janela Bar",
     "slug": "janela-bar-sorocaba",
     "sub": "Bar",
     "cuisine": "Bar e música ao vivo",
@@ -998,7 +998,7 @@
     "placeId": "ChIJKQQWWpaKxZQRoLDKTQQvOvI"
   },
   {
-    "name": "Na Praça - Gastronomia ao Ar Livre",
+    "name": "Na Praça",
     "slug": "na-praca-gastronomia-ao-ar-livre",
     "sub": "Praça de alimentação",
     "cuisine": "Gastronomia variada",
@@ -1056,11 +1056,11 @@
     },
     "placeId": "ChIJRWfVLKeLxZQR44p29LqfBak",
     "seo": {
-      "title": "Na Praça - Gastronomia ao Ar Livre · Onde Sair"
+      "title": "Na Praça · Onde Sair"
     }
   },
   {
-    "name": "Vino Sorocaba",
+    "name": "Vino",
     "slug": "vino-sorocaba",
     "sub": "Restaurante",
     "cuisine": "Contemporânea",
@@ -1301,7 +1301,7 @@
     "placeId": "ChIJLStcPrn0xZQRbEnYks40bGc"
   },
   {
-    "name": "Carneada - Restaurante, Bar y Parrila",
+    "name": "Carneada",
     "slug": "carneada-restaurante-bar-y-parrila",
     "sub": "Parrilla",
     "cuisine": "Carnes e parrilla",
@@ -1360,7 +1360,7 @@
     "placeId": "ChIJ9a1Yl9aLxZQRutJN7TPKz9M"
   },
   {
-    "name": "Casa da Frida Mexicanos e Porções",
+    "name": "Casa da Frida",
     "slug": "casa-da-frida-mexicanos-e-porcoes",
     "sub": "Mexicano",
     "cuisine": "Mexicana",
@@ -1419,7 +1419,7 @@
     },
     "placeId": "ChIJE4dmhhdgz5QR9jpvQkJkopQ",
     "seo": {
-      "title": "Casa da Frida Mexicanos e Porções · Onde Sair"
+      "title": "Casa da Frida · Onde Sair"
     }
   },
   {
@@ -1542,7 +1542,7 @@
     "placeId": "ChIJia8QGreKxZQRe_sSKSv8LV4"
   },
   {
-    "name": "Kaori Ramen - Ya - Casa de Ramen",
+    "name": "Kaori Ramen-Ya",
     "slug": "kaori-ramen-ya-casa-de-ramen-lamen-restaurante-japones",
     "sub": "Casa de ramen",
     "cuisine": "Japonesa",
@@ -1598,11 +1598,11 @@
     },
     "placeId": "ChIJTTsoUHj1xZQRM1ub9AhaVG4",
     "seo": {
-      "title": "Kaori Ramen - Ya - Casa de Ramen · Onde Sair"
+      "title": "Kaori Ramen-Ya · Onde Sair"
     }
   },
   {
-    "name": "Bonaparma Restaurante & Pizzaria",
+    "name": "Bonaparma",
     "slug": "bonaparma-restaurante-pizzaria",
     "sub": "Italiano",
     "cuisine": "Italiana",
@@ -1660,7 +1660,7 @@
     "placeId": "ChIJJV0xz7mKxZQR8FFugQZ8QNk"
   },
   {
-    "name": "Restaurante Yoshi's | Shopping Iguatemi",
+    "name": "Yoshi's",
     "slug": "restaurante-yoshi-s-shopping-iguatemi",
     "sub": "Japonês",
     "cuisine": "Japonesa",
@@ -1717,7 +1717,7 @@
     },
     "placeId": "ChIJOZE5LW-KxZQRawUjC4CdcOc",
     "seo": {
-      "title": "Restaurante Yoshi's | Shopping Iguatemi · Onde Sair"
+      "title": "Yoshi's · Onde Sair"
     }
   },
   {
@@ -1843,7 +1843,7 @@
     "placeId": "ChIJbzep4r2KxZQRjQV_OM-y2VQ"
   },
   {
-    "name": "Naomi Culinária Japonesa",
+    "name": "Naomi",
     "slug": "naomi-culinaria-japonesa",
     "sub": "Japonês",
     "cuisine": "Japonesa",
@@ -1904,7 +1904,7 @@
     "placeId": "ChIJ69kcXJGKxZQR9mcwzSiHc4g"
   },
   {
-    "name": "Restaurante Vecchio Cancian Sorocaba",
+    "name": "Vecchio Cancian",
     "slug": "restaurante-vecchio-cancian-sorocaba",
     "sub": "Restaurante",
     "cuisine": "Brasileira",
@@ -1963,7 +1963,7 @@
     },
     "placeId": "ChIJEeQXIzL1xZQRibFO1OPVtbg",
     "seo": {
-      "title": "Restaurante Vecchio Cancian Sorocaba · Onde Sair"
+      "title": "Vecchio Cancian · Onde Sair"
     }
   },
   {
@@ -2324,7 +2324,7 @@
     "placeId": "ChIJrdn65Kphz5QRnG6UJkWr16o"
   },
   {
-    "name": "Jaws Burger Sorocaba",
+    "name": "Jaws Burger",
     "slug": "jaws-burger-sorocaba",
     "sub": "Hamburgueria",
     "cuisine": "Hambúrguer",
@@ -2383,7 +2383,7 @@
     "placeId": "ChIJUQLN6keLxZQRBA9CfooZaew"
   },
   {
-    "name": "The Rock Burgers – Sorocaba",
+    "name": "The Rock Burgers",
     "slug": "the-rock-burgers-sorocaba",
     "sub": "Hamburgueria artesanal",
     "cuisine": "Hambúrguer artesanal",
@@ -2553,7 +2553,7 @@
     "placeId": "ChIJW6DWjmmKxZQR6FDYBaXurko"
   },
   {
-    "name": "Igor´s Costela",
+    "name": "Igor's Costela",
     "slug": "igor-s-costela",
     "sub": "Costelaria",
     "cuisine": "Costela",
@@ -2675,7 +2675,7 @@
     "placeId": "ChIJ9QVOz4CLxZQRYZOPduZ5suY"
   },
   {
-    "name": "Alemão Burger - Hamburgueria Sorocaba",
+    "name": "Alemão Burger",
     "slug": "alemao-burger-hamburgueria-sorocaba",
     "sub": "Hamburgueria",
     "cuisine": "Hambúrguer",
@@ -2840,7 +2840,7 @@
     "placeId": "ChIJNRrTZz6LxZQR1ZzoYHNBNTE"
   },
   {
-    "name": "Oca Burger - Mangal",
+    "name": "Oca Burger Mangal",
     "slug": "oca-burger-mangal",
     "sub": "Hamburgueria",
     "cuisine": "Hambúrguer",
@@ -2901,7 +2901,7 @@
     "placeId": "ChIJMTZ6EcCKxZQRuzndS748Sso"
   },
   {
-    "name": "Oca Burger - Campolim",
+    "name": "Oca Burger Campolim",
     "slug": "oca-burger-campolim",
     "sub": "Hamburgueria artesanal",
     "cuisine": "Hambúrguer artesanal",
@@ -3081,7 +3081,7 @@
     "placeId": "ChIJTZ4Ajn2LxZQR5eDsCMq5Tg0"
   },
   {
-    "name": "Oca Burger - Alto da Boa Vista",
+    "name": "Oca Burger Alto da Boa Vista",
     "slug": "oca-burger-alto-da-boa-vista",
     "sub": "Hamburgueria",
     "cuisine": "Hambúrguer",
@@ -3141,7 +3141,7 @@
     },
     "placeId": "ChIJwU2oipphz5QRG22Yo84R4_s",
     "seo": {
-      "title": "Oca Burger - Alto da Boa Vista · Onde Sair"
+      "title": "Oca Burger Alto da Boa Vista · Onde Sair"
     }
   },
   {
@@ -3376,7 +3376,7 @@
     "placeId": "ChIJtyxYKANgz5QRTUtJqZ-ZODg"
   },
   {
-    "name": "Bamberg Express Sorocaba",
+    "name": "Bamberg Express",
     "slug": "bamberg-express-sorocaba",
     "sub": "Bar",
     "cuisine": "Bar",
@@ -3435,7 +3435,7 @@
     "placeId": "ChIJzWPUN0qLxZQRzT23jeNxgX0"
   },
   {
-    "name": "Cerveja Los Gatos - Toca Los Gatos",
+    "name": "Toca Los Gatos",
     "slug": "cerveja-los-gatos-toca-los-gatos",
     "sub": "Microcervejaria",
     "cuisine": "Cerveja artesanal",
@@ -3494,7 +3494,7 @@
     },
     "placeId": "ChIJjcFdGeNfz5QR-nxrIMIjJZY",
     "seo": {
-      "title": "Cerveja Los Gatos - Toca Los Gatos · Onde Sair"
+      "title": "Toca Los Gatos · Onde Sair"
     }
   },
   {
@@ -3893,7 +3893,7 @@
     "placeId": "ChIJn0YJHBZgz5QRZKzYmvwlP9w"
   },
   {
-    "name": "Petra Bar Wanel Ville*",
+    "name": "Petra Bar",
     "slug": "petra-bar-wanel-ville",
     "sub": "Bar",
     "cuisine": "Bar",
@@ -3953,7 +3953,7 @@
     "placeId": "ChIJVxWMpmb1xZQRuzV75R0J2Bk"
   },
   {
-    "name": "Choperia Cervogia | Grupo Espaço Campolim",
+    "name": "Choperia Cervogia",
     "slug": "choperia-cervogia-grupo-espaco-campolim",
     "sub": "Choperia",
     "cuisine": "Chope e petiscos",
@@ -4013,7 +4013,7 @@
     },
     "placeId": "ChIJD0epaV6LxZQRITF-jaFs0tE",
     "seo": {
-      "title": "Choperia Cervogia | Grupo Espaço Campolim · Onde Sair"
+      "title": "Choperia Cervogia · Onde Sair"
     }
   },
   {
@@ -4314,7 +4314,7 @@
     "placeId": "ChIJW04UhaiLxZQRlZv3O4T71LE"
   },
   {
-    "name": "Exquina Botequim - Bar / Sorocaba",
+    "name": "Exquina Botequim",
     "slug": "exquina-botequim-bar-sorocaba",
     "sub": "Botequim",
     "cuisine": "Boteco e música ao vivo",
@@ -4375,7 +4375,7 @@
     },
     "placeId": "ChIJhWHsJ8mLxZQR15xBFvMAGc4",
     "seo": {
-      "title": "Exquina Botequim - Bar / Sorocaba · Onde Sair"
+      "title": "Exquina Botequim · Onde Sair"
     }
   },
   {
@@ -4439,7 +4439,7 @@
     "placeId": "ChIJlY5WBdKLxZQRVG_3bbRq-1Y"
   },
   {
-    "name": "Estação Zero15 Sorocaba",
+    "name": "Estação Zero15",
     "slug": "estacao-zero15-sorocaba",
     "sub": "Bar",
     "cuisine": "Bar e música ao vivo",
@@ -4560,7 +4560,7 @@
     "placeId": "ChIJ0WSVOpqKxZQR7KAKQ7LgEsA"
   },
   {
-    "name": "Cão Véio Sorocaba",
+    "name": "Cão Véio",
     "slug": "cao-veio-sorocaba",
     "sub": "Gastropub",
     "cuisine": "Pub e petiscos",
@@ -4674,7 +4674,7 @@
     "placeId": "ChIJIQjStRtgz5QRuNHxviGsWcw"
   },
   {
-    "name": "Flow Balada, Bar e Restaurante Sorocaba",
+    "name": "Flow",
     "slug": "flow-balada-bar-e-restaurante-sorocaba",
     "sub": "Balada e bar",
     "cuisine": "Bar, balada e restaurante",
@@ -4796,7 +4796,7 @@
     "placeId": "ChIJTZ1JKQOLxZQRsVZF-6iuH5w"
   },
   {
-    "name": "Jack Pub Sorocaba",
+    "name": "Jack Pub",
     "slug": "jack-pub-sorocaba",
     "sub": "Pub irlandês",
     "cuisine": "Pub e petiscos",
@@ -5035,7 +5035,7 @@
     "placeId": "ChIJ8cW4T8KLxZQRioHlgSkUkKE"
   },
   {
-    "name": "Cervejaria e Restaurante 3 Américas",
+    "name": "Cervejaria 3 Américas",
     "slug": "cervejaria-e-restaurante-3-americas",
     "sub": "Cervejaria e restaurante",
     "cuisine": "Cerveja e comida",
@@ -5091,7 +5091,7 @@
     },
     "placeId": "ChIJZ7YaPvmLxZQRlsmKG5f9tB4",
     "seo": {
-      "title": "Cervejaria e Restaurante 3 Américas · Onde Sair"
+      "title": "Cervejaria 3 Américas · Onde Sair"
     }
   },
   {
@@ -5218,7 +5218,7 @@
     "placeId": "ChIJM7d0VwRgz5QR7HVdsZnxo7s"
   },
   {
-    "name": "Red Bar Sorocaba",
+    "name": "Red Bar",
     "slug": "red-bar-sorocaba",
     "sub": "Bar",
     "cuisine": "Bar e música ao vivo",
@@ -5449,7 +5449,7 @@
     "placeId": "ChIJk8-NtYmLxZQR1ppSVvqcQ4k"
   },
   {
-    "name": "O Sorvetão - Sorocaba",
+    "name": "O Sorvetão",
     "slug": "o-sorvetao-sorocaba",
     "sub": "Sorveteria",
     "cuisine": "Sorvetes",
@@ -5765,7 +5765,7 @@
     "placeId": "ChIJb_UYLZeKxZQR3BIVFwDHYzM"
   },
   {
-    "name": "Gelato Borelli Sorocaba - Jardim Paulistano",
+    "name": "Gelato Borelli Jardim Paulistano",
     "slug": "gelato-borelli-sorocaba-jardim-paulistano",
     "sub": "Sorveteria",
     "cuisine": "Gelato",
@@ -5812,7 +5812,7 @@
     },
     "placeId": "ChIJI4BLg6OLxZQRYwxPWG3Gvsw",
     "seo": {
-      "title": "Gelato Borelli Sorocaba - Jardim Paulistano · Onde Sair"
+      "title": "Gelato Borelli Jardim Paulistano · Onde Sair"
     }
   },
   {
@@ -5868,7 +5868,7 @@
     "placeId": "ChIJc76f0JCKxZQR0-9mBh1Q6us"
   },
   {
-    "name": "Sorvetes Urla - Wanel Ville",
+    "name": "Sorvetes Urla",
     "slug": "sorvetes-urla-wanel-ville",
     "sub": "Sorveteria",
     "cuisine": "Sorvetes",
@@ -5913,7 +5913,7 @@
     "placeId": "ChIJq70_-9T1xZQRwBsCbRWTMwg"
   },
   {
-    "name": "Marsala Campolim. Café & Restaurante",
+    "name": "Marsala Campolim",
     "slug": "marsala-campolim-cafe-restaurante",
     "sub": "Café e restaurante",
     "cuisine": "Café e restaurante",
@@ -5969,7 +5969,7 @@
     },
     "placeId": "ChIJeQghv8OLxZQRtYPhFMst25w",
     "seo": {
-      "title": "Marsala Campolim. Café & Restaurante · Onde Sair"
+      "title": "Marsala Campolim · Onde Sair"
     }
   },
   {
@@ -6020,7 +6020,7 @@
     "placeId": "ChIJ4aTwRAD1xZQRU_YGB2mLOnk"
   },
   {
-    "name": "Gelato Borelli Sorocaba - Jardim Astro",
+    "name": "Gelato Borelli Jardim Astro",
     "slug": "gelato-borelli-sorocaba-jardim-astro",
     "sub": "Sorveteria",
     "cuisine": "Gelato",
@@ -6066,7 +6066,7 @@
     },
     "placeId": "ChIJVf-D-AZhz5QRyIzn9tc_8iU",
     "seo": {
-      "title": "Gelato Borelli Sorocaba - Jardim Astro · Onde Sair"
+      "title": "Gelato Borelli Jardim Astro · Onde Sair"
     }
   },
   {
@@ -6231,7 +6231,7 @@
     "placeId": "ChIJaxYMEOiLxZQRthY0nTkO1UY"
   },
   {
-    "name": "Betina Pie & Coffee Campolim",
+    "name": "Betina Pie & Coffee",
     "slug": "betina-pie-coffee-campolim",
     "sub": "Cafeteria de tortas",
     "cuisine": "Tortas e café",
@@ -6347,7 +6347,7 @@
     "placeId": "ChIJWfZEHvOKxZQRj1F-Bf9-UH0"
   },
   {
-    "name": "Dona Baunilha Doceria e Cafeteria Sorocaba",
+    "name": "Dona Baunilha",
     "slug": "dona-baunilha-doceria-e-cafeteria-sorocaba",
     "sub": "Doceria e cafeteria",
     "cuisine": "Doces e café",
@@ -6406,7 +6406,7 @@
     },
     "placeId": "ChIJlwiZckOLxZQRypChfKWy0c8",
     "seo": {
-      "title": "Dona Baunilha Doceria e Cafeteria Sorocaba · Onde Sair"
+      "title": "Dona Baunilha · Onde Sair"
     }
   },
   {
@@ -6460,7 +6460,7 @@
     "placeId": "ChIJt68aMxmLxZQR1tHsbOYv7i4"
   },
   {
-    "name": "Be Brave Coffee and Tea | Cafeteria",
+    "name": "Be Brave Coffee and Tea",
     "slug": "be-brave-coffee-and-tea-cafeteria",
     "sub": "Cafeteria",
     "cuisine": "Café e chá",
@@ -6516,11 +6516,11 @@
     },
     "placeId": "ChIJh8LPXWphz5QRydnExJaDwfU",
     "seo": {
-      "title": "Be Brave Coffee and Tea | Cafeteria · Onde Sair"
+      "title": "Be Brave Coffee and Tea · Onde Sair"
     }
   },
   {
-    "name": "Patelli Pães Ltda",
+    "name": "Patelli Pães",
     "slug": "patelli-paes-ltda",
     "sub": "Padaria",
     "cuisine": "Pães e doces",
@@ -7155,7 +7155,7 @@
     "placeId": "ChIJsaamFoSKxZQRVzELfDSCjTg"
   },
   {
-    "name": "Parque Natural da Água Vermelha \"João Câncio Pereira”",
+    "name": "Parque Natural da Água Vermelha",
     "slug": "parque-natural-da-agua-vermelha-joao-cancio-pereira",
     "sub": "Parque natural",
     "cuisine": "Passeio ao ar livre",
@@ -7209,7 +7209,7 @@
     "placeId": "ChIJBRccjuKKxZQRYxLRuXf1KvQ"
   },
   {
-    "name": "Parque Zoológico Municipal \"Quinzinho de Barros\"",
+    "name": "Zoológico Quinzinho de Barros",
     "slug": "parque-zoologico-municipal-quinzinho-de-barros",
     "sub": "Zoológico",
     "cuisine": "Passeio ao ar livre",
@@ -7264,7 +7264,7 @@
     },
     "placeId": "ChIJO64ciDZgz5QRYFLQjV9UKpw",
     "seo": {
-      "title": "Parque Zoológico Municipal \"Quinzinho de Barros\" · Onde Sair"
+      "title": "Zoológico Quinzinho de Barros · Onde Sair"
     }
   },
   {
@@ -7371,7 +7371,7 @@
     "placeId": "ChIJn65TZgRgz5QRdPeB2Ku7nW4"
   },
   {
-    "name": "Parque Natural - Porto das Águas",
+    "name": "Parque Natural Porto das Águas",
     "slug": "parque-natural-porto-das-aguas",
     "sub": "Parque municipal",
     "cuisine": "Passeio ao ar livre",
@@ -7757,7 +7757,7 @@
     "placeId": "ChIJCcUjtqOKxZQR7m3R8YlcTvs"
   },
   {
-    "name": "Teatro Sesi Sorocaba",
+    "name": "Teatro Sesi",
     "slug": "teatro-sesi-sorocaba",
     "sub": "Teatro",
     "cuisine": "Teatro",
@@ -7863,7 +7863,7 @@
     "placeId": "ChIJJdt1YLyKxZQRKNSiaWBRkxs"
   },
   {
-    "name": "Sorocabana - Movimento de Preservação Ferroviária",
+    "name": "Sorocabana",
     "slug": "sorocabana-movimento-de-preservacao-ferroviaria",
     "sub": "Museu ferroviário",
     "cuisine": "Passeio cultural",
@@ -7972,7 +7972,7 @@
     }
   },
   {
-    "name": "Teraspa Sorocaba",
+    "name": "Teraspa",
     "slug": "teraspa-sorocaba",
     "sub": "Spa",
     "cuisine": "Spa e massagem",
@@ -8027,7 +8027,7 @@
     "placeId": "ChIJuz491PpPQCQRxMrE32Zeu4U"
   },
   {
-    "name": "Buddha Spa Sorocaba - O Melhor Spa de Sorocaba",
+    "name": "Buddha Spa",
     "slug": "buddha-spa-sorocaba-o-melhor-spa-de-sorocaba",
     "sub": "Spa",
     "cuisine": "Spa e massagem",
@@ -8081,11 +8081,11 @@
     },
     "placeId": "ChIJ6SZ7bDOLxZQRBnIMJquHLDs",
     "seo": {
-      "title": "Buddha Spa Sorocaba - O Melhor Spa de Sorocaba · Onde Sair"
+      "title": "Buddha Spa · Onde Sair"
     }
   },
   {
-    "name": "Mercado de Flores - CEAGESP Sorocaba",
+    "name": "Mercado de Flores CEAGESP",
     "slug": "mercado-de-flores-ceagesp-sorocaba",
     "sub": "Mercado de flores",
     "cuisine": "Mercado e feira",
@@ -8140,11 +8140,11 @@
     },
     "placeId": "ChIJ7dhexWeLxZQRRjfoO8pvlds",
     "seo": {
-      "title": "Mercado de Flores - CEAGESP Sorocaba · Onde Sair"
+      "title": "Mercado de Flores CEAGESP · Onde Sair"
     }
   },
   {
-    "name": "Cervejaria Artesanal Bulgaro's Beer Sorocaba",
+    "name": "Bulgaro's Beer",
     "slug": "cervejaria-artesanal-bulgaro-s-beer-sorocaba",
     "sub": "Cervejaria",
     "cuisine": "Cerveja artesanal",
@@ -8195,7 +8195,7 @@
     },
     "placeId": "ChIJ6UchoNJhz5QRGJeG2r4Q_pY",
     "seo": {
-      "title": "Cervejaria Artesanal Bulgaro's Beer Sorocaba · Onde Sair"
+      "title": "Bulgaro's Beer · Onde Sair"
     }
   },
   {
