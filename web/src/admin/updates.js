@@ -351,6 +351,21 @@ export function importSorocaba(d, at, rows) {
 }
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
+// Nomes dos lugares do cadastro de Sorocaba: só a primeira letra de cada palavra em maiúscula
+// (preposições em minúscula; siglas como BBQ e CEAGESP mantidas). Só troca o nome que ainda está igual ao original.
+const NAME_FIXES = {"Pizzaria BahBud's": "Pizzaria Bahbud's", "DUO Bistrô": "Duo Bistrô", "FIOR DI ZUCCA Cucina d Italia": "Fior di Zucca Cucina d Italia", "PIOMONTES PIZZARIA": "Piomontes Pizzaria", "Na Praça - Gastronomia ao ar livre": "Na Praça - Gastronomia ao Ar Livre", "Carneada - Restaurante, bar Y parrila": "Carneada - Restaurante, Bar y Parrila", "Finestra Del Vino": "Finestra del Vino", "JAWS Burger Sorocaba": "Jaws Burger Sorocaba", "CHAMA FOOD PARK": "Chama Food Park", "O BRETÃO PUB": "O Bretão Pub", "Old kick Kustom bar": "Old Kick Kustom Bar", "The SmallBig Bar": "The Smallbig Bar", "CASA CAFÉ": "Casa Café", "Marsala Campolim. CAFÉ & RESTAURANTE": "Marsala Campolim. Café & Restaurante", "FUNDEC": "Fundec", "Biblioteca Infantil De Sorocaba": "Biblioteca Infantil de Sorocaba", "TeraSpa Sorocaba": "Teraspa Sorocaba", "Buddha Spa Sorocaba - O melhor Spa de Sorocaba": "Buddha Spa Sorocaba - O Melhor Spa de Sorocaba", "Mercado De Flores - CEAGESP Sorocaba": "Mercado de Flores - CEAGESP Sorocaba", "Triba bar": "Triba Bar"};
+function placeNames(d) {
+  const names = [];
+  d.places = d.places.map(p => {
+    const n = NAME_FIXES[p.name];
+    if (!n) return p;
+    names.push(n);
+    const seo = p.seo?.title?.includes(p.name) ? { ...p.seo, title: p.seo.title.replace(p.name, n) } : p.seo;
+    return { ...p, name: n, ...(seo ? { seo } : {}) };
+  });
+  return names;
+}
+
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
   { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
@@ -369,6 +384,7 @@ const UPDATES = [
   { id: "2026-10-cadastro-sorocaba", label: "cadastro novo de lugares de Sorocaba", async: true, allowed: importAllowed,
     load: () => fetch(IMPORT_FILE, { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error("arquivo " + r.status); return r.json(); }),
     apply: importSorocaba },
+  { id: "2026-10-nomes-lugares", label: "nomes de lugares padronizados", apply: placeNames },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.
