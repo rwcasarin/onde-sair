@@ -351,6 +351,22 @@ export function importSorocaba(d, at, rows) {
 }
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
+// Nomes dos lugares do cadastro de Sorocaba: só a primeira letra de cada palavra em maiúscula
+// (preposições em minúscula; siglas como BBQ e CEAGESP mantidas) e sem as sobras da ficha do Google
+// (cidade, unidade, descrição). Só troca o nome que ainda está igual ao original.
+const NAME_FIXES = {"Pizzaria BahBud's": "Pizzaria Bahbud's", "Bom Beef Burgers Sorocaba": "Bom Beef Burgers", "Restaurante Horse BBQ - Smoke´n Grill": "Horse BBQ Smoke'n Grill", "DUO Bistrô": "Duo Bistrô", "FIOR DI ZUCCA Cucina d Italia": "Fior di Zucca Cucina d Italia", "Izumi - Culinária Japonesa": "Izumi", "PIOMONTES PIZZARIA": "Piomontes Pizzaria", "Raffa & Gio | Pizza Napoletana | Unidade Jardim Paulistano": "Raffa & Gio", "Janela Bar | Sorocaba": "Janela Bar", "Na Praça - Gastronomia ao ar livre": "Na Praça", "Vino Sorocaba": "Vino", "Carneada - Restaurante, bar Y parrila": "Carneada", "Casa da Frida Mexicanos e Porções": "Casa da Frida", "Kaori Ramen - Ya - Casa de Ramen": "Kaori Ramen-Ya", "Bonaparma Restaurante & Pizzaria": "Bonaparma", "Restaurante Yoshi's | Shopping Iguatemi": "Yoshi's", "Naomi Culinária Japonesa": "Naomi", "Restaurante Vecchio Cancian Sorocaba": "Vecchio Cancian", "Finestra Del Vino": "Finestra del Vino", "JAWS Burger Sorocaba": "Jaws Burger", "The Rock Burgers – Sorocaba": "The Rock Burgers", "Igor´s Costela": "Igor's Costela", "Alemão Burger - Hamburgueria Sorocaba": "Alemão Burger", "Oca Burger - Mangal": "Oca Burger Mangal", "Oca Burger - Campolim": "Oca Burger Campolim", "CHAMA FOOD PARK": "Chama Food Park", "Oca Burger - Alto da Boa Vista": "Oca Burger Alto da Boa Vista", "O BRETÃO PUB": "O Bretão Pub", "Bamberg Express Sorocaba": "Bamberg Express", "Cerveja Los Gatos - Toca Los Gatos": "Toca Los Gatos", "Old kick Kustom bar": "Old Kick Kustom Bar", "Petra Bar Wanel Ville*": "Petra Bar", "Choperia Cervogia | Grupo Espaço Campolim": "Choperia Cervogia", "Exquina Botequim - Bar / Sorocaba": "Exquina Botequim", "Estação Zero15 Sorocaba": "Estação Zero15", "Cão Véio Sorocaba": "Cão Véio", "Flow Balada, Bar e Restaurante Sorocaba": "Flow", "The SmallBig Bar": "The Smallbig Bar", "Jack Pub Sorocaba": "Jack Pub", "Cervejaria e Restaurante 3 Américas": "Cervejaria 3 Américas", "Red Bar Sorocaba": "Red Bar", "O Sorvetão - Sorocaba": "O Sorvetão", "CASA CAFÉ": "Casa Café", "Gelato Borelli Sorocaba - Jardim Paulistano": "Gelato Borelli Jardim Paulistano", "Sorvetes Urla - Wanel Ville": "Sorvetes Urla", "Marsala Campolim. CAFÉ & RESTAURANTE": "Marsala Campolim", "Gelato Borelli Sorocaba - Jardim Astro": "Gelato Borelli Jardim Astro", "Betina Pie & Coffee Campolim": "Betina Pie & Coffee", "Dona Baunilha Doceria e Cafeteria Sorocaba": "Dona Baunilha", "Be Brave Coffee and Tea | Cafeteria": "Be Brave Coffee and Tea", "Patelli Pães Ltda": "Patelli Pães", "Parque Natural da Água Vermelha \"João Câncio Pereira”": "Parque Natural da Água Vermelha", "Parque Zoológico Municipal \"Quinzinho de Barros\"": "Zoológico Quinzinho de Barros", "Parque Natural - Porto das Águas": "Parque Natural Porto das Águas", "FUNDEC": "Fundec", "Teatro Sesi Sorocaba": "Teatro Sesi", "Biblioteca Infantil De Sorocaba": "Biblioteca Infantil de Sorocaba", "Sorocabana - Movimento de Preservação Ferroviária": "Sorocabana", "TeraSpa Sorocaba": "Teraspa", "Buddha Spa Sorocaba - O melhor Spa de Sorocaba": "Buddha Spa", "Mercado De Flores - CEAGESP Sorocaba": "Mercado de Flores CEAGESP", "Cervejaria Artesanal Bulgaro's Beer Sorocaba": "Bulgaro's Beer", "Triba bar": "Triba Bar"};
+function placeNames(d) {
+  const names = [];
+  d.places = d.places.map(p => {
+    const n = NAME_FIXES[p.name];
+    if (!n) return p;
+    names.push(n);
+    const seo = p.seo?.title?.includes(p.name) ? { ...p.seo, title: p.seo.title.replace(p.name, n) } : p.seo;
+    return { ...p, name: n, ...(seo ? { seo } : {}) };
+  });
+  return names;
+}
+
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
   { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
@@ -369,6 +385,7 @@ const UPDATES = [
   { id: "2026-10-cadastro-sorocaba", label: "cadastro novo de lugares de Sorocaba", async: true, allowed: importAllowed,
     load: () => fetch(IMPORT_FILE, { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error("arquivo " + r.status); return r.json(); }),
     apply: importSorocaba },
+  { id: "2026-10-nomes-lugares", label: "nomes de lugares padronizados", apply: placeNames },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.
