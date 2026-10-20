@@ -220,7 +220,7 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
                 {WHEN.map(([k, l, fn]) => <CheckRow key={k} checked={f.quando === k} onChange={() => set("quando", f.quando === k ? "" : k)} count={count("quando", d => inRange(d.item, fn(now)))}>{l}</CheckRow>)}
               </FilterBlock>
             )}
-            {KEYS.includes("cidade") && CITIES.length > 1 && <FilterBlock title="Cidade"><CityField value={cityF} onChange={changeCity} counts={cityCounts} /></FilterBlock>}
+            {KEYS.includes("cidade") && <FilterBlock title="Cidade"><CityField value={cityF} onChange={changeCity} counts={cityCounts} /></FilterBlock>}
             {KEYS.includes("bairro") && BAIRROS.length > 0 && (
               <FilterBlock title="Bairro / Região"><CheckList options={opt("bairro", BAIRROS, d => d.bairros.map(fslug))} selected={f.bairro} onToggle={(v) => toggle("bairro", v)} searchLabel="Buscar bairro" /></FilterBlock>
             )}

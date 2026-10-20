@@ -94,7 +94,21 @@ function CityDropdown({ value, onChange, className = "", children, align = "left
 }
 
 // Campo com busca (filtro da lista de lugares) — digita para filtrar, como no admin
-export function CityField({ value, onChange, allLabel = "Todas as cidades", counts, label = "Cidade" }) {
+export function CityField(props) {
+  if (singleCity()) {     // só uma cidade: mostra o nome, sem lista para abrir
+    const c = CITIES[0];
+    return (
+      <div className="city-field is-single">
+        <div className="city-field-box" aria-label={(props.label || "Cidade") + ": " + (c?.name || "")}>
+          <Icon name="pin" size={16} /><span>{c?.name || props.allLabel || "Todas as cidades"}</span>
+        </div>
+      </div>
+    );
+  }
+  return <CityCombo {...props} />;
+}
+
+function CityCombo({ value, onChange, allLabel = "Todas as cidades", counts, label = "Cidade" }) {
   const cur = CITIES.find(c => c.id === value);
   const [text, setText] = useState(cur?.name || "");
   const [open, setOpen] = useState(false);
