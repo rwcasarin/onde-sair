@@ -1,6 +1,8 @@
+import { useCallback, useState } from "react";
 import { AFFINITIES, TYPES, priceLabel } from "../data.js";
 import { useNav, useCity } from "../nav.js";
 import { CitySelect, singleCity } from "./cityselect.jsx";
+import { SearchOverlay, useSearchHotkey } from "./searchbox.jsx";
 import { href, toPath, go } from "../router.js";
 import { menuItems, isActive } from "../menus.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
@@ -62,6 +64,9 @@ export function MenuLink({ to, className, children, ...rest }) {
 
 export function TopNav({ current, params = {}, unread, user, paused }) {
   const nav = useNav();
+  const [searching, setSearching] = useState(false);
+  const openSearch = useCallback(() => setSearching(true), []);
+  useSearchHotkey(openSearch);
   return (
     <header className="topnav">
       <div className="topnav-inner">
@@ -73,7 +78,7 @@ export function TopNav({ current, params = {}, unread, user, paused }) {
           ))}
         </nav>
         <div className="nav-right">
-          <IconBtn title="Buscar" onClick={() => nav("lista")}><Icon name="search" size={20} /></IconBtn>
+          <IconBtn title="Buscar (/)" onClick={openSearch}><Icon name="search" size={20} /></IconBtn>
           {!paused && <IconBtn title="Favoritos" onClick={() => nav("favoritos")}><Icon name="heart" size={20} /></IconBtn>}
           {user && <IconBtn title="Notificações" badge={unread > 0 ? unread : null} onClick={() => nav("notificacoes")}><Icon name="bell" size={20} /></IconBtn>}
           {user
@@ -83,6 +88,7 @@ export function TopNav({ current, params = {}, unread, user, paused }) {
             : !paused && <button className="btn-enter" onClick={() => nav("entrar")}>Entrar</button>}
         </div>
       </div>
+      <SearchOverlay open={searching} onClose={() => setSearching(false)} />
     </header>
   );
 }

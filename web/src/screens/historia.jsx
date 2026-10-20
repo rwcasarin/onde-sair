@@ -15,7 +15,7 @@ import { NotFound } from "./notfound.jsx";
 
 const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }); } catch { return ""; } };
 
-function StoryCard({ s }) {
+export function StoryCard({ s }) {
   const nav = useNav();
   const when = publishedDate(s);
   return (

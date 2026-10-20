@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { PAGES,
   PLACES, VIBE_ORDER, HERO, HOME_TOP, TIPS_TODAY, STORIES,
   VIBE_ROTEIROS, VIBE_TO_ROTEIRO, BRAND_VALUES,
@@ -14,29 +14,24 @@ import { useNav, useCity } from "../nav.js";
 import { SITE } from "../admin/store.js";
 import { CitySelect } from "../components/cityselect.jsx";
 import { HomeCarousel } from "../components/home-carousel.jsx";
+import { SearchBox } from "../components/searchbox.jsx";
 import { visibleSlides } from "../carousel.js";
 
 export function Home() {
   const nav = useNav();
   const { id: cityId, name, set: setCity } = useCity();
-  const [q, setQ] = useState("");
+
   // próximos e atuais (até 6), da cidade escolhida, numa linha só
   const events = upcoming(EVENTS.filter(e => !cityId || e.city === cityId)).slice(0, 6);
   // modo carrossel com ao menos um destaque no ar; sem nenhum, volta ao topo fixo
   const slides = HOME_TOP.mode === "carrossel" ? visibleSlides(HOME_TOP.carousel) : [];
   const search = (
     <>
-      <form className="hero2-search" onSubmit={(e) => { e.preventDefault(); nav("lista", { q }); }}>
-        <Icon name="search" size={22} />
-        <input
-          type="text" value={q} onChange={(e) => setQ(e.target.value)}
-          placeholder="Busque por lugares, bairros, experiências…" aria-label="Buscar"
-        />
+      <SearchBox variant="hero">
         <CitySelect value={cityId} onChange={setCity} className="hero2-search-city" align="right" label="Trocar cidade da busca">
           <Icon name="pin" size={18} /> {name} <Icon name="chevron" size={14} />
         </CitySelect>
-        <button type="submit" className="btn-pill">Buscar</button>
-      </form>
+      </SearchBox>
 
       <div className="hero2-vibes" id="vibes">
         {VIBE_ORDER.map(id => (

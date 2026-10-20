@@ -6,7 +6,6 @@ import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
 import { href, go, toPath } from "../router.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
-import { CitySelect } from "./cityselect.jsx";
 import { MenuLink } from "./ui.jsx";
 import { menuItems } from "../menus.js";
 
@@ -293,7 +292,6 @@ export function MapArt({ pins = [], route = false, park = true, className = "", 
 
 // ---------- Rodapé ----------
 export function Footer() {
-  const { id: cityId, name: city, set: setCity } = useCity();
   const social = [["instagram", "Instagram"], ["tiktok", "TikTok"], ["youtube", "YouTube"], ["spotify", "Spotify"]];
   return (
     <footer className="site-footer">
@@ -311,9 +309,6 @@ export function Footer() {
               <a key={icon} href="#" aria-label={label} onClick={(e) => e.preventDefault()}><Icon name={icon} size={20} /></a>
             ))}
           </div>
-          <CitySelect value={cityId} onChange={setCity} className="site-footer-city" align="right" placement="top" label="Trocar cidade">
-            {city || CITIES[0]?.name} <Icon name="chevron" size={14} />
-          </CitySelect>
         </div>
         <div className="site-footer-bottom">
           <span>© {new Date().getFullYear()} Onde Sair. Todos os direitos reservados.</span>

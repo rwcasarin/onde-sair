@@ -8,6 +8,7 @@ import { TopNav } from "./components/ui.jsx";
 import { Onboarding } from "./screens/onboarding.jsx";
 import { Home } from "./screens/home.jsx";
 import { Lista } from "./screens/lista.jsx";
+import { Busca } from "./screens/busca.jsx";
 import { VibesView } from "./screens/vibesview.jsx";
 import { RoteirosLista } from "./screens/roteiroslista.jsx";
 import { EventosLista, Evento } from "./screens/eventos.jsx";
@@ -52,6 +53,7 @@ function titleFor(screen, params) {
       const tp = TYPES.find(x => x.slug === params.tipo);
       return t(params.q ? `Busca: ${params.q}` : v ? v.label : tp ? tp.label : "Lugares");
     }
+    case "busca": return t(params.q ? `Busca: ${params.q}` : "Busca");
     case "vibes": { const v = AFFINITIES.find(a => a.id === params.aff); return t(v ? `${v.label} · Vibes` : "Vibes · Lugares e roteiros por clima"); }
     case "evento": { const e = EVENTS.find(x => x.id === params.id); return e?.seo?.title || autoTitle("events", e); }
     case "detalhe": { const p = PLACES.find(x => x.id === params.id); return p?.seo?.title || autoTitle("places", p); }
@@ -75,7 +77,7 @@ function metaFor(screen, params) {
     (screen === "vibes" ? (VIBE_PAGE[params.aff]?.lede || "Lugares e roteiros reunidos pela vibe do rolê: dates, impressionar, relaxar, turistar, economizar e programas com criança.") : "") ||
     (screen === "historias" ? "Radar Onde Sair: novidades, atualizações e listas de lugares da cidade, por quem vive ela." : "") ||
     (item ? autoDesc({ detalhe: "places", evento: "events", roteiro: "roteiros", historia: "stories" }[screen], item) : "") || SITE.seoDesc || "";
-  return { desc, noindex: !!item?.seo?.noindex || screen === "404" || PRIVATE.has(screen) || screen === "entrar" };
+  return { desc, noindex: !!item?.seo?.noindex || screen === "404" || screen === "busca" || PRIVATE.has(screen) || screen === "entrar" };
 }
 function setTag(attr, key, content) {
   let el = document.head.querySelector(`meta[${attr}="${key}"]`);
@@ -239,6 +241,7 @@ export default function App() {
         {screen === "eventos"      && !evOff && <EventosLista key={key} />}
         {screen === "evento"       && !evOff && <Evento key={key} id={params.id} />}
         {screen === "lista"        && <Lista key={key} aff={params.aff} q={params.q} tipo={params.tipo} />}
+        {screen === "busca"        && <Busca key={key} q={params.q} tab={params.tipo} />}
         {screen === "detalhe"      && <Detalhe key={key} id={params.id} />}
         {rotOff && <PausedScreen message={SITE.roteirosMessage} />}
         {evOff && <PausedScreen message={SITE.eventsMessage} />}
