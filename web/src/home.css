@@ -190,6 +190,86 @@ button.vibe-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8p
 }
 .hero2-vibes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; scroll-margin-top: 100px; }
 
+/* =================================================================
+   Topo em carrossel (destaques cadastrados no painel)
+   ================================================================= */
+.hcar-wrap { max-width: var(--max); margin: 0 auto; padding: 22px var(--gutter) 6px; }
+.hcar { position: relative; border-radius: 28px; overflow: hidden; background: var(--primary); isolation: isolate; }
+.hcar-viewport { overflow: hidden; touch-action: pan-y; }
+.hcar-track { display: flex; transition: transform .6s cubic-bezier(.65,0,.35,1); will-change: transform; }
+.hcar-slide { position: relative; flex: 0 0 100%; height: clamp(400px, 46vw, 580px); color: #fff; }
+.hcar-img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hcar-img img { width: 100%; height: 100%; object-fit: cover; object-position: var(--focus, center); transform: scale(1.04); transition: transform 7s ease-out; }
+.hcar-slide.is-on .hcar-img img { transform: scale(1); }
+.hcar-img .img-slot-empty { background: repeating-linear-gradient(135deg, #3B2A7C 0 18px, #43318A 18px 36px); color: rgba(255,255,255,.75); }
+.hcar-img .img-slot-path { color: #fff; }
+.hcar-shade { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(22,14,58,.86) 0%, rgba(22,14,58,.55) 42%, rgba(22,14,58,0) 75%),
+              linear-gradient(0deg, rgba(22,14,58,.55) 0%, rgba(22,14,58,0) 40%); }
+.hcar-copy { position: absolute; z-index: 2; left: clamp(26px, 5vw, 64px); bottom: clamp(70px, 8vw, 92px); width: min(560px, calc(100% - 52px));
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px; pointer-events: none; }
+.hcar-copy > * { pointer-events: auto; }
+.hcar-slide.is-on .hcar-copy > * { animation: hcar-in .7s both cubic-bezier(.2,.7,.2,1); }
+.hcar-slide.is-on .hcar-copy > :nth-child(2) { animation-delay: .06s; }
+.hcar-slide.is-on .hcar-copy > :nth-child(3) { animation-delay: .12s; }
+.hcar-slide.is-on .hcar-copy > :nth-child(4) { animation-delay: .18s; }
+@keyframes hcar-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.hcar-meta { display: flex; align-items: flex-end; gap: 14px; }
+.hcar-meta:empty { display: none; }
+.hcar .event-date.hcar-date { position: static; }
+.hcar-tag { display: inline-flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 999px; background: var(--c-yellow); color: var(--heading);
+  font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.hcar-title { margin: 0; font-family: var(--serif); font-weight: 700; font-size: clamp(34px, 4.6vw, 62px); line-height: 1; letter-spacing: -0.035em; color: #fff;
+  text-wrap: balance; text-shadow: 0 2px 24px rgba(0,0,0,.25); }
+.hcar-desc { margin: 0; font-size: 17px; line-height: 1.4; color: rgba(255,255,255,.9); max-width: 46ch;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.hcar-cta { position: relative; z-index: 3; gap: 8px; height: 48px; margin-top: 4px; background: #fff; color: var(--heading); font-weight: 700; }
+.hcar-cta:hover { background: var(--c-yellow); color: var(--heading); }
+.hcar-hit { position: absolute; inset: 0; z-index: 1; }
+.hcar-slide:not(.has-link) .hcar-hit { display: none; }
+
+.hcar-ui { position: absolute; z-index: 4; right: clamp(18px, 3vw, 34px); bottom: clamp(18px, 3vw, 30px); display: flex; align-items: center; gap: 10px; }
+.hcar-dots { display: flex; align-items: center; gap: 6px; margin-right: 6px; }
+.hcar-dot { position: relative; width: 10px; height: 10px; padding: 0; border: 0; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.45); cursor: pointer; transition: width .3s, background .3s; }
+.hcar-dot:hover { background: rgba(255,255,255,.75); }
+.hcar-dot.on { width: 38px; background: rgba(255,255,255,.35); }
+.hcar-dot.on:not(:has(i)) { background: #fff; }
+.hcar-dot i { position: absolute; inset: 0; background: #fff; transform-origin: left; animation: hcar-progress linear forwards; }
+@keyframes hcar-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.hcar-count { min-width: 52px; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: rgba(255,255,255,.85); font-variant-numeric: tabular-nums; }
+.hcar-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(255,255,255,.4); border-radius: 999px;
+  background: rgba(22,14,58,.35); color: #fff; cursor: pointer; backdrop-filter: blur(6px); transition: background .2s, color .2s; }
+.hcar-btn:hover { background: #fff; color: var(--heading); }
+.hcar :focus-visible { outline: 3px solid var(--c-yellow); outline-offset: 2px; }
+/* forma geométrica da marca no canto */
+.hcar::after { content: ""; position: absolute; z-index: 3; top: 0; right: 0; width: 86px; height: 86px; pointer-events: none;
+  background: conic-gradient(from 90deg at 100% 0, var(--c-magenta) 0 25%, transparent 0), radial-gradient(circle at 100% 0, var(--c-yellow) 0 42px, transparent 43px);
+  clip-path: polygon(0 0, 100% 0, 100% 100%); opacity: .95; }
+.hcar.is-single .hcar-copy { bottom: clamp(30px, 5vw, 56px); }
+
+.hcar-search { padding-top: 22px; }
+.hcar-search .hero2-search { width: 100%; max-width: none; }
+
+@media (max-width: 760px) {
+  .hcar-wrap { padding-top: 14px; }
+  .hcar { border-radius: 22px; }
+  .hcar-slide { height: 520px; }
+  .hcar-shade { background: linear-gradient(0deg, rgba(22,14,58,.92) 0%, rgba(22,14,58,.6) 48%, rgba(22,14,58,0) 78%); }
+  .hcar-copy { left: 20px; width: calc(100% - 40px); bottom: 84px; gap: 10px; }
+  .hcar.is-single .hcar-copy { bottom: 24px; }
+  .hcar-desc { font-size: 15px; -webkit-line-clamp: 3; }
+  .hcar-cta { height: 44px; }
+  .hcar-ui { left: 20px; right: 20px; bottom: 20px; }
+  .hcar-count { display: none; }
+  .hcar-dots { margin-right: auto; }
+  .hcar-btn { width: 40px; height: 40px; }
+  .hcar::after { width: 56px; height: 56px; background: conic-gradient(from 90deg at 100% 0, var(--c-magenta) 0 25%, transparent 0), radial-gradient(circle at 100% 0, var(--c-yellow) 0 28px, transparent 29px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hcar-track, .hcar-img img { transition: none; }
+  .hcar-slide.is-on .hcar-copy > * { animation: none; }
+}
+
 @media (max-width: 1100px) {
   .hero2-copy h1 { font-size: clamp(46px, 6vw, 70px); }
   .hero2-media { width: 58%; }

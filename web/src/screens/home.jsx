@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PAGES,
-  PLACES, VIBE_ORDER, HERO, TIPS_TODAY, STORIES,
+  PLACES, VIBE_ORDER, HERO, HOME_TOP, TIPS_TODAY, STORIES,
   VIBE_ROTEIROS, VIBE_TO_ROTEIRO, BRAND_VALUES,
 } from "../data.js";
 import { OSLogo } from "../components/brand.jsx";
@@ -13,6 +13,8 @@ import { href, storyPath } from "../router.js";
 import { useNav, useCity } from "../nav.js";
 import { SITE } from "../admin/store.js";
 import { CitySelect } from "../components/cityselect.jsx";
+import { HomeCarousel } from "../components/home-carousel.jsx";
+import { visibleSlides } from "../carousel.js";
 
 export function Home() {
   const nav = useNav();
@@ -20,36 +22,49 @@ export function Home() {
   const [q, setQ] = useState("");
   // próximos e atuais (até 6), da cidade escolhida, numa linha só
   const events = upcoming(EVENTS.filter(e => !cityId || e.city === cityId)).slice(0, 6);
+  // modo carrossel com ao menos um destaque no ar; sem nenhum, volta ao topo fixo
+  const slides = HOME_TOP.mode === "carrossel" ? visibleSlides(HOME_TOP.carousel) : [];
+  const search = (
+    <>
+      <form className="hero2-search" onSubmit={(e) => { e.preventDefault(); nav("lista", { q }); }}>
+        <Icon name="search" size={22} />
+        <input
+          type="text" value={q} onChange={(e) => setQ(e.target.value)}
+          placeholder="Busque por lugares, bairros, experiências…" aria-label="Buscar"
+        />
+        <CitySelect value={cityId} onChange={setCity} className="hero2-search-city" align="right" label="Trocar cidade da busca">
+          <Icon name="pin" size={18} /> {name} <Icon name="chevron" size={14} />
+        </CitySelect>
+        <button type="submit" className="btn-pill">Buscar</button>
+      </form>
+
+      <div className="hero2-vibes" id="vibes">
+        {VIBE_ORDER.map(id => (
+          <VibePill key={id} aff={id} onClick={() => nav("lista", { aff: id })} />
+        ))}
+      </div>
+    </>
+  );
 
   return (
     <main className="home2">
-      {/* ================= HERO ================= */}
-      <section className="hero2">
-        <HeroMedia img={HERO.img} note={HERO.note} words={HERO.geoWords} hint="Foto principal · ~1400×800, pessoas em clima de rolê" />
+      {/* ================= TOPO: carrossel de destaques ou hero fixo ================= */}
+      {slides.length > 0 ? (
+        <section className="hcar-wrap">
+          <HomeCarousel car={HOME_TOP.carousel} slides={slides} />
+          {HOME_TOP.carousel.showSearch !== false && <div className="hcar-search">{search}</div>}
+        </section>
+      ) : (
+        <section className="hero2">
+          <HeroMedia img={HERO.img} note={HERO.note} words={HERO.geoWords} hint="Foto principal · ~1400×800, pessoas em clima de rolê" />
 
-        <div className="hero2-copy">
-          <h1>{(HERO.title || "Qual é\na vibe hoje?").split("\n").map((l, i) => <span key={i}>{i > 0 && <br />}{l}</span>)}</h1>
-          <p className="hero2-lede">{HERO.lede}</p>
-
-          <form className="hero2-search" onSubmit={(e) => { e.preventDefault(); nav("lista", { q }); }}>
-            <Icon name="search" size={22} />
-            <input
-              type="text" value={q} onChange={(e) => setQ(e.target.value)}
-              placeholder="Busque por lugares, bairros, experiências…" aria-label="Buscar"
-            />
-            <CitySelect value={cityId} onChange={setCity} className="hero2-search-city" align="right" label="Trocar cidade da busca">
-              <Icon name="pin" size={18} /> {name} <Icon name="chevron" size={14} />
-            </CitySelect>
-            <button type="submit" className="btn-pill">Buscar</button>
-          </form>
-
-          <div className="hero2-vibes" id="vibes">
-            {VIBE_ORDER.map(id => (
-              <VibePill key={id} aff={id} onClick={() => nav("lista", { aff: id })} />
-            ))}
+          <div className="hero2-copy">
+            <h1>{(HERO.title || "Qual é\na vibe hoje?").split("\n").map((l, i) => <span key={i}>{i > 0 && <br />}{l}</span>)}</h1>
+            <p className="hero2-lede">{HERO.lede}</p>
+            {search}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <div className="shell">
         {/* ================= EVENTOS ================= */}

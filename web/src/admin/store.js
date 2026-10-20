@@ -10,11 +10,12 @@
 // =====================================================================
 import {
   CITIES, AFFINITIES, ROTEIROS, PLACES, NOTIFICATIONS, TAGLINES,
-  VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
+  VIBE_STYLE, VIBE_ORDER, VIBE_PAGE, HERO, HOME_TOP, TIPS_TODAY, STORIES, ALL_STORIES, VIBE_ROTEIROS,
   VIBE_TO_ROTEIRO, BRAND_VALUES, ROTEIRO_TAGS, PAGES, MENUS, SEED_PAGES, SEED_MENUS, RADAR_CATEGORIES, TYPES, SEED_TYPES,
   EVENTS, EVENT_CATEGORIES, SEED_EVENT_CATEGORIES,
 } from "../data.js";
 import { applyUpdates, applyAsyncUpdates } from "./updates.js";
+import { carouselOf } from "../carousel.js";
 
 const KEY = "onde-sair-cms-v1";
 const SESSION_KEY = "onde-sair-cms-session";
@@ -104,6 +105,8 @@ function seed() {
     storyIds: STORIES.map(s => s.id),
     vibeRoteiros: VIBE_ROTEIROS.map(v => ({ ...clone(v), roteiro: VIBE_TO_ROTEIRO[v.id] })),
     brandValues: clone(BRAND_VALUES),
+    heroMode: HOME_TOP.mode,
+    carousel: clone(HOME_TOP.carousel),
   };
 
   const members = Array.from({ length: 28 }, (_, i) => ({
@@ -374,6 +377,7 @@ export function syncPublic() {
   });
 
   Object.assign(HERO, db.home.hero);
+  Object.assign(HOME_TOP, { mode: db.home.heroMode || "fixo", carousel: carouselOf(db.home) });
   replace(TIPS_TODAY, db.home.tips.filter(t => PLACES.some(p => p.id === t.place)));
   replace(VIBE_ROTEIROS, db.home.vibeRoteiros);
   db.home.vibeRoteiros.forEach(v => { VIBE_TO_ROTEIRO[v.id] = v.roteiro; });
