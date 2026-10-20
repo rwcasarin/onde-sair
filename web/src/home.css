@@ -27,7 +27,7 @@
 .topnav-inner { height: 84px; gap: 20px; }
 .brand-logo { height: 50px; color: var(--heading); }
 
-.navlinks { gap: 26px; margin-left: 56px; }
+.navlinks { gap: 26px; margin-left: 30px; }
 .navlink {
   padding: 6px 0; border-radius: 0;
   font-size: 14px; font-weight: 500; letter-spacing: 0;
@@ -38,6 +38,7 @@
 .navlink.active { background: none; color: var(--heading); font-weight: 700; border-bottom-color: var(--heading); }
 
 .nav-right { gap: 6px; }
+.topnav-inner > .city-select { margin-left: 6px; }
 .city-pill {
   border: 0; background: none; height: 36px; padding: 0 10px; gap: 6px;
   font-size: 13px; color: var(--heading);
@@ -67,7 +68,7 @@
 }
 .btn-pill:hover { background: var(--primary); }
 
-@media (max-width: 1240px) { .navlinks { gap: 18px; margin-left: 20px; } }
+@media (max-width: 1240px) { .navlinks { gap: 18px; margin-left: 12px; } }
 @media (max-width: 1080px) { .navlinks { display: none; } }
 @media (max-width: 640px) {
   :root { --gutter: 16px; }
@@ -193,7 +194,7 @@ button.vibe-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8p
 /* =================================================================
    Topo em carrossel (destaques cadastrados no painel)
    ================================================================= */
-.hcar-wrap { max-width: var(--max); margin: 0 auto; padding: 22px var(--gutter) 6px; }
+.hcar-wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter) 6px; }   /* o respiro acima é o mesmo do menu (header de 84px, botões de 42px) */
 .hcar { position: relative; border-radius: 28px; overflow: hidden; background: var(--primary); isolation: isolate; }
 .hcar-viewport { overflow: hidden; touch-action: pan-y; }
 .hcar-track { display: flex; transition: transform .6s cubic-bezier(.65,0,.35,1); will-change: transform; }
@@ -235,7 +236,6 @@ button.vibe-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8p
 .hcar-dot.on:not(:has(i)) { background: #fff; }
 .hcar-dot i { position: absolute; inset: 0; background: #fff; transform-origin: left; animation: hcar-progress linear forwards; }
 @keyframes hcar-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.hcar-count { min-width: 52px; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: rgba(255,255,255,.85); font-variant-numeric: tabular-nums; }
 .hcar-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(255,255,255,.4); border-radius: 999px;
   background: rgba(22,14,58,.35); color: #fff; cursor: pointer; backdrop-filter: blur(6px); transition: background .2s, color .2s; }
 .hcar-btn:hover { background: #fff; color: var(--heading); }
@@ -250,7 +250,6 @@ button.vibe-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8p
 .hcar-search .hero2-search { width: 100%; max-width: none; }
 
 @media (max-width: 760px) {
-  .hcar-wrap { padding-top: 14px; }
   .hcar { border-radius: 22px; }
   .hcar-slide { height: 440px; }
   .hcar-shade { background: linear-gradient(0deg, rgba(22,14,58,.92) 0%, rgba(22,14,58,.6) 48%, rgba(22,14,58,0) 78%); }
@@ -259,7 +258,6 @@ button.vibe-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8p
   .hcar-desc { font-size: 15px; -webkit-line-clamp: 3; }
   .hcar-cta { height: 44px; }
   .hcar-ui { left: 20px; right: 20px; bottom: 20px; }
-  .hcar-count { display: none; }
   .hcar-dots { margin-right: auto; }
   .hcar-btn { width: 40px; height: 40px; }
   .hcar::after { width: 56px; height: 56px; background: conic-gradient(from 90deg at 100% 0, var(--c-magenta) 0 25%, transparent 0), radial-gradient(circle at 100% 0, var(--c-yellow) 0 28px, transparent 29px); }

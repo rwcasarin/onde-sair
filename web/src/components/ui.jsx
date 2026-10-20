@@ -31,9 +31,9 @@ export function NavLink({ id, params, active, children }) {
 export function CityPill() {
   const { id, name, set } = useCity();
   return (
-    <CitySelect value={id} onChange={set} className="city-pill" align="right" label={`Cidade: ${name}. Trocar cidade`}>
+    <CitySelect value={id} onChange={set} className="city-pill" align="left" label={`Cidade: ${name}. Trocar cidade`}>
       <Icon name="pin" size={16} />
-      <span>{name}</span>
+      <span>em {name}</span>
       <Icon name="chevron" size={14} />
     </CitySelect>
   );
@@ -65,13 +65,13 @@ export function TopNav({ current, params = {}, unread, user, paused }) {
     <header className="topnav">
       <div className="topnav-inner">
         <Brand />
+        <CityPill />
         <nav className="navlinks">
           {menuItems("header").map(({ it, to }) => (
             <MenuLink key={it.id} to={to} className={"navlink" + (isActive(it, current, params) ? " active" : "")}>{it.label}</MenuLink>
           ))}
         </nav>
         <div className="nav-right">
-          <CityPill />
           <IconBtn title="Buscar" onClick={() => nav("lista")}><Icon name="search" size={20} /></IconBtn>
           {!paused && <IconBtn title="Favoritos" onClick={() => nav("favoritos")}><Icon name="heart" size={20} /></IconBtn>}
           {user && <IconBtn title="Notificações" badge={unread > 0 ? unread : null} onClick={() => nav("notificacoes")}><Icon name="bell" size={20} /></IconBtn>}

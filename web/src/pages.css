@@ -1163,13 +1163,14 @@ a.btn-pill { text-decoration: none; }
 .event-date.is-past em:first-child, .event-date.is-past em:nth-child(3) { color: #5E5873; }
 .event-date.is-past b { background: #5E5873; color: #fff; }
 /* etiqueta de data (destaques da home): o selo dos eventos numa linha só */
-.slide-when { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 0 0 14px; overflow: hidden; border-radius: 999px; background: #fff; color: var(--heading); line-height: 1; white-space: nowrap; box-shadow: 0 8px 20px -10px rgba(30,21,80,.7); }
-.slide-when em { display: inline-flex; align-items: center; gap: 6px; font-style: normal; font-size: 11.5px; font-weight: 800; letter-spacing: .12em; color: var(--c-magenta); }
+.slide-when { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 0 0 12px; overflow: hidden; border-radius: 8px; background: #fff; color: var(--heading); line-height: 1; white-space: nowrap; box-shadow: 0 8px 20px -10px rgba(30,21,80,.7); font-size: 12.5px; }
+.slide-when em, .slide-when span, .slide-when strong, .slide-when b { font-size: inherit; }
+.slide-when em { display: inline-flex; align-items: center; gap: 6px; font-style: normal; font-weight: 800; letter-spacing: .12em; color: var(--c-magenta); }
 .slide-when em i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: event-pulse 1.4s ease-in-out infinite; }
-.slide-when strong { margin-left: 2px; font-family: var(--serif); font-size: 19px; font-weight: 700; letter-spacing: -0.03em; }
-.slide-when span { font-size: 11.5px; font-weight: 800; letter-spacing: .12em; color: var(--ink-3); }
-.slide-when b { align-self: stretch; display: inline-flex; align-items: center; margin-left: 8px; padding: 0 14px; background: #F1EEF9; font-size: 12px; font-weight: 700; }
-.slide-when:not(:has(b)) { padding-right: 14px; }
+.slide-when strong { font-family: var(--serif); font-weight: 700; letter-spacing: 0; font-size: 1.12em; }
+.slide-when span { margin-left: -2px; font-weight: 800; letter-spacing: .12em; color: var(--ink-3); }
+.slide-when b { align-self: stretch; display: inline-flex; align-items: center; margin-left: 6px; padding: 0 12px; background: #F1EEF9; font-weight: 700; }
+.slide-when:not(:has(b)) { padding-right: 12px; }
 .slide-when.is-today { box-shadow: 0 0 0 3px var(--c-yellow), 0 8px 20px -10px rgba(30,21,80,.7); }
 .slide-when.is-today em { color: #8A6A00; }
 .slide-when.is-today b { background: var(--c-yellow); }

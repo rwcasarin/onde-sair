@@ -798,10 +798,9 @@ a.a-paused-pill { text-decoration: none; }
 .a-car-prev::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(22,14,58,.85), rgba(22,14,58,.3) 60%, rgba(22,14,58,0)); }
 .a-car-prev-copy { position: absolute; z-index: 1; left: 14px; right: 30%; bottom: 14px; display: grid; gap: 5px; justify-items: start; }
 .a-car-prev-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
-.a-car-prev .slide-when { height: 18px; gap: 3px; padding-left: 7px; box-shadow: none; }
-.a-car-prev .slide-when em, .a-car-prev .slide-when span { font-size: 7px; gap: 3px; }
-.a-car-prev .slide-when strong { font-size: 11px; }
-.a-car-prev .slide-when b { font-size: 7.5px; padding: 0 7px; margin-left: 4px; }
+.a-car-prev .slide-when { height: 18px; gap: 3px; padding-left: 6px; border-radius: 5px; box-shadow: none; font-size: 7.5px; }
+.a-car-prev .slide-when em { gap: 3px; }
+.a-car-prev .slide-when b { padding: 0 6px; margin-left: 3px; }
 .a-car-prev .slide-when:not(:has(b)) { padding-right: 7px; }
 .a-car-prev-tag { padding: 2px 7px; border-radius: 999px; background: #FFD02E; color: #1E1550; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .a-car-prev-copy strong { font-family: "Lora", Georgia, serif; font-size: 18px; line-height: 1.05; }

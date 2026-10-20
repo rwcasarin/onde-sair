@@ -114,7 +114,6 @@ export function HomeCarousel({ car, slides }) {
               </button>
             ))}
           </div>
-          <span className="hcar-count" aria-hidden="true">{String(cur + 1).padStart(2, "0")} / {String(n).padStart(2, "0")}</span>
           {auto && car.showPause && (
             <button type="button" className="hcar-btn hcar-pause" onClick={() => setStopped(!stopped)} aria-label={stopped ? "Retomar a troca automática" : "Pausar a troca automática"}>
               <Icon name={stopped ? "play" : "pause"} size={16} />
