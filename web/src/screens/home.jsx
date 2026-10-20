@@ -12,14 +12,13 @@ import { upcoming } from "../events.js";
 import { href, storyPath } from "../router.js";
 import { useNav, useCity } from "../nav.js";
 import { SITE } from "../admin/store.js";
-import { CitySelect } from "../components/cityselect.jsx";
 import { HomeCarousel } from "../components/home-carousel.jsx";
 import { SearchBox } from "../components/searchbox.jsx";
 import { visibleSlides } from "../carousel.js";
 
 export function Home() {
   const nav = useNav();
-  const { id: cityId, name, set: setCity } = useCity();
+  const { id: cityId, name } = useCity();
 
   // próximos e atuais (até 6), da cidade escolhida, numa linha só
   const events = upcoming(EVENTS.filter(e => !cityId || e.city === cityId)).slice(0, 6);
@@ -27,11 +26,7 @@ export function Home() {
   const slides = HOME_TOP.mode === "carrossel" ? visibleSlides(HOME_TOP.carousel) : [];
   const search = (
     <>
-      <SearchBox variant="hero">
-        <CitySelect value={cityId} onChange={setCity} className="hero2-search-city" align="right" label="Trocar cidade da busca">
-          <Icon name="pin" size={18} /> {name} <Icon name="chevron" size={14} />
-        </CitySelect>
-      </SearchBox>
+      <SearchBox variant="hero" placeholder={name ? `Onde sair em ${name}` : "Onde sair"} />
 
       <div className="hero2-vibes" id="vibes">
         {VIBE_ORDER.map(id => (
