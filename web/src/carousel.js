@@ -2,7 +2,7 @@
 // O topo da home alterna entre o modo "fixo" (título + foto) e o "carrossel".
 import { cardWhen, parseLocal } from "./events.js";
 
-export const CAROUSEL_DEFAULT = { autoplay: true, interval: 6, showSearch: true, slides: [] };
+export const CAROUSEL_DEFAULT = { autoplay: true, interval: 6, showPause: false, showSearch: true, slides: [] };
 export const SLIDE_INTERVALS = [4, 5, 6, 8, 10, 12];
 export const FOCUS = [["center", "Centro"], ["top", "Topo"], ["bottom", "Base"], ["left", "Esquerda"], ["right", "Direita"]];
 

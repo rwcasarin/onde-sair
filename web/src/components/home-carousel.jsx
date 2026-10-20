@@ -7,12 +7,13 @@ import { slideImg, slideWhen, isExternal, normLink } from "../carousel.js";
 
 const reducedMotion = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// etiqueta de data e horário: as mesmas cores e fontes do selo dos cards de eventos, numa linha só
 export function SlideDate({ s, className = "" }) {
   const tag = slideWhen(s);
   if (!tag) return null;
   return (
-    <span className={"event-date is-" + tag.kind + (className ? " " + className : "")} role="img" aria-label={tag.text} title={tag.text}>
-      <em>{tag.kind === "live" && <i aria-hidden="true" />}{tag.top}</em><strong>{tag.day}</strong><em>{tag.month}</em>{tag.hour && <b>{tag.hour}</b>}
+    <span className={"slide-when is-" + tag.kind + (className ? " " + className : "")} role="img" aria-label={tag.text} title={tag.text}>
+      <em>{tag.kind === "live" && <i aria-hidden="true" />}{tag.top}</em><strong>{tag.day}</strong><span>{tag.month}</span>{tag.hour && <b>{tag.hour}</b>}
     </span>
   );
 }
@@ -33,7 +34,7 @@ export function HomeCarousel({ car, slides }) {
   const [cur, setCur] = useState(0);
   const [hover, setHover] = useState(false);
   const [focus, setFocus] = useState(false);
-  const [stopped, setStopped] = useState(() => reducedMotion());    // pausa pelo botão (ou movimento reduzido)
+  const [stopped, setStopped] = useState(() => reducedMotion());    // pausa pelo botão (opcional) ou movimento reduzido
   const [hidden, setHidden] = useState(false);
   const drag = useRef(null);
   const swiped = useRef(false);
@@ -114,7 +115,7 @@ export function HomeCarousel({ car, slides }) {
             ))}
           </div>
           <span className="hcar-count" aria-hidden="true">{String(cur + 1).padStart(2, "0")} / {String(n).padStart(2, "0")}</span>
-          {auto && (
+          {auto && car.showPause && (
             <button type="button" className="hcar-btn hcar-pause" onClick={() => setStopped(!stopped)} aria-label={stopped ? "Retomar a troca automática" : "Pausar a troca automática"}>
               <Icon name={stopped ? "play" : "pause"} size={16} />
             </button>

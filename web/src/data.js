@@ -253,7 +253,7 @@ export const HERO = {
 };
 
 // Topo da home: "fixo" (título + foto acima) ou "carrossel" de destaques (cadastro manual no painel)
-export const HOME_TOP = { mode: "fixo", carousel: { autoplay: true, interval: 6, showSearch: true, slides: [] } };
+export const HOME_TOP = { mode: "fixo", carousel: { autoplay: true, interval: 6, showPause: false, showSearch: true, slides: [] } };
 
 // "Dicas para hoje" — um lugar por afinidade
 export const TIPS_TODAY = [

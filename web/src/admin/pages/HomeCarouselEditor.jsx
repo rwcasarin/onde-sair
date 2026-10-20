@@ -95,7 +95,7 @@ function SlideEditor({ s, upd, i, n, onMove, onRemove, onDuplicate, errors, open
             <Textarea label="Descrição" value={s.desc} onChange={(desc) => upd({ desc })} rows={3} maxCount={180} />
 
             <fieldset className="a-car-set">
-              <legend>Data e horário <small>opcional · aparece no selo igual ao dos cards de eventos</small></legend>
+              <legend>Data e horário <small>opcional · aparece numa etiqueta com as cores do selo dos eventos</small></legend>
               <div className="a-car-dates">
                 <Input label="Data" type="date" value={s.dateFrom} error={errors.dateFrom} onChange={(dateFrom) => upd({ dateFrom, ...(s.dateTo && s.dateTo < dateFrom ? { dateTo: "" } : {}) })} />
                 <Input label="Até (vários dias)" type="date" value={s.dateTo} min={s.dateFrom} error={errors.dateTo} onChange={(dateTo) => upd({ dateTo })} />
@@ -146,7 +146,10 @@ export function CarouselEditor({ car, onChange, errors }) {
     <>
       <Card title="Carrossel" subtitle="Como os destaques passam no topo da home.">
         <div className="a-car-opts">
-          <Toggle label="Troca automática" hint="Pausa sozinha quando a pessoa passa o mouse, usa o teclado ou prefere menos movimento." checked={car.autoplay !== false} onChange={(autoplay) => onChange({ ...car, autoplay })} />
+          <div className="a-car-optcol">
+            <Toggle label="Troca automática" hint="Pausa enquanto o mouse está sobre o carrossel e retoma ao sair." checked={car.autoplay !== false} onChange={(autoplay) => onChange({ ...car, autoplay })} />
+            <Toggle label="Mostrar botão de pausar" hint="Botão para a pessoa parar a troca automática." checked={!!car.showPause} disabled={car.autoplay === false} onChange={(showPause) => onChange({ ...car, showPause })} />
+          </div>
           <Select label="Tempo de cada destaque" value={String(car.interval || 6)} onChange={(v) => onChange({ ...car, interval: +v })} options={SLIDE_INTERVALS.map(n => [String(n), `${n} segundos`])} disabled={car.autoplay === false} />
           <Toggle label="Busca e vibes abaixo do carrossel" hint="Mantém a barra de busca e os atalhos de vibe logo abaixo." checked={car.showSearch !== false} onChange={(showSearch) => onChange({ ...car, showSearch })} />
         </div>
