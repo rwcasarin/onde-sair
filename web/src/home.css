@@ -76,7 +76,8 @@
   :root { --gutter: 16px; }
   .topnav-inner { height: 68px; gap: 8px; }
   .brand-logo { height: 38px; }
-  .city-pill span { display: none; }
+  .topnav-inner > .city-select { margin-left: -8px; min-width: 0; }
+  .topnav-inner > .city-select .city-pill { padding: 0 6px; gap: 4px; font-size: 12.5px; }
   .btn-enter { padding: 0 16px; height: 36px; font-size: 14px; margin-left: 4px; }
   .icon-btn { width: 34px; height: 34px; }
 }
@@ -490,4 +491,24 @@ button.vibe-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8p
   .vibes-grid { grid-template-columns: 1fr; }
   .story-card { grid-template-columns: 38% 1fr; }
   .story-body h3 { font-size: 19px; }
+}
+/* telas estreitas: cabe "em Cidade" ao lado do logo */
+@media (max-width: 400px) {
+  .topnav-inner { gap: 4px; }
+  .brand-logo { height: 34px; }
+  .nav-right { gap: 0; }
+  .icon-btn { width: 32px; height: 32px; }
+  .btn-enter { padding: 0 12px; height: 34px; font-size: 13px; margin-left: 2px; }
+  .topnav-inner > .city-select { margin-left: -4px; }
+  .topnav-inner > .city-select .city-pill { font-size: 12px; padding: 0 4px; }
+  .topnav-inner > .city-select .city-pill svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .topnav-inner > .city-select, .topnav-inner > .city-select .city-pill { min-width: 0; max-width: 100%; }
+  .topnav-inner > .city-select .city-pill span { overflow: hidden; text-overflow: ellipsis; }
+  .nav-right { flex-shrink: 0; }
+}
+@media (max-width: 350px) {
+  .topnav-inner > .city-select .city-pill svg:last-child:not(:first-child) { display: none; }
+  .brand-logo { height: 30px; }
+  .btn-enter { padding: 0 10px; }
+  .icon-btn { width: 30px; }
 }
