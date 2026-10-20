@@ -1,9 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AFFINITIES, TYPES, priceLabel } from "../data.js";
 import { useNav, useCity } from "../nav.js";
 import { CitySelect, singleCity } from "./cityselect.jsx";
 import { SearchOverlay, useSearchHotkey } from "./searchbox.jsx";
-import { href, toPath, go } from "../router.js";
+import { href, toPath, go, onPathChange } from "../router.js";
 import { menuItems, isActive } from "../menus.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
@@ -65,7 +66,9 @@ export function MenuLink({ to, className, children, ...rest }) {
 export function TopNav({ current, params = {}, unread, user, paused }) {
   const nav = useNav();
   const [searching, setSearching] = useState(false);
-  const openSearch = useCallback(() => setSearching(true), []);
+  const [menu, setMenu] = useState(false);
+  const burger = useRef(null);
+  const openSearch = useCallback(() => { setMenu(false); setSearching(true); }, []);
   useSearchHotkey(openSearch);
   return (
     <header className="topnav">
@@ -86,10 +89,97 @@ export function TopNav({ current, params = {}, unread, user, paused }) {
                 {user.avatar ? <img src={user.avatar} alt="" /> : <span>{(user.name || "?").trim().charAt(0).toUpperCase()}</span>}
               </button>
             : !paused && <button className="btn-enter" onClick={() => nav("entrar")}>Entrar</button>}
+          <button ref={burger} type="button" className="nav-burger" aria-label="Abrir menu" aria-expanded={menu} aria-controls="menu-mobile" onClick={() => setMenu(true)}>
+            <Icon name="menu" size={24} />
+            {user && unread > 0 && <span className="badge" aria-hidden="true" />}
+          </button>
         </div>
       </div>
       <SearchOverlay open={searching} onClose={() => setSearching(false)} />
+      <MobileMenu open={menu} onClose={() => { setMenu(false); burger.current?.focus(); }} current={current} params={params} user={user} unread={unread} paused={paused} onSearch={openSearch} />
     </header>
+  );
+}
+
+// Menu do celular e tablet: painel lateral com as seções, a cidade, a busca e a conta
+function MobileMenu({ open, onClose, current, params, user, unread, paused, onSearch }) {
+  const nav = useNav();
+  const panel = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.activeElement;
+    panel.current?.querySelector("a, button")?.focus();
+    const key = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); onClose(); }
+      if (e.key === "Tab" && panel.current) {           // o foco fica dentro do menu
+        const els = [...panel.current.querySelectorAll("a[href], button:not([disabled]), input")].filter(el => el.offsetParent !== null);
+        if (!els.length) return;
+        const first = els[0], last = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener("keydown", key);
+    document.body.classList.add("menu-lock");
+    const off = onPathChange(() => onClose());          // fecha ao navegar
+    return () => { document.removeEventListener("keydown", key); document.body.classList.remove("menu-lock"); off(); if (prev && !document.contains(prev)) document.body.focus(); };
+  }, [open]); // eslint-disable-line
+  const go2 = (screen, p) => () => { onClose(); nav(screen, p); };
+  const main = menuItems("header"), more = [...menuItems("footer"), ...menuItems("legal")].filter(x => !main.some(m => m.it.label === x.it.label));
+  return createPortal(
+    <div className={"mmenu" + (open ? " open" : "")} aria-hidden={!open} inert={open ? undefined : ""}>
+      <div className="mmenu-bg" onClick={onClose} />
+      <aside className="mmenu-panel" id="menu-mobile" role="dialog" aria-modal="true" aria-label="Menu" ref={panel} onClick={(e) => { if (e.target.closest("a")) setTimeout(onClose, 0); }}>
+        <div className="mmenu-head">
+          <Brand />
+          <button type="button" className="mmenu-close" onClick={onClose} aria-label="Fechar menu"><Icon name="x" size={22} /></button>
+        </div>
+
+        <button type="button" className="mmenu-search" onClick={onSearch}>
+          <Icon name="search" size={18} /><span>Buscar lugares, eventos, roteiros…</span>
+        </button>
+        <div className="mmenu-city"><CityPill /></div>
+
+        <nav className="mmenu-main" aria-label="Seções">
+          {main.map(({ it, to }) => (
+            <MenuLink key={it.id} to={to} className={"mmenu-link" + (isActive(it, current, params) ? " active" : "")} aria-current={isActive(it, current, params) ? "page" : undefined}>
+              <span>{it.label}</span><Icon name="arrow" size={18} />
+            </MenuLink>
+          ))}
+        </nav>
+
+        {!paused && (
+          <div className="mmenu-account">
+            {user ? (
+              <>
+                <button type="button" className="mmenu-user" onClick={go2("perfil")}>
+                  <span className="mmenu-avatar" aria-hidden="true">{user.avatar ? <img src={user.avatar} alt="" /> : <span>{(user.name || "?").trim().charAt(0).toUpperCase()}</span>}</span>
+                  <span><strong>{user.name}</strong><em>Meu perfil</em></span>
+                </button>
+                <div className="mmenu-quick">
+                  <button type="button" onClick={go2("perfil", { tab: "favoritos" })}><Icon name="heart" size={18} /> Favoritos</button>
+                  <button type="button" onClick={go2("notificacoes")}><Icon name="bell" size={18} /> Notificações{unread > 0 && <em className="mmenu-count">{unread}</em>}</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <button type="button" className="btn-pill mmenu-enter" onClick={go2("entrar")}>Entrar</button>
+                <button type="button" className="btn-enter mmenu-signup" onClick={go2("entrar", { mode: "cadastro" })}>Criar conta</button>
+                <button type="button" className="mmenu-fav" onClick={go2("favoritos")}><Icon name="heart" size={18} /> Favoritos</button>
+              </>
+            )}
+          </div>
+        )}
+
+        {more.length > 0 && (
+          <nav className="mmenu-more" aria-label="Mais links">
+            {more.map(({ it, to }) => <MenuLink key={it.id} to={to}>{it.label}</MenuLink>)}
+          </nav>
+        )}
+        <div className="mmenu-geo" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+      </aside>
+    </div>,
+    document.body,
   );
 }
 
