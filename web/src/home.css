@@ -38,7 +38,9 @@
 .navlink.active { background: none; color: var(--heading); font-weight: 700; border-bottom-color: var(--heading); }
 
 .nav-right { gap: 6px; }
-.topnav-inner > .city-select { margin-left: 6px; }
+.topnav-inner > .city-select { margin-left: -14px; }
+.city-select.is-single > span { cursor: default; display: inline-flex; align-items: center; }
+.city-select.is-single .city-pill:hover { color: var(--heading); }
 .city-pill {
   border: 0; background: none; height: 36px; padding: 0 10px; gap: 6px;
   font-size: 13px; color: var(--heading);

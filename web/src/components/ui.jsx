@@ -1,6 +1,6 @@
 import { AFFINITIES, TYPES, priceLabel } from "../data.js";
 import { useNav, useCity } from "../nav.js";
-import { CitySelect } from "./cityselect.jsx";
+import { CitySelect, singleCity } from "./cityselect.jsx";
 import { href, toPath, go } from "../router.js";
 import { menuItems, isActive } from "../menus.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
@@ -30,6 +30,7 @@ export function NavLink({ id, params, active, children }) {
 
 export function CityPill() {
   const { id, name, set } = useCity();
+  if (singleCity()) return <div className="city-select is-single"><span className="city-pill"><span>em {name}</span><Icon name="pin" size={16} /></span></div>;
   return (
     <CitySelect value={id} onChange={set} className="city-pill" align="left" label={`Cidade: ${name}. Trocar cidade`}>
       <Icon name="pin" size={16} />
