@@ -767,3 +767,48 @@ a.a-paused-pill { text-decoration: none; }
 .a-photo-cell.drop-before { box-shadow: -4px 0 0 0 #EE2A6E; }
 .a-photo-cell.drop-after { box-shadow: 4px 0 0 0 #EE2A6E; }
 .a-photo-grid.is-dragging, .a-photo-grid.is-dragging .a-photo-cell { cursor: grabbing; }
+
+/* Home · carrossel de destaques */
+.a-car-modehint { margin: 10px 0 0; }
+.a-car-opts { display: grid; grid-template-columns: 1fr 220px 1fr; gap: 18px; align-items: start; }
+.a-car-optcol { display: grid; gap: 14px; }
+.a-car-list { display: grid; gap: 10px; margin-bottom: 12px; }
+.a-car-slide { border: 1px solid var(--a-line, #E6E3EE); border-radius: 12px; background: #fff; }
+.a-car-slide.open { border-color: #C9C2E6; box-shadow: 0 6px 20px -14px rgba(30,21,80,.5); }
+.a-car-slide.is-off .a-car-head { opacity: .65; }
+.a-car-slide.has-error { border-color: var(--a-red, #D33); }
+.a-car-head { display: grid; grid-template-columns: auto 72px 1fr auto auto; gap: 12px; align-items: center; padding: 10px 12px; }
+.a-car-thumb { width: 72px; height: 44px; border-radius: 6px; overflow: hidden; }
+.a-car-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.a-car-title { display: grid; gap: 2px; min-width: 0; padding: 0; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
+.a-car-title strong { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.a-car-title span { font-size: 12px; color: var(--a-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.a-car-head .a-rep-tools { display: flex; gap: 2px; }
+.a-car-body { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 22px; padding: 6px 16px 18px; border-top: 1px solid var(--a-line, #E6E3EE); padding-top: 16px; }
+.a-car-col { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.a-car-set { display: grid; gap: 12px; margin: 0; padding: 12px 14px 14px; border: 1px solid var(--a-line, #E6E3EE); border-radius: 10px; }
+.a-car-set legend { padding: 0 6px; font-size: 13px; font-weight: 600; }
+.a-car-set legend small { font-weight: 400; color: var(--a-text-2); }
+.a-car-set > .a-btn { justify-self: start; }
+.a-car-dates { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+/* prévia do slide */
+.a-car-prev { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #3B2A7C; color: #fff; }
+.a-car-prev-img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.a-car-prev-img img { width: 100%; height: 100%; object-fit: cover; object-position: var(--focus, center); }
+.a-car-prev::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(22,14,58,.85), rgba(22,14,58,.3) 60%, rgba(22,14,58,0)); }
+.a-car-prev-copy { position: absolute; z-index: 1; left: 14px; right: 30%; bottom: 14px; display: grid; gap: 5px; justify-items: start; }
+.a-car-prev-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.a-car-prev .slide-when { height: 18px; gap: 3px; padding-left: 6px; border-radius: 5px; box-shadow: none; font-size: 7.5px; }
+.a-car-prev .slide-when em { gap: 3px; }
+.a-car-prev .slide-when b { padding: 0 6px; margin-left: 3px; }
+.a-car-prev .slide-when:not(:has(b)) { padding-right: 7px; }
+.a-car-prev-tag { padding: 2px 7px; border-radius: 999px; background: #FFD02E; color: #1E1550; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.a-car-prev-copy strong { font-family: "Lora", Georgia, serif; font-size: 18px; line-height: 1.05; }
+.a-car-prev-copy p { margin: 0; font-size: 10.5px; line-height: 1.3; opacity: .9; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.a-car-prev-cta { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: #fff; color: #1E1550; font-size: 9.5px; font-weight: 700; }
+@media (max-width: 1100px) { .a-car-body { grid-template-columns: 1fr; } .a-car-opts { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .a-car-head { grid-template-columns: auto 1fr auto; }
+  .a-car-thumb, .a-car-head .a-badge { display: none; }
+  .a-car-dates { grid-template-columns: 1fr 1fr; }
+}

@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { placeImg } from "../../data.js";
 import { ImageSlot } from "../../components/image-slot.jsx";
-import { AIcon, Btn, Card, Input, Textarea, Select, Repeater, ImageField, Field, PageHeader, ChipInput, useAdmin, useDraft } from "../kit.jsx";
-import { saveHome, isLive } from "../store.js";
+import { AIcon, Btn, Card, Input, Textarea, Select, Repeater, ImageField, Field, PageHeader, ChipInput, Segmented, useAdmin, useDraft } from "../kit.jsx";
+import { saveHome, isLive, removeMedia, getDB } from "../store.js";
+import { carouselOf, slideImg, visibleSlides } from "../../carousel.js";
+import { CarouselEditor, slideErrors } from "./HomeCarouselEditor.jsx";
 import { IconPicker } from "./Places.jsx";
 import { openOnSite } from "./content.jsx";
 
@@ -13,15 +15,28 @@ export function HomePage() {
   const { draft, set, dirty, commit } = useDraft(db.home);
   useEffect(() => { setDirty(dirty); return () => setDirty(false); }, [dirty, setDirty]);
   const hero = draft.hero;
+  const mode = draft.heroMode || "fixo";
+  const car = carouselOf(draft);
+  const [errors, setErrors] = useState({});
   const setHero = (patch) => set({ hero: { ...hero, ...patch } });
   const livePlaces = db.places.filter(isLive);
   const liveStories = db.stories.filter(s => isLive(s));
   const liveRots = db.roteiros.filter(isLive);
 
-  function save() {
+  async function save() {
     if (!hero.title.trim()) return toast("O título do topo não pode ficar vazio.", "error");
-    saveHome(draft, user); commit(draft);
-    saved("Home atualizada no site.");
+    // destaques ativos precisam estar completos; os desativados podem ficar como rascunho
+    const errs = {};
+    car.slides.forEach(sl => { const e = slideErrors(sl); if (Object.keys(e).length && (sl.active !== false || Object.keys(e).some(k => k !== "title"))) errs[sl.id] = e; });
+    setErrors(errs);
+    if (Object.keys(errs).length) return toast("Revise os destaques marcados antes de salvar.", "error");
+    const next = { ...draft, heroMode: mode, carousel: car };
+    // imagens de destaques excluídos saem do armazenamento
+    const before = carouselOf(db.home).slides.map(x => x.id);
+    const gone = before.filter(id => !car.slides.some(x => x.id === id)).map(slideImg).filter(p => getDB().media[p]);
+    saveHome(next, user); commit(next);
+    for (const p of gone) { try { await removeMedia(p, user); } catch { /* fica órfã */ } }
+    saved(mode === "carrossel" && !visibleSlides(car).length ? "Salvo. Nenhum destaque no ar: o site segue com o topo fixo até haver um." : "Home atualizada no site.");
   }
 
   return (
@@ -30,7 +45,19 @@ export function HomePage() {
         actions={<><Btn icon="ext" onClick={() => openOnSite("home")}>Ver home</Btn><Btn kind="primary" icon="check" disabled={!dirty} onClick={save}>Salvar home</Btn></>} />
       {dirty && <p className="a-dirty a-dirty-bar"><i /> Alterações não salvas</p>}
 
-      <div className="a-grid-2-1">
+      <Card title="Topo da home" subtitle="Escolha o que aparece no alto da página inicial.">
+        <Segmented label="Tipo de topo" value={mode} onChange={(heroMode) => set({ heroMode })}
+          options={[["fixo", "Fixo · título e foto"], ["carrossel", "Carrossel de destaques"]]} />
+        <p className="a-muted a-car-modehint">
+          {mode === "fixo"
+            ? "Título, texto de apoio e foto, com a busca e as vibes ao lado."
+            : "Eventos ou lugares em destaque, cadastrados um a um abaixo. Sem nenhum destaque no ar, o site volta a mostrar o topo fixo."}
+        </p>
+      </Card>
+
+      {mode === "carrossel" && <CarouselEditor car={car} onChange={(carousel) => set({ carousel })} errors={errors} />}
+
+      {mode === "fixo" && <div className="a-grid-2-1">
         <Card title="Topo (hero)" subtitle="Título, texto e foto principal.">
           <Textarea label="Título" value={hero.title} onChange={(title) => setHero({ title })} rows={2} hint="Use Enter para quebrar a linha. Ideal: até 2 linhas curtas." maxCount={40} />
           <Textarea label="Texto de apoio" value={hero.lede} onChange={(lede) => setHero({ lede })} rows={3} maxCount={160} />
@@ -42,7 +69,7 @@ export function HomePage() {
         <Card title="Foto do topo">
           <ImageField path={hero.img} hint="~1400×800 · pessoas em clima de rolê" ratio="16 / 10" />
         </Card>
-      </div>
+      </div>}
 
       <Card title="Dicas para hoje" subtitle="Até seis lugares publicados, na ordem abaixo.">
         <Repeater items={draft.tips} max={6} addLabel="Adicionar dica" newItem={() => ({ place: livePlaces.find(x => !draft.tips.some(t => t.place === x.id))?.id || livePlaces[0]?.id })}

@@ -81,6 +81,10 @@ export function toPath(screen, params = {}) {
       if (params.tipo) qs.set("tipo", params.tipo);
       return qs.toString() ? `${base}?${qs}` : base;
     }
+    case "busca": {
+      const qs = new URLSearchParams({ ...(params.q ? { q: params.q } : {}), ...(params.tipo ? { tipo: params.tipo } : {}) }).toString();
+      return "/busca" + (qs ? "?" + qs : "");
+    }
     case "detalhe": return placePath(params.id);
     case "roteiro": return roteiroPath(params.id);
     case "evento": return eventPath(params.id);
@@ -133,6 +137,7 @@ export function fromPath(full) {
   if (parts.length > 2) return notFound;
   if (!a) return { screen: "home", params: {} };
   switch (a) {
+    case "busca": return b ? notFound : { screen: "busca", params: { q: q.get("q") || "", tipo: q.get("tipo") || "" } };
     case "lugares": {
       if (!b) return { screen: "lista", params: { ...(q.get("busca") ? { q: q.get("busca") } : {}), ...(q.get("tipo") ? { tipo: q.get("tipo") } : {}) } };
       const p = bySlug(PLACES, b);

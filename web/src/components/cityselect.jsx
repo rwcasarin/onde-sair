@@ -1,6 +1,6 @@
 // Seleção de cidade com busca (mesma usabilidade do combobox do admin, sem cadastro).
 // Usa as cidades ativas da base (CITIES, sincronizadas com o painel).
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Children, useEffect, useId, useMemo, useRef, useState } from "react";
 import { CITIES } from "../data.js";
 import { Icon } from "./icons.jsx";
 
@@ -40,8 +40,23 @@ function keyNav(e, { options, active, setActive, onPick, onClose }) {
   else if (e.key === "Escape") { e.preventDefault(); onClose(); }
 }
 
+// só uma cidade ativa: não há o que escolher
+export const singleCity = () => CITIES.length <= 1;
+
 // Botão (menu, rodapé, busca da home) que abre um painel com busca
-export function CitySelect({ value, onChange, className = "", children, align = "left", placement = "bottom", label = "Escolher cidade" }) {
+export function CitySelect(props) {
+  if (singleCity()) {   // sem lista para abrir: só o nome (sem a seta)
+    const { className = "", children, align = "left", placement = "bottom" } = props;
+    return (
+      <div className={"city-select is-single align-" + align + " place-" + placement}>
+        <span className={className}>{Children.toArray(children).filter(c => c?.props?.name !== "chevron")}</span>
+      </div>
+    );
+  }
+  return <CityDropdown {...props} />;
+}
+
+function CityDropdown({ value, onChange, className = "", children, align = "left", placement = "bottom", label = "Escolher cidade" }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
@@ -79,7 +94,21 @@ export function CitySelect({ value, onChange, className = "", children, align = 
 }
 
 // Campo com busca (filtro da lista de lugares) — digita para filtrar, como no admin
-export function CityField({ value, onChange, allLabel = "Todas as cidades", counts, label = "Cidade" }) {
+export function CityField(props) {
+  if (singleCity()) {     // só uma cidade: mostra o nome, sem lista para abrir
+    const c = CITIES[0];
+    return (
+      <div className="city-field is-single">
+        <div className="city-field-box" aria-label={(props.label || "Cidade") + ": " + (c?.name || "")}>
+          <Icon name="pin" size={16} /><span>{c?.name || props.allLabel || "Todas as cidades"}</span>
+        </div>
+      </div>
+    );
+  }
+  return <CityCombo {...props} />;
+}
+
+function CityCombo({ value, onChange, allLabel = "Todas as cidades", counts, label = "Cidade" }) {
   const cur = CITIES.find(c => c.id === value);
   const [text, setText] = useState(cur?.name || "");
   const [open, setOpen] = useState(false);
