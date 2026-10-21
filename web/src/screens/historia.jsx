@@ -18,6 +18,13 @@ const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { 
 export function StoryCard({ s }) {
   const nav = useNav();
   const when = publishedDate(s);
+  async function share() {
+    try {
+      if (navigator.share) await navigator.share({ title: s.title, text: s.desc, url: location.href });
+      else await navigator.clipboard?.writeText(location.href);
+      setShared(true); setTimeout(() => setShared(false), 1800);
+    } catch { /* cancelado */ }
+  }
   return (
     <article className="story-card" onClick={() => nav("historia", { id: s.id })} style={{ cursor: "pointer" }}>
       <ImageSlot className="story-img" src={s.img} alt="" hint="3:4">
@@ -131,6 +138,7 @@ function PostBody({ s }) {
 
 export function Historia({ id }) {
   const nav = useNav();
+  const [shared, setShared] = useState(false);
   const s = ALL_STORIES.find(x => x.id === id);
   if (!s) return <NotFound />;
   const inline = [...String(s.body || "").matchAll(/data-place="([\w-]+)"/g)].map(m => m[1]);
@@ -140,13 +148,27 @@ export function Historia({ id }) {
     .sort((a, b) => (b.tag === s.tag) - (a.tag === s.tag) || String(publishedDate(b)).localeCompare(String(publishedDate(a))))
     .slice(0, 2);
   const when = publishedDate(s);
+  async function share() {
+    try {
+      if (navigator.share) await navigator.share({ title: s.title, text: s.desc, url: location.href });
+      else await navigator.clipboard?.writeText(location.href);
+      setShared(true); setTimeout(() => setShared(false), 1800);
+    } catch { /* cancelado */ }
+  }
   return (
     <main className="home2">
       <article className="shell narrow story-article">
         <PageHead crumbs={[["Início", "home"], ["Radar", "historias"], [s.title]]}
           back={<a href={href("/radar")} className="back-link" onClick={(e) => { e.preventDefault(); canGoBack() ? history.back() : nav("historias"); }}><Icon name="left" size={16} /> Voltar</a>} title={s.title} lede={s.desc}
           eyebrow={s.tag && <span className={"story-tag tone-" + s.tone}>{s.tag}</span>} />
-        {(s.author || when) && <p className="story-byline">{s.author && <>Por <strong>{s.author}</strong></>}{s.author && when && " · "}{when && fmt(when)}</p>}
+        <div className="story-meta-row">
+          {(s.author || when) && <p className="story-byline">{s.author && <>Por <strong>{s.author}</strong></>}{s.author && when && " · "}{when && fmt(when)}</p>}
+          <div className="place-actions story-actions">
+            <div className="act-row act-sub">
+              <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+            </div>
+          </div>
+        </div>
         {/* capa enviada em 3:4: aparece inteira, com a própria foto desfocada preenchendo as laterais */}
         <ImageSlot className="story-hero" src={s.img} alt={s.title} hint="Foto de capa · 3:4">
           <img className="story-hero-bg" src={resolveMedia(s.img)} alt="" aria-hidden="true" />

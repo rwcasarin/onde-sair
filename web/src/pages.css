@@ -1432,3 +1432,92 @@ body.search-lock { overflow: hidden; }
 .search-empty a { color: var(--c-magenta); }
 .search-empty-vibes { justify-content: center; margin-top: 18px; }
 .search-page .listing-layout { padding-top: 22px; }
+
+/* Radar: autor/data e ações na mesma linha */
+.story-meta-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 20px; }
+.story-meta-row .story-byline { margin: 0; }
+.story-actions, .story-actions .act-row { margin: 0; }
+
+/* =================================================================
+   Páginas de detalhe no celular (lugar, roteiro, evento e Radar):
+   mesma estrutura — migalhas numa linha, selos, título, resumo, informações,
+   ações (principal em largura total + botões redondos), foto 16:10 arredondada,
+   abas fixas, seções em cartões iguais e relacionados em carrossel.
+   ================================================================= */
+@media (max-width: 760px) {
+  /* cabeçalho */
+  .hero2-page.hero2-place { min-height: 0; padding: 14px 0 6px; }
+  .hero2-place .hero2-copy > *, .hero2-place .hero2-copy > .page-title { max-width: none; }
+  /* migalhas: só o 2º item (a seção) e o último (a página atual) */
+  .crumbs2 > span:not(:nth-child(2)):not(:last-child) { display: none; }
+  .crumbs2 > span:nth-child(2) > svg:first-child { display: none; }
+  .hero2-place .crumbs2, .story-article .crumbs2 { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; margin-bottom: 12px; font-size: 12px; }
+  .hero2-place .crumbs2 > span:last-child, .story-article .crumbs2 > span:last-child { min-width: 0; overflow: hidden; }
+  .hero2-place .crumbs2 > span:last-child > span, .story-article .crumbs2 > span:last-child > span { overflow: hidden; text-overflow: ellipsis; }
+  .hero2-place .place-vibes-sm, .story-article .page-head-eyebrow { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+  .hero2-place .page-title, .hero2-roteiro .page-title.page-title-sm, .hero2-roteiro .page-title.page-title-md, .story-article .page-head h1 {
+    font-size: clamp(32px, 9vw, 40px); line-height: 1.02; letter-spacing: -0.04em; }
+  .hero2-place .hero2-lede, .story-article .page-head-lede { margin: 10px 0 0; font-size: 16px; line-height: 1.45; color: var(--ink-2); }
+  .hero2-place .place-meta { display: grid; gap: 8px; margin: 16px 0 0; }
+  .hero2-place .place-meta li { padding: 0; border: 0; font-size: 14px; }
+  .hero2-place .place-meta li svg { flex-shrink: 0; color: var(--primary); }
+
+  /* ações: 1ª linha — principal (do tamanho do texto) + Instagram e WhatsApp; 2ª linha — as demais, redondas */
+  .hero2-place .place-actions, .hero2-roteiro .place-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 18px; }
+  .hero2-place .place-actions .act-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0; }
+  .hero2-place .place-actions .act-cta { flex: none; height: 46px; margin: 0; padding: 0 22px; }
+  .hero2-place .place-actions .act-btn, .story-actions .act-btn { width: 46px; height: 46px; padding: 0; justify-content: center; }
+  .hero2-place .place-actions .add-rot > button { width: 46px; height: 46px; padding: 0; justify-content: center; }
+  .hero2-place .place-actions .act-label { display: none; }
+  .hero2-place .place-actions .inline-confirm { flex-basis: 100%; }
+
+  /* foto do topo: mesmo formato em todas (16:10, cantos arredondados, sem recortes) */
+  .hero2-page.hero2-place .hero2-media { position: relative; order: 2; width: auto; height: auto; aspect-ratio: 16 / 10; margin: 20px var(--gutter) 0; border-radius: 22px; overflow: hidden; }
+  .hero2-place .hero2-media .hero2-photo { border-radius: 22px !important; clip-path: none !important; }
+  .hero2-place .hero2-media .hero2-photo .img-slot-empty { padding: 0 !important; justify-content: center; }
+  .hero2-place .hero2-geo { display: none; }
+  .hero2-place .hero2-note { left: auto; right: 18px; top: 16px; bottom: auto; max-width: 62%; margin: 0; font-size: 21px; text-align: right; transform: rotate(-7deg); }
+  .hero2-place .hero2-note-line { margin: 8px 0 0 auto; width: 36px; }
+  /* etiqueta do post no mesmo formato dos selos das outras páginas */
+  .story-article .page-head-eyebrow .story-tag { display: inline-flex; align-items: center; height: 26px; padding: 0 12px; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; text-transform: none; }
+  .story-article .story-hero { aspect-ratio: 16 / 10; border-radius: 22px; margin: 0; }
+  .story-article .page-head { padding: 14px 0 16px; margin-bottom: 14px; }
+  .story-meta-row { margin-bottom: 16px; }
+
+  /* abas fixas logo abaixo do menu, rolando de lado */
+  .page-tabs { top: 68px; }
+  .page-tabs .shell { justify-content: flex-start; gap: 0; padding: 0 var(--gutter); scroll-padding: 0 var(--gutter); scroll-snap-type: x proximity; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  .page-tabs button { flex-shrink: 0; padding: 14px 14px 12px; font-size: 14px; scroll-snap-align: start; }
+  .page-tabs button:first-child { padding-left: 0; }
+
+  /* seções */
+  .place-body { padding-top: 22px; }
+  .place-row { gap: 18px; margin-bottom: 26px; }
+  .h2t, .place-body .h2-head h2, .story-article .h2-head h2 { font-size: 26px; }
+  .place-body .h2-head, .story-article .h2-head { flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 14px; }
+  .place-body .h2-head .h2-link, .place-body .h2-head .h2-sub, .story-article .h2-head .h2-link { margin-left: 0; flex: none; }
+  .place-body .why-box, .place-body .info-box, .place-body .where-box, .place-body .rot-map-box, .place-body .event-box { padding: 20px 18px; border-radius: 20px; }
+  .place-body .where-box .h2-head h2, .place-body .rot-map-box .h2-head h2 { font-size: 24px; }
+  .place-body .info-box dt, .place-body .info-box dd { font-size: 14px; }
+  .place-body .why-box li { font-size: 14px; }
+  .place-body .big-quote p { font-size: 22px; }
+
+  /* relacionados: carrossel horizontal com o próximo card aparecendo */
+  .place-body #sec-confira .related-grid, .place-body #sec-confira .rot-index, .story-article .tips-grid, .story-article .stories-grid {
+    display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 80%; gap: 12px;
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+    margin: 0 calc(-1 * var(--gutter)); padding: 2px var(--gutter) 10px; scroll-padding: 0 var(--gutter);
+  }
+  .place-body #sec-confira .related-grid::-webkit-scrollbar, .place-body #sec-confira .rot-index::-webkit-scrollbar, .story-article .tips-grid::-webkit-scrollbar, .story-article .stories-grid::-webkit-scrollbar { display: none; }
+  .place-body #sec-confira .related-grid > *, .place-body #sec-confira .rot-index > *, .story-article .tips-grid > *, .story-article .stories-grid > * { scroll-snap-align: start; min-width: 0; }
+  .story-article .stories-grid .story-card { display: flex; flex-direction: column; min-height: 0; }
+  .story-article .stories-grid .story-img { aspect-ratio: 16 / 10; min-height: 0; height: auto; }
+  .story-article .stories-grid .story-body { padding: 18px 18px 16px; }
+  .story-article .stories-grid .story-body h3 { font-size: 22px; margin: 10px 0 8px; }
+
+  /* endereço: ícone ao lado do texto; "Como chegar" uma vez só, embaixo */
+  .place-body .where-address { display: grid; grid-template-columns: 18px 1fr; gap: 6px 8px; align-items: start; font-size: 14px; }
+  .place-body .where-address > svg { margin-top: 2px; }
+  .place-body .where-address .where-route { grid-column: 1 / -1; justify-self: end; margin-top: 4px; }
+  .hero2-event ~ .place-body .where-box .h2-head .h2-link { display: none; }
+}
