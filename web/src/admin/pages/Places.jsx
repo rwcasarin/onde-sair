@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RichEditor } from "../richeditor.jsx";
+import { HoursEditor, hoursErrors } from "./HoursEditor.jsx";
+import { hasHours, hoursLabel } from "../../hours.js";
 import { htmlToText, asHtml } from "../../richtext.js";
 import { SEED_TYPES, MOMENTOS, AMBIENTES, placeImg } from "../../data.js";
 import { photosForEdit, blankPhoto, safeUrl, MAX_PHOTOS } from "../../photos.js";
@@ -59,8 +61,8 @@ export function PlacesList() {
 // Editor
 // ---------------------------------------------------------------------
 const BLANK = {
-  name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
-  affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
+  name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", tagline: "", desc: "", dica: "", by: "",
+  affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]],
   photos: [], open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", note: "",
   showGallery: true,
   map: { x: 50, y: 50 }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
@@ -76,6 +78,7 @@ const RULES = [
   ["desc", (d) => htmlToText(asHtml(d.desc || "")).length >= 40, "Escreva pelo menos 40 caracteres.", true],
   ["affs", (d) => d.affs.length > 0, "Marque ao menos uma vibe.", true],
   ["end", (d) => !!d.end.trim(), "Informe o endereço.", true],
+  ["hours", (d) => !hoursErrors(d.hours), "Confira os horários de funcionamento."],
 ];
 
 export function PlaceEditor({ id }) {
@@ -127,7 +130,6 @@ function PlaceForm({ initial, isNew }) {
               <Input label="Nome" required value={draft.name} onChange={(v) => set({ name: v })} error={errors.name} maxCount={60} />
               <Input label="Endereço na URL (slug)" value={draft.slug} placeholder={slugify(draft.name)} onChange={(v) => set({ slug: slugify(v) })} prefix="/lugares/" hint="Deixe em branco para gerar a partir do nome." />
               <Input label="Subtítulo" value={draft.sub} onChange={(v) => set({ sub: v })} hint="Aparece no mapa do Guia, nos cards dos posts do Radar e na busca. Ex.: Rooftop, Boteco de raiz." maxCount={40} />
-              <Input label="Tipo de cozinha / programa" value={draft.cuisine} onChange={(v) => set({ cuisine: v })} hint="Ex.: Contemporânea, Café e brunch." />
             </div>
             <Input label="Frase de destaque" value={draft.tagline} onChange={(v) => set({ tagline: v })} maxCount={110} hint="Linha fina abaixo do nome na página do lugar." />
             <RichEditor label="Descrição" required value={draft.desc} onChange={(v) => set({ desc: v })} error={errors.desc} placeholder="Conte como é o lugar…"
@@ -159,17 +161,14 @@ function PlaceForm({ initial, isNew }) {
           <Card>
             <div className="a-form-grid">
               <Select label="Tipo" required value={draft.type} onChange={(v) => set({ type: v })} options={[...new Set([...typesOf(db).map(t => t.label), draft.type].filter(Boolean))]} error={errors.type} />
-              <Input label="Funcionamento" value={draft.open} onChange={(v) => set({ open: v })} placeholder="Ter–Dom · 12h – 23h" />
               <Input label="Telefone" value={draft.phone} onChange={(v) => set({ phone: v })} type="tel" placeholder="(00) 0000-0000" />
               <Input label="Site" value={draft.site} onChange={(v) => set({ site: v.replace(/^https?:\/\//, "") })} prefix="https://" />
               <Input label="Instagram" value={draft.insta} onChange={(v) => set({ insta: v.startsWith("@") || !v ? v : "@" + v })} />
               <Input label="WhatsApp" value={draft.whatsapp || ""} onChange={(v) => set({ whatsapp: v })} type="tel" placeholder="(15) 99999-9999"
                 error={errors.whatsapp} hint="Número com DDD (celular ou fixo do WhatsApp Business). Vira o botão de WhatsApp na página do lugar." />
             </div>
-            <div className="a-form-grid">
-              <PillPicker label="Momento" value={draft.momento} onChange={(momento) => set({ momento })} options={MOMENTOS.map(m => [m, m])} />
-              <PillPicker label="Ambiente" value={draft.ambiente} onChange={(ambiente) => set({ ambiente })} options={AMBIENTES.map(m => [m, m])} />
-            </div>
+            <HoursEditor value={draft.hours || null} legacy={draft.open} error={errors.hours && (hoursErrors(draft.hours) || errors.hours)}
+              onChange={(hours) => set({ hours, open: hasHours(hours) ? hoursLabel(hours) : (hours.days.length ? draft.open : "") })} />
           </Card>
         )}
 
@@ -177,7 +176,7 @@ function PlaceForm({ initial, isNew }) {
           <Card>
             <OrderedPicker label="Vibes" error={errors.affs} hint="A ordem aqui é a ordem em que as vibes aparecem no site."
               value={draft.affs} onChange={(affs) => set({ affs })} options={db.vibes.map(v => [v.id, v.label, v.cls])} />
-            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} hint="Aparecem na página do lugar (abaixo do texto “Sobre o lugar”) e ajudam na busca. De 3 a 5 funcionam melhor."
+            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} suggestions={[...MOMENTOS, ...AMBIENTES]} hint="Aparecem na página do lugar (abaixo do texto “Sobre o lugar”) e ajudam na busca. De 3 a 5 funcionam melhor. Inclua o momento (Jantar, Happy hour…) e o ambiente (interno, externo)."
               suggestions={[...new Set(db.places.flatMap(p => p.tags || []))]} />
           </Card>
         )}

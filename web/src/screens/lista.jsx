@@ -1,7 +1,7 @@
 import { htmlToText } from "../richtext.js";
 import { useMemo, useState } from "react";
 import {
-  PLACES, VIBE_ORDER, VIBE_PAGE, MOMENTOS, AMBIENTES, vibeImg,
+  PLACES, VIBE_ORDER, VIBE_PAGE, vibeImg,
 } from "../data.js";
 import { CITIES, TYPES } from "../data.js";
 import { Icon } from "../components/icons.jsx";
@@ -27,7 +27,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   // filtros no link: /lugares?busca=…&cidade=…&bairro=centro,vila-nova&tipo=bares&preco=1,2
   const { f, set, toggle, reset } = useFilters({
     busca: ["busca", "one", q], cidade: ["cidade", "one", globalCity || "todas"], bairro: ["bairro", "set"], tipo: ["tipo", "set", tipo ? [tipo] : []],
-    momento: ["momento", "set"], ambiente: ["ambiente", "set"], ordem: ["ordem", "one", "relevancia"],
+    ordem: ["ordem", "one", "relevancia"],
   });
   const query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade;
 
@@ -52,8 +52,6 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   const tests = {
     bairro: (p) => !f.bairro.size || f.bairro.has(fslug(p.bairro)),
     tipo: (p) => !f.tipo.size || f.tipo.has(fslug(p.type)),
-    momento: (p) => !f.momento.size || (p.momento || []).some(m => f.momento.has(fslug(m))),
-    ambiente: (p) => !f.ambiente.size || (p.ambiente || []).some(m => f.ambiente.has(fslug(m))),
   };
   const pass = (p, skip) => Object.entries(tests).every(([k, t]) => k === skip || t(p));
   const count = (key, fn) => base.filter(p => pass(p, key) && fn(p)).length;
@@ -70,11 +68,9 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
     ...[...f.tipo].map(v => ({ key: "t" + v, label: label(TIPOS, v), onRemove: () => toggle("tipo", v) })),
     ...[...f.bairro].map(v => ({ key: "b" + v, label: label(BAIRROS, v), onRemove: () => toggle("bairro", v) })),
-    ...[...f.momento].map(v => ({ key: "m" + v, label: label(MOMENTOS.map(m => [fslug(m), m]), v), onRemove: () => toggle("momento", v) })),
-    ...[...f.ambiente].map(v => ({ key: "a" + v, label: label(AMBIENTES.map(m => [fslug(m), m]), v), onRemove: () => toggle("ambiente", v) })),
   ];
   const filterCount = chips.length - (a ? 1 : 0);
-  function clearAll() { reset(["busca", "bairro", "tipo", "momento", "ambiente"]); }
+  function clearAll() { reset(["busca", "bairro", "tipo"]); }
   const typeTitle = f.tipo.size === 1 ? label(TIPOS, [...f.tipo][0]) : "";
 
   const title = a ? a.label : query ? "Resultados da busca" : typeTitle || "Lugares";
@@ -118,12 +114,6 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
           </FilterBlock>
           <FilterBlock title="Tipo de lugar">
             <CheckList options={opts("tipo", TIPOS, p => [fslug(p.type)])} selected={f.tipo} onToggle={(v) => toggle("tipo", v)} />
-          </FilterBlock>
-          <FilterBlock title="Momento">
-            <CheckList options={opts("momento", MOMENTOS.map(m => [fslug(m), m]), p => (p.momento || []).map(fslug))} selected={f.momento} onToggle={(v) => toggle("momento", v)} />
-          </FilterBlock>
-          <FilterBlock title="Ambiente">
-            <CheckList options={opts("ambiente", AMBIENTES.map(m => [fslug(m), m]), p => (p.ambiente || []).map(fslug))} selected={f.ambiente} onToggle={(v) => toggle("ambiente", v)} />
           </FilterBlock>
         </FilterPanel>
 

@@ -317,10 +317,10 @@ export function importSorocaba(d, at, rows) {
     const slug = old ? uniq(slugs, old.slug) : uniq(slugs, r.slug);
     const ok = !!(r.bairro && r.end);
     return {
-      id, slug, name: r.name, sub: r.sub || "", cuisine: r.cuisine || "", tagline: r.tagline || "", desc: r.desc || "",
+      id, slug, name: r.name, sub: r.sub || "", tagline: r.tagline || "", desc: r.desc || "",
       dica: r.dica || "", by: r.by || "Equipe Onde Sair", note: r.note || "", reasons: clone(r.reasons || []),
       type: r.type, open: r.open || "", phone: r.phone || "", whatsapp: r.whatsapp || "", site: r.site || "", insta: r.insta || "",
-      momento: [...(r.momento || [])], ambiente: [...(r.ambiente || [])], affs: [...(r.affs || [])], tags: [...(r.tags || [])],
+      affs: [...(r.affs || [])], tags: mergeTags(r.tags, r.momento, r.ambiente),
       showGallery: old ? !!old.showGallery : !!r.showGallery, photos: old ? clone(old.photos || []) : [],
       end: r.end || "", city: r.city || "sorocaba", bairro: r.bairro || "", cep: r.cep || "", geo: r.geo ? { ...r.geo } : null, placeId: r.placeId || "",
       map: old?.map ? { ...old.map } : { x: 50, y: 50, label: "" },
@@ -367,6 +367,26 @@ function placeNames(d) {
   return names;
 }
 
+
+// Momento e ambiente viram tags do lugar (os campos saem do cadastro e dos filtros);
+// o antigo "tipo de cozinha/programa" é apagado.
+function mergeTags(...lists) {
+  const out = [];
+  lists.flat().map(t => String(t || "").trim()).filter(Boolean).forEach(t => { if (!out.some(x => norm(x) === norm(t))) out.push(t); });
+  return out;
+}
+function placeTagsCleanup(d) {
+  const names = [];
+  d.places = (d.places || []).map(p => {
+    if (p.momento === undefined && p.ambiente === undefined && p.cuisine === undefined) return p;
+    const { momento, ambiente, cuisine, ...rest } = p;
+    const tags = mergeTags(p.tags, momento, ambiente);
+    if ((momento || []).length || (ambiente || []).length || cuisine) names.push(p.name);
+    return { ...rest, tags };
+  });
+  return names.length ? [`${names.length} lugares`] : [];
+}
+
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
   { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
@@ -386,6 +406,7 @@ const UPDATES = [
     load: () => fetch(IMPORT_FILE, { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error("arquivo " + r.status); return r.json(); }),
     apply: importSorocaba },
   { id: "2026-10-nomes-lugares", label: "nomes de lugares padronizados", apply: placeNames },
+  { id: "2026-10-tags-momento-ambiente", label: "momento e ambiente nas tags (sem tipo de cozinha)", apply: placeTagsCleanup },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.

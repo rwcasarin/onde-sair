@@ -1,7 +1,7 @@
 // Vibes (/vibes e /vibes/{slug}): lugares e roteiros juntos, no modelo da lista de lugares.
 // O menu de vibes fica no topo, com a vibe da página marcada.
 import { useMemo, useState } from "react";
-import { PLACES, ROTEIROS, VIBE_ORDER, VIBE_PAGE, MOMENTOS, AMBIENTES, CITIES, TYPES, vibeImg } from "../data.js";
+import { PLACES, ROTEIROS, VIBE_ORDER, VIBE_PAGE, CITIES, TYPES, vibeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { htmlToText } from "../richtext.js";
 import { HeroMedia, Crumbs, VibePill, PlaceCard, RoteiroCard, Footer, affById, placeById } from "../components/site.jsx";
@@ -41,7 +41,7 @@ export function VibesView({ aff = null, q = "" }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { f, set, toggle, reset } = useFilters({
     busca: ["busca", "one", q], mostrar: ["mostrar", "set"], cidade: ["cidade", "one", globalCity || "todas"], bairro: ["bairro", "set"],
-    tipo: ["tipo", "set"], momento: ["momento", "set"], ambiente: ["ambiente", "set"], tamanho: ["tamanho", "set"], ordem: ["ordem", "one", "relevancia"],
+    tipo: ["tipo", "set"], tamanho: ["tamanho", "set"], ordem: ["ordem", "one", "relevancia"],
   });
   const query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade, kinds = f.mostrar;
 
@@ -62,8 +62,6 @@ export function VibesView({ aff = null, q = "" }) {
     mostrar: (x) => shown(x.kind),
     bairro: (x) => !f.bairro.size || x.bairros.some(b => f.bairro.has(fslug(b))),
     tipo: (x) => x.kind !== "lugar" || !f.tipo.size || f.tipo.has(fslug(x.p.type)),
-    momento: (x) => x.kind !== "lugar" || !f.momento.size || (x.p.momento || []).some(m => f.momento.has(fslug(m))),
-    ambiente: (x) => x.kind !== "lugar" || !f.ambiente.size || (x.p.ambiente || []).some(m => f.ambiente.has(fslug(m))),
     tamanho: (x) => x.kind !== "roteiro" || !f.tamanho.size || STOPS.some(([k, , fn]) => f.tamanho.has(k) && fn(x.stops)),
   };
   const pass = (x, skip) => Object.entries(tests).every(([k, t]) => k === skip || t(x));
@@ -83,10 +81,10 @@ export function VibesView({ aff = null, q = "" }) {
   const chips = [
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
     ...chipsOf("mostrar", KINDS), ...chipsOf("bairro", BAIRROS),
-    ...chipsOf("tipo", TIPOS), ...chipsOf("momento", MOMENTOS.map(m => [fslug(m), m])), ...chipsOf("ambiente", AMBIENTES.map(m => [fslug(m), m])), ...chipsOf("tamanho", STOPS),
+    ...chipsOf("tipo", TIPOS), ...chipsOf("tamanho", STOPS),
   ];
   const filterCount = chips.length;
-  function clearAll() { reset(["busca", "mostrar", "bairro", "tipo", "momento", "ambiente", "tamanho"]); }
+  function clearAll() { reset(["busca", "mostrar", "bairro", "tipo", "tamanho"]); }
 
   const title = a ? a.label : "Vibes";
   const lede = page ? page.lede : "Lugares e roteiros reunidos pelo clima do rolê. Escolha uma vibe ou use os filtros.";
@@ -130,12 +128,6 @@ export function VibesView({ aff = null, q = "" }) {
             <p className="filters-group">Só para lugares</p>
             <FilterBlock title="Tipo de lugar">
               <CheckList options={TIPOS.map(([value, l]) => ({ value, label: l, count: count("tipo", x => x.kind === "lugar" && fslug(x.p.type) === value) }))} selected={f.tipo} onToggle={(v) => toggle("tipo", v)} />
-            </FilterBlock>
-            <FilterBlock title="Momento">
-              <CheckList options={MOMENTOS.map(m => ({ value: fslug(m), label: m, count: count("momento", x => x.kind === "lugar" && (x.p.momento || []).includes(m)) }))} selected={f.momento} onToggle={(v) => toggle("momento", v)} />
-            </FilterBlock>
-            <FilterBlock title="Ambiente">
-              <CheckList options={AMBIENTES.map(m => ({ value: fslug(m), label: m, count: count("ambiente", x => x.kind === "lugar" && (x.p.ambiente || []).includes(m)) }))} selected={f.ambiente} onToggle={(v) => toggle("ambiente", v)} />
             </FilterBlock>
           </>}
           {hasRoteiros && shown("roteiro") && <>
