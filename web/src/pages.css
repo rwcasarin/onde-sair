@@ -1448,6 +1448,9 @@ body.search-lock { overflow: hidden; }
   /* cabeçalho */
   .hero2-page.hero2-place { min-height: 0; padding: 14px 0 6px; }
   .hero2-place .hero2-copy > *, .hero2-place .hero2-copy > .page-title { max-width: none; }
+  /* migalhas: só o 2º item (a seção) e o último (a página atual) */
+  .crumbs2 > span:not(:nth-child(2)):not(:last-child) { display: none; }
+  .crumbs2 > span:nth-child(2) > svg:first-child { display: none; }
   .hero2-place .crumbs2, .story-article .crumbs2 { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; margin-bottom: 12px; font-size: 12px; }
   .hero2-place .crumbs2 > span:last-child, .story-article .crumbs2 > span:last-child { min-width: 0; overflow: hidden; }
   .hero2-place .crumbs2 > span:last-child > span, .story-article .crumbs2 > span:last-child > span { overflow: hidden; text-overflow: ellipsis; }
@@ -1459,15 +1462,14 @@ body.search-lock { overflow: hidden; }
   .hero2-place .place-meta li { padding: 0; border: 0; font-size: 14px; }
   .hero2-place .place-meta li svg { flex-shrink: 0; color: var(--primary); }
 
-  /* ações: principal em largura total; as demais em botões redondos do mesmo tamanho */
-  .hero2-place .place-actions, .hero2-roteiro .place-actions { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
-  .hero2-place .place-actions .act-row { display: contents; }
-  .hero2-place .place-actions .act-cta { order: 0; flex: 1 1 100%; justify-content: center; height: 50px; margin: 0; }
-  .hero2-place .place-actions .act-btn, .story-actions .act-btn { order: 1; width: 46px; height: 46px; padding: 0; justify-content: center; }
-  .hero2-place .place-actions .add-rot { order: 1; }
+  /* ações: 1ª linha — principal (do tamanho do texto) + Instagram e WhatsApp; 2ª linha — as demais, redondas */
+  .hero2-place .place-actions, .hero2-roteiro .place-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 18px; }
+  .hero2-place .place-actions .act-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0; }
+  .hero2-place .place-actions .act-cta { flex: none; height: 46px; margin: 0; padding: 0 22px; }
+  .hero2-place .place-actions .act-btn, .story-actions .act-btn { width: 46px; height: 46px; padding: 0; justify-content: center; }
   .hero2-place .place-actions .add-rot > button { width: 46px; height: 46px; padding: 0; justify-content: center; }
   .hero2-place .place-actions .act-label { display: none; }
-  .hero2-place .place-actions .inline-confirm { order: 2; flex-basis: 100%; }
+  .hero2-place .place-actions .inline-confirm { flex-basis: 100%; }
 
   /* foto do topo: mesmo formato em todas (16:10, cantos arredondados, sem recortes) */
   .hero2-page.hero2-place .hero2-media { position: relative; order: 2; width: auto; height: auto; aspect-ratio: 16 / 10; margin: 20px var(--gutter) 0; border-radius: 22px; overflow: hidden; }
