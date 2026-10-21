@@ -1,4 +1,5 @@
 import { RichText, hasText } from "../components/richblock.jsx";
+import { placeHours, weekShifts, hoursStatus, dayShiftsLabel, WEEK, WEEK_ORDER } from "../hours.js";
 import { useState } from "react";
 import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
@@ -117,6 +118,14 @@ function DetalheView({ p }) {
     } catch { /* cancelado */ }
   }
 
+  // funcionamento: cadastrado ou convertido do texto antigo; momento e ambiente entram nas tags
+  const hours = placeHours(p);
+  const week = weekShifts(hours);
+  const today = new Date().getDay();
+  const status = hours ? hoursStatus(hours) : null;
+  const typeInfo = TYPES.find(t => t.label === p.type);
+  const tagList = [...new Set([...(p.tags || []), ...(p.momento || []), ...(p.ambiente || [])].map(t => String(t).trim()).filter(Boolean))];
+
   return (
     <main className="home2">
       {/* ================= HERO ================= */}
@@ -133,7 +142,8 @@ function DetalheView({ p }) {
 
           <ul className="place-meta">
             <li><Icon name="pin" size={18} fill /> {p.bairro}</li>
-            {filled(p.cuisine) && <li><Icon name="utensils" size={18} /> {p.cuisine}</li>}
+            {p.type && <li className="place-meta-type"><Icon name={typeInfo?.icon || "pin"} size={18} /> {p.type}</li>}
+            {status && <li className={"place-meta-status" + (status.open ? " is-open" : "")}><Icon name="clock" size={18} /> {status.text}</li>}
           </ul>
 
           {/* ações: 1ª linha — chegar e falar com o lugar; 2ª linha — ações do visitante (só ícone, texto no hover) */}
@@ -170,9 +180,9 @@ function DetalheView({ p }) {
           <div className="about-text">
             <h2 className="h2t">Sobre o lugar</h2>
             {hasText(p.desc) && <RichText value={p.desc} />}
-            {p.tags?.length > 0 && (
+            {tagList.length > 0 && (
               <ul className="place-tags" aria-label="Tags">
-                {p.tags.map(t => <li key={t}>{t}</li>)}
+                {tagList.map(t => <li key={t}>{t}</li>)}
               </ul>
             )}
           </div>
@@ -235,7 +245,21 @@ function DetalheView({ p }) {
           <div className="info-box">
             <h2 className="h2t">Informações úteis</h2>
             <dl>
-              {filled(p.open) && <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>}
+              {hours ? (
+                <div className="info-hours"><Icon name="clock" size={20} /><dt>Funcionamento</dt>
+                  <dd>
+                    {status && <span className={"hours-status" + (status.open ? " is-open" : "")}>{status.text}</span>}
+                    <ul className="hours-week">
+                      {WEEK_ORDER.map(d => (
+                        <li key={d} className={(d === today ? "is-today" : "") + (week[d].length ? "" : " is-closed")}>
+                          <span>{WEEK[d]}{d === today && <em> (hoje)</em>}</span><span>{dayShiftsLabel(week[d])}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {hours.note && <span className="hours-note">{hours.note}</span>}
+                  </dd>
+                </div>
+              ) : filled(p.open) && <div><Icon name="clock" size={20} /><dt>Funcionamento</dt><dd>{p.open}</dd></div>}
               <div><Icon name="pin" size={20} /><dt>Endereço</dt><dd>{fullAddress(p)}{p.cep && <><br />CEP {p.cep}</>}</dd></div>
               {filled(p.phone) && <div><Icon name="phone" size={20} /><dt>Contato</dt><dd>{tel ? <a href={tel}>{p.phone}</a> : p.phone}</dd></div>}
               {filled(p.site) && <div><Icon name="link" size={20} /><dt>Site</dt><dd>{site ? <a href={site} target="_blank" rel="noreferrer">{p.site.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a> : p.site}</dd></div>}

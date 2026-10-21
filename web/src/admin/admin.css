@@ -812,3 +812,35 @@ a.a-paused-pill { text-decoration: none; }
   .a-car-thumb, .a-car-head .a-badge { display: none; }
   .a-car-dates { grid-template-columns: 1fr 1fr; }
 }
+
+/* Horário de funcionamento (lugar) */
+.a-hours { display: grid; gap: 14px; }
+.a-hours-note { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--a-blue-soft, #E6F0FF); color: var(--a-text, #1E1550); font-size: 13px; }
+.a-hours-days { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.a-hours-day { min-width: 48px; height: 38px; padding: 0 12px; border: 1.5px solid var(--a-line, #E6E3EE); border-radius: 10px; background: #fff; font: inherit; font-size: 13px; font-weight: 600; color: var(--a-text-2, #6b6684); cursor: pointer; }
+.a-hours-day.on { border-color: var(--a-primary, #3B2A7C); background: var(--a-primary, #3B2A7C); color: #fff; }
+.a-hours-quick { display: inline-flex; gap: 12px; margin-left: 8px; font-size: 13px; }
+.a-hours-std { display: grid; gap: 6px; }
+.a-hours-label { font-size: 13px; font-weight: 600; }
+.a-hours-24 { font-size: 14px; font-weight: 600; color: var(--a-green, #0E6B4F); }
+.a-hours-shifts { display: grid; gap: 8px; }
+.a-hours-shifts.compact { gap: 6px; }
+.a-hours-shift { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.a-hours-shift .a-input { width: 128px; }
+.a-hours-shifts.compact .a-hours-shift .a-input { width: 112px; }
+.a-hours-turn { width: 74px; font-size: 12px; color: var(--a-text-2, #6b6684); }
+.a-hours-add { justify-self: start; font-size: 13px; }
+.a-hours-toggles { display: grid; gap: 10px; }
+.a-hours-perday li { align-items: flex-start; }
+.a-hours-week { font-size: 12px; }
+.a-icon-btn { display: inline-grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--a-text-2, #6b6684); cursor: pointer; }
+.a-icon-btn:hover { background: #F1EEF9; color: var(--a-text, #1E1550); }
+.a-day-hours.a-hours-perday li { grid-template-columns: 110px 1fr auto; align-items: start; }
+.a-hours-perday .a-day-name { padding-top: 8px; }
+.a-hours-perday .a-hours-shift { flex-wrap: nowrap; }
+.a-hours-perday .a-link, .a-hours-perday .a-day-std { padding-top: 9px; }
+@media (max-width: 720px) {
+  .a-day-hours.a-hours-perday li { grid-template-columns: 1fr auto; }
+  .a-hours-perday .a-day-name { grid-column: 1 / -1; padding-top: 0; }
+  .a-hours-perday .a-hours-shift { flex-wrap: wrap; }
+}

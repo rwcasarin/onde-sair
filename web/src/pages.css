@@ -1547,3 +1547,19 @@ body.search-lock { overflow: hidden; }
 .about-text .rich-inline ul, .about-text .rich-inline ol { margin: 0 0 12px; }
 .about-text .rich-inline + p { margin-top: 0; }
 @media (max-width: 760px) { .about-text .rich-inline { font-size: 15px; } }
+
+/* Funcionamento do lugar: situação agora + semana */
+.place-meta-status { color: var(--ink-2); }
+.place-meta-status.is-open { color: #0E6B4F; font-weight: 600; }
+.info-box .info-hours dd { display: grid; gap: 8px; }
+.hours-status { justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: #EDEBF2; color: #5E5873; font-size: 12px; font-weight: 700; }
+.hours-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.hours-status.is-open { background: #CDEFE2; color: #0E6B4F; }
+.hours-week { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.hours-week li { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; color: var(--ink-2); }
+.hours-week li > span:last-child { text-align: right; color: var(--heading); }
+.hours-week li.is-closed > span:last-child { color: var(--ink-3); }
+.hours-week li.is-today { font-weight: 700; color: var(--heading); }
+.hours-week li.is-today em { font-style: normal; font-weight: 500; color: var(--c-magenta); }
+.hours-note { font-size: 12px; color: var(--ink-3); }
+@media (max-width: 760px) { .hours-week li { font-size: 14px; } .hours-status { font-size: 13px; } }
