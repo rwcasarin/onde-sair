@@ -6,7 +6,8 @@ import { ImageSlot } from "../components/image-slot.jsx";
 import { OSIcon } from "../components/brand.jsx";
 import { VibePill } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
-import { account, signup, login, updateAccount, peekIntent } from "../account.js";
+import { account, signup, login, updateAccount, peekIntent, loginWithGoogle } from "../account.js";
+import { GoogleButton, googleError } from "../components/google.jsx";
 import { go, href } from "../router.js";
 import { Busy } from "../components/loader.jsx";
 
@@ -33,6 +34,16 @@ const STRENGTH = ["Muito fraca", "Fraca", "Razoável", "Boa", "Forte"];
 
 export function Entrar({ mode: initialMode = "entrar", onDone }) {
   const nav = useNav();
+  const { id: cityId } = useCity();
+  const [gBusy, setGBusy] = useState(false);
+  const [gErr, setGErr] = useState("");
+  async function google(credential) {
+    setGBusy(true); setGErr("");
+    const r = await loginWithGoogle(credential, { city: cityId });
+    setGBusy(false);
+    if (!r.user) return setGErr(r.message || googleError(r.error));
+    if (r.created || !r.user.onboarded) go("/boas-vindas"); else onDone(r.user, false);
+  }
   // boas-vindas só faz sentido logado; quem já entrou não precisa do formulário
   const mode = initialMode === "boas-vindas" ? (account.user ? "boas-vindas" : "entrar") : account.user ? "logado" : initialMode;
 
@@ -69,6 +80,15 @@ export function Entrar({ mode: initialMode = "entrar", onDone }) {
         <h1>{mode === "entrar" ? "Que bom te ver de novo" : "Crie sua conta grátis"}</h1>
         <p className="auth-sub">{mode === "entrar" ? "Entre para ver seus salvos, rolês e dicas pelas suas vibes." : "Salve lugares, monte rolês com amigos e receba dicas que combinam com você."}</p>
         {intentNote && <p className="auth-info auth-intent"><Icon name={intentNote[0]} size={16} /> {intentNote[1]}</p>}
+
+        {account.google && (
+          <div className="auth-social">
+            {gErr && <div className="auth-alert" role="alert"><Icon name="x" size={14} /> {gErr}</div>}
+            <GoogleButton clientId={account.google} onCredential={google} busy={gBusy} text={mode === "entrar" ? "signin_with" : "signup_with"} />
+            {gBusy && <p className="auth-hint auth-center"><Busy>Entrando com o Google…</Busy></p>}
+            <p className="auth-or"><span>ou com seu e-mail</span></p>
+          </div>
+        )}
 
         {mode === "entrar"
           ? <LoginForm onDone={(u) => (u.onboarded ? onDone(u, false) : go("/boas-vindas"))} onSignup={() => go("/cadastro")} />

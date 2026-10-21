@@ -2,6 +2,7 @@
 // GET  ?action=me            → usuário da sessão
 // POST ?action=signup        { name, email, password, city, marketing }
 // POST ?action=login         { email, password }
+// POST ?action=google        { credential, city?, marketing? } → entra ou cria a conta com o Google
 // POST ?action=logout
 // PATCH ?action=update       { name?, city?, vibes?, faves?, roteiros?, marketing?, onboarded? }
 // POST ?action=password      { current, next }
@@ -12,6 +13,7 @@ import { json, fail, body, handle, isCmsCall } from "./_lib/http.js";
 import { cleanRoteiros } from "../shared/myroteiros.js";
 import { readJSON, writeJSON, writeFile, Conflict } from "./_lib/storage.js";
 import { cleanSubmission, SUBMIT_LIMITS } from "../shared/eventsubmit.js";
+import { verifyGoogle, googleClientId } from "./_lib/google.js";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const attempts = new Map();
@@ -99,7 +101,7 @@ export const GET = handle(async (request) => {
   }
   if (action(request) !== "me") return fail(404, "Ação desconhecida");
   const [u, paused] = await Promise.all([currentUser(request), accountsPaused()]);
-  return json({ user: u && !paused ? publicUser(u) : null, paused });
+  return json({ user: u && !paused ? publicUser(u) : null, paused, google: await googleClientId() });
 });
 
 export const POST = handle(async (request) => {
@@ -148,6 +150,35 @@ export const POST = handle(async (request) => {
     return json({ user: publicUser(u) }, 200, { "set-cookie": userCookie(u) });
   }
 
+  if (a === "google") {
+    const { credential, city, marketing } = await body(request);
+    let g;
+    try { g = await verifyGoogle(credential); }
+    catch (e) { return fail(e.status || 401, e.message); }
+    if (!g.sub) return fail(401, "google-invalid");
+    const now = new Date().toISOString();
+    // mesma conta Google ou mesmo e-mail (conta criada com senha): conecta e entra; senão, cria
+    const res = await updateUsers((users) => {
+      let u = users.find(x => x.providers?.google === g.sub) || users.find(x => x.email && x.email === g.email);
+      if (u) {
+        if (u.status === "bloqueado") return { blocked: true };
+        u.providers = { ...(u.providers || {}), google: g.sub };
+        if (!u.avatar && g.picture) u.avatar = g.picture;
+        u.lastSeen = now;
+        return { user: u, created: false };
+      }
+      u = {
+        id: newUserId(), name: g.name || g.email.split("@")[0], email: g.email, hash: null, providers: { google: g.sub },
+        avatar: g.picture, city: clean(city, 12) || "sorocaba", vibes: [], faves: [], status: "ativo",
+        marketing: !!marketing, onboarded: false, joined: now, lastSeen: now, sessionVersion: 0,
+      };
+      users.push(u);
+      return { user: u, created: true };
+    });
+    if (res.blocked) return fail(403, "blocked");
+    return json({ user: publicUser(res.user), created: res.created }, 200, { "set-cookie": userCookie(res.user) });
+  }
+
   if (a === "logout") return json({ ok: true }, 200, { "set-cookie": clearUserCookie() });
 
   if (a === "event") {
@@ -162,7 +193,7 @@ export const POST = handle(async (request) => {
     if (!me) return fail(401, "Entre na sua conta.");
     const { current = "", next = "" } = await body(request);
     if (next.length < 8) return fail(400, "A nova senha precisa de pelo menos 8 caracteres.");
-    if (!verifyPassword(current, me.hash || "")) return fail(400, "A senha atual não confere.");
+    if (me.hash && !verifyPassword(current, me.hash)) return fail(400, "A senha atual não confere.");
     const u = await updateUsers(users => { const x = users.find(y => y.id === me.id); x.hash = hashPassword(next); x.sessionVersion = (x.sessionVersion || 0) + 1; return x; });
     return json({ ok: true }, 200, { "set-cookie": userCookie(u) });
   }

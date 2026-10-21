@@ -1521,3 +1521,19 @@ body.search-lock { overflow: hidden; }
   .place-body .where-address .where-route { grid-column: 1 / -1; justify-self: end; margin-top: 4px; }
   .hero2-event ~ .place-body .where-box .h2-head .h2-link { display: none; }
 }
+
+/* Login com Google (site e painel) */
+.google-btn { position: relative; display: flex; flex-direction: column; align-items: center; min-height: 44px; width: 100%; }
+.google-btn-slot { width: 100%; display: flex; justify-content: center; min-height: 44px; }
+.google-btn.is-busy { opacity: .55; pointer-events: none; }
+.google-btn-wait { position: absolute; inset: 0; border-radius: 999px; border: 1px solid var(--line-strong); background: linear-gradient(90deg, #fff 0%, #F1EEF9 50%, #fff 100%); background-size: 200% 100%; animation: gbtn-wait 1.2s linear infinite; }
+@keyframes gbtn-wait { to { background-position: -200% 0; } }
+.google-btn-error { margin: 0; font-size: 13px; color: var(--ink-3); text-align: center; }
+.auth-social { display: grid; gap: 10px; margin: 6px 0 4px; }
+.auth-or, .a-login-or { display: flex; align-items: center; gap: 12px; margin: 8px 0 14px; font-size: 13px; color: var(--ink-3); }
+.auth-or::before, .auth-or::after, .a-login-or::before, .a-login-or::after { content: ""; flex: 1; height: 1px; background: var(--line-strong); }
+.a-login-google { display: grid; gap: 10px; margin: 0 0 6px; }
+.a-login-or { color: var(--a-text-2, #6b6684); }
+.a-login-or::before, .a-login-or::after { background: var(--a-line, #E6E3EE); }
+.account-google { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 14px; color: var(--ink-2); }
+.account-google-g { flex-shrink: 0; display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 1px solid var(--line-strong); font-weight: 800; color: #4285F4; }

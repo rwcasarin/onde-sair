@@ -695,6 +695,21 @@ export function removeCampaign(id, user) { db.campaigns = db.campaigns.filter(c 
 // Autenticação (demonstração — em produção: backend + hash de senha + 2FA)
 // ---------------------------------------------------------------------
 let attempts = 0, lockedUntil = 0;
+// ID do cliente do login com Google (vem do servidor; vazio = botão escondido)
+export const GOOGLE = { clientId: "" };
+export async function refreshGoogle() {
+  if (!REMOTE) return;
+  try { GOOGLE.clientId = (await api("auth/me")).google || ""; } catch { /* mantém */ }
+}
+export async function loginWithGoogle(credential, remember = true) {
+  if (!REMOTE) return { error: "google-off" };
+  try {
+    const r = await api("auth/login", { method: "POST", body: { credential, remember } });
+    await adminLoad();
+    log(r.user, "entrou no painel com o Google", "", "acesso"); commit();
+    return { user: r.user };
+  } catch (e) { return { error: e.data?.error || (e.status ? e.message : "network") }; }
+}
 export async function login(email, password, remember) {
   if (REMOTE) {
     try {
@@ -740,6 +755,7 @@ export async function currentUser() {
   if (REMOTE) {
     try {
       const r = await api("auth/me");
+      GOOGLE.clientId = r.google || "";
       if (r.user && !adminLoaded) await adminLoad();
       return r.user || null;
     } catch { return null; }
