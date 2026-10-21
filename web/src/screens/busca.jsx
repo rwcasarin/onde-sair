@@ -12,7 +12,8 @@ import { go, href, vibePath } from "../router.js";
 import { WHEN, inRange, byDate } from "../events.js";
 import { roteiroVibes } from "../vibes.js";
 import { search, shortcuts, didYouMean, kindsOn, recentSearches, saveRecent } from "../search.js";
-import { useFilters, FilterPanel, FilterBlock, CheckList, CheckRow, ResultsBar, ActiveChips, sortBy, fslug, recentOf } from "../filters.jsx";
+import { useFilters, FilterPanel, FilterBlock, CheckList, CheckRow, ResultsBar, ActiveChips, sortBy, fslug, recentOf, WhenFilter, whenChips } from "../filters.jsx";
+import { matchesWhen } from "../hours.js";
 
 const TAB_SORTS = { lugares: ["relevancia", "az", "recentes"], eventos: ["relevancia", "data", "az"], roteiros: ["relevancia", "az", "recentes", "paradas"], radar: ["relevancia", "recentes", "az"], paginas: ["relevancia", "az"] };
 const STOPS = [["curto", "Até 3 paradas", (n) => n <= 3], ["longo", "4 paradas ou mais", (n) => n >= 4]];
@@ -49,11 +50,13 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
   const { f, set, toggle, reset } = useFilters({
     q: ["q", "one"], tipo: ["tipo", "one", "tudo"], ordem: ["ordem", "one", "relevancia"],
     cidade: ["cidade", "one", "todas"], bairro: ["bairro", "set"], vibe: ["vibe", "set"],
-    tipoLugar: ["tipo-de-lugar", "set"],
+    tipoLugar: ["tipo-de-lugar", "set"], aberto: ["aberto", "bool"], dia: ["dia", "one"], periodo: ["periodo", "one"],
     quando: ["quando", "one"], categoria: ["categoria", "set"], encerrados: ["encerrados", "bool"],
     tamanho: ["paradas", "set"], radar: ["assunto", "set"],
   });
   const query = f.q.trim();
+  const when = { agora: f.aberto, dia: f.dia, periodo: f.periodo };
+  const setWhen = (k, v) => set(k === "agora" ? "aberto" : k, v);
   const tab = kinds.some(k => k.id === f.tipo) ? f.tipo : "tudo";
   const K = kinds.find(k => k.id === tab);
   const cityF = f.cidade === "todas" ? "" : f.cidade;
@@ -77,8 +80,9 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
     categoria: (d) => !f.categoria.size || (catOf(d.item) && f.categoria.has(catSlug(catOf(d.item)))),
     tamanho: (d) => !f.tamanho.size || STOPS.some(([k, , fn]) => f.tamanho.has(k) && fn(d.item.steps?.length || 0)),
     radar: (d) => !f.radar.size || f.radar.has(fslug(d.item.tag)),
+    when: (d) => matchesWhen(d.item, when),
   };
-  const KEYS = { lugares: ["cidade", "bairro", "tipoLugar", "vibe"], eventos: ["quando", "cidade", "bairro", "categoria", "vibe"], roteiros: ["cidade", "bairro", "vibe", "tamanho"], radar: ["radar"], paginas: [] }[tab] || [];
+  const KEYS = { lugares: ["cidade", "bairro", "tipoLugar", "vibe", "when"], eventos: ["quando", "cidade", "bairro", "categoria", "vibe"], roteiros: ["cidade", "bairro", "vibe", "tamanho"], radar: ["radar"], paginas: [] }[tab] || [];
   const base = K ? byKind(K.kind) : [];
   const pass = (d, skip) => KEYS.every(k => k === skip || tests[k](d));
   const count = (key, fn) => base.filter(d => pass(d, key) && fn(d)).length;
@@ -106,9 +110,10 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
     ...(KEYS.includes("vibe") ? setChips("vibe", VIBES) : []),
     ...(KEYS.includes("tamanho") ? setChips("tamanho", STOPS.map(([k, l]) => [k, l])) : []),
     ...(KEYS.includes("radar") ? setChips("radar", RCATS) : []),
+    ...(KEYS.includes("when") ? whenChips(when, setWhen) : []),
     ...(tab === "eventos" && f.encerrados ? [{ key: "past", label: "Com encerrados", onRemove: () => set("encerrados", false) }] : []),
   ];
-  function clearAll() { reset(["bairro", "vibe", "tipoLugar", "quando", "categoria", "encerrados", "tamanho", "radar"]); set("cidade", "todas"); }
+  function clearAll() { reset(["bairro", "vibe", "tipoLugar", "aberto", "dia", "periodo", "quando", "categoria", "encerrados", "tamanho", "radar"]); set("cidade", "todas"); }
   function changeCity(v) { set("cidade", v || "todas"); reset(["bairro"]); if (v) setGlobalCity(v); }
   function pickTab(id) { set("tipo", id); if (!(TAB_SORTS[id] || []).includes(f.ordem)) set("ordem", "relevancia"); window.scrollTo({ top: 0 }); }
 
@@ -221,6 +226,7 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
               <FilterBlock title="Bairro / Região"><CheckList options={opt("bairro", BAIRROS, d => d.bairros.map(fslug))} selected={f.bairro} onToggle={(v) => toggle("bairro", v)} searchLabel="Buscar bairro" /></FilterBlock>
             )}
             {KEYS.includes("tipoLugar") && <FilterBlock title="Tipo de lugar"><CheckList options={opt("tipoLugar", TIPOS, d => [fslug(d.item.type)])} selected={f.tipoLugar} onToggle={(v) => toggle("tipoLugar", v)} /></FilterBlock>}
+            {KEYS.includes("when") && <WhenFilter value={when} onChange={setWhen} count={(patch) => count("when", d => matchesWhen(d.item, { ...when, ...patch }))} />}
             {KEYS.includes("categoria") && <FilterBlock title="Categoria"><CheckList options={opt("categoria", CATS, d => catOf(d.item) ? [catSlug(catOf(d.item))] : [])} selected={f.categoria} onToggle={(v) => toggle("categoria", v)} /></FilterBlock>}
             {KEYS.includes("vibe") && <FilterBlock title="Vibe"><CheckList options={opt("vibe", VIBES, vibesOf)} selected={f.vibe} onToggle={(v) => toggle("vibe", v)} /></FilterBlock>}
             {KEYS.includes("tamanho") && <FilterBlock title="Tamanho"><CheckList options={STOPS.map(([k, l, fn]) => ({ value: k, label: l, count: count("tamanho", d => fn(d.item.steps?.length || 0)) }))} selected={f.tamanho} onToggle={(v) => toggle("tamanho", v)} /></FilterBlock>}

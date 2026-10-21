@@ -1563,3 +1563,9 @@ body.search-lock { overflow: hidden; }
 .hours-week li.is-today em { font-style: normal; font-weight: 500; color: var(--c-magenta); }
 .hours-note { font-size: 12px; color: var(--ink-3); }
 @media (max-width: 760px) { .hours-week li { font-size: 14px; } .hours-status { font-size: 13px; } }
+/* filtro de dia e horário */
+.when-day { display: block; margin: 8px 0 6px; }
+.when-day .select-wrap { display: block; position: relative; }
+.when-day select { width: 100%; height: 40px; padding: 0 34px 0 12px; border: 1.5px solid var(--line-strong); border-radius: 10px; background: var(--paper); font: inherit; font-size: 13.5px; color: var(--ink); appearance: none; }
+.when-day .select-wrap svg { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--ink-3); }
+.when-range { margin-left: 4px; font-size: 11.5px; color: var(--ink-3); }
