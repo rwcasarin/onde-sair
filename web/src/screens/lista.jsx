@@ -1,3 +1,4 @@
+import { htmlToText } from "../richtext.js";
 import { useMemo, useState } from "react";
 import {
   PLACES, VIBE_ORDER, VIBE_PAGE, MOMENTOS, AMBIENTES, vibeImg,
@@ -37,7 +38,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   const anyCity = useMemo(() => PLACES.filter(p => {
     if (vibe && !p.affs.includes(vibe)) return false;
     if (query) {
-      const hay = fslug([p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" "));
+      const hay = fslug([p.name, p.bairro, p.type, htmlToText(p.desc || ""), p.sub, ...(p.tags || [])].join(" "));
       if (!hay.includes(fslug(query))) return false;
     }
     return true;

@@ -89,13 +89,13 @@ function docsOf() {
   PLACES.forEach(p => docs.push({ kind: "place", id: p.id, item: p, title: p.name, path: placePath(p),
     sub: [p.type, p.bairro].filter(Boolean).join(" · "), city: p.city, bairros: p.bairro ? [p.bairro] : [], date: publishedDate(p) || "",
     fields: [field(W.title, p.name), field(W.key, p.type, p.cuisine, p.sub, p.bairro, p.tags, (p.affs || []).map(affLabel)),
-      field(W.sub, p.tagline, p.momento, p.ambiente, cityName(p.city)), field(W.text, p.desc, p.dica, (p.reasons || []).map(r => r[1]))] }));
+      field(W.sub, p.tagline, p.momento, p.ambiente, cityName(p.city)), field(W.text, htmlToText(p.desc || ""), p.dica, (p.reasons || []).map(r => r[1]))] }));
   if (on.has("event")) EVENTS.forEach(e => {
     const cat = EVENT_CATEGORIES.find(c => c.id === e.category);
     docs.push({ kind: "event", id: e.id, item: e, title: e.title, path: eventPath(e), past: isPast(e),
       sub: [cat?.label, venueName(e) || e.bairro].filter(Boolean).join(" · "), city: e.city, bairros: e.bairro ? [e.bairro] : [], date: e.startAt || "",
       fields: [field(W.title, e.title), field(W.key, cat?.label, venueName(e), e.bairro, e.tags, (e.affs || []).map(affLabel)),
-        field(W.sub, e.tagline, cityName(e.city)), field(W.text, e.desc)] });
+        field(W.sub, e.tagline, cityName(e.city)), field(W.text, htmlToText(e.desc || ""))] });
   });
   if (on.has("roteiro")) ROTEIROS.forEach(r => {
     const stops = (r.steps || []).map(s => (s.place && placeBy(s.place)?.name) || s.title).filter(Boolean);
@@ -104,7 +104,7 @@ function docsOf() {
     docs.push({ kind: "roteiro", id: r.id, item: r, title: r.title, path: roteiroPath(r),
       sub: [`${r.steps?.length || 0} paradas`, bairros.slice(0, 2).join(", ")].filter(Boolean).join(" · "), city: first?.city || "", bairros, date: publishedDate(r) || "",
       fields: [field(W.title, r.title), field(W.key, roteiroVibes(r).map(affLabel), bairros, (r.tags || []).map(t => t[0] || t)),
-        field(W.sub, stops, r.stats?.tempo), field(W.text, r.desc, (r.steps || []).map(s => s.desc || s.text))] });
+        field(W.sub, stops, r.stats?.tempo), field(W.text, r.desc, htmlToText(r.about || ""), (r.steps || []).map(s => s.desc || s.text))] });
   });
   ALL_STORIES.forEach(s => docs.push({ kind: "story", id: s.id, item: s, title: s.title, path: storyPath(s),
     sub: s.tag || "Radar", city: "", bairros: [], date: publishedDate(s) || "",

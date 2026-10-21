@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { PLACES, ROTEIROS, VIBE_ORDER, VIBE_PAGE, MOMENTOS, AMBIENTES, CITIES, TYPES, vibeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
+import { htmlToText } from "../richtext.js";
 import { HeroMedia, Crumbs, VibePill, PlaceCard, RoteiroCard, Footer, affById, placeById } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
@@ -16,7 +17,7 @@ const STOPS = [["curto", "Até 3 paradas", (n) => n <= 3], ["longo", "4 paradas 
 // item da listagem: lugar ou roteiro com os campos usados nos filtros
 function asItems() {
   const places = PLACES.map(p => ({ kind: "lugar", id: p.id, name: p.name, vibes: p.affs || [], city: p.city, bairros: [p.bairro].filter(Boolean), p,
-    text: fslug([p.name, p.bairro, p.type, p.desc, p.sub, ...(p.tags || [])].join(" ")) }));
+    text: fslug([p.name, p.bairro, p.type, htmlToText(p.desc || ""), p.sub, ...(p.tags || [])].join(" ")) }));
   const rots = SITE.roteirosHidden ? [] : ROTEIROS.map(r => {
     const stops = r.steps.map(s => s.place && placeById(s.place)).filter(Boolean);
     const bairros = roteiroBairros(r, placeById);

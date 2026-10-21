@@ -1,4 +1,6 @@
 // Eventos — agenda (/eventos) no modelo da lista de lugares, e página do evento (/eventos/{slug})
+import { htmlToText } from "../richtext.js";
+import { RichText } from "../components/richblock.jsx";
 import { useMemo, useState } from "react";
 import { EVENTS, EVENT_CATEGORIES, VIBE_ORDER, CITIES, PLACES, eventImg, eventGallery } from "../data.js";
 import { ImageSlot } from "../components/image-slot.jsx";
@@ -56,7 +58,7 @@ export function EventosLista() {
   const now = new Date();
   const catSlug = (c) => c.slug || fslug(c.label);
 
-  const text = (e) => fslug([e.title, e.tagline, e.desc, venueName(e), e.bairro, ...(e.tags || [])].join(" "));
+  const text = (e) => fslug([e.title, e.tagline, htmlToText(e.desc || ""), venueName(e), e.bairro, ...(e.tags || [])].join(" "));
   const anyCity = useMemo(() => all.filter(e => (showPast || !isPast(e, now)) && (!vibe || (e.affs || []).includes(vibe)) && (!query || text(e).includes(fslug(query)))), [all, vibe, query, showPast]); // eslint-disable-line
   const cityCounts = useMemo(() => anyCity.reduce((m, e) => (e.city ? { ...m, [e.city]: (m[e.city] || 0) + 1 } : m), {}), [anyCity]);
   const base = useMemo(() => anyCity.filter(e => !cityF || e.city === cityF), [anyCity, cityF]);
@@ -260,7 +262,7 @@ export function Evento({ id }) {
         <section className="place-row split-60-30" id="sec-visao">
           <div className="about-text">
             <h2 className="h2t">Sobre o evento</h2>
-            {String(e.desc || "").split(/\n{2,}/).map((t, i) => <p key={i}>{t}</p>)}
+            <RichText value={e.desc} />
             {e.tags?.length > 0 && <ul className="place-tags" aria-label="Assuntos">{e.tags.map(t => <li key={t}>{t}</li>)}</ul>}
           </div>
           <aside className="event-box" aria-label="Data, valor e ingressos">

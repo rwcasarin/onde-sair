@@ -1,4 +1,5 @@
 // Componentes compartilhados do site (v3)
+import { htmlToText, asHtml } from "../richtext.js";
 import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, EVENT_CATEGORIES, placeImg, roteiroImg, eventImg } from "../data.js";
 import { isPast, venueName, cardWhen } from "../events.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
@@ -170,7 +171,8 @@ export function CardMore({ screen, params, label = "Saiba mais" }) {
 // foto 16:10 com favoritar, tipo, nome, bairro, descrição e "Saiba mais" no rodapé
 export function PlaceCard({ p }) {
   const nav = useNav();
-  const desc = p.tagline || (p.desc ? p.desc.split(".")[0] + "." : "");
+  const plainDesc = htmlToText(asHtml(p.desc || ""));
+  const desc = p.tagline || (plainDesc ? plainDesc.split(".")[0] + "." : "");
   return (
     <article className="rot-index-card place-card" onClick={() => nav("detalhe", { id: p.id })}>
       <ImageSlot className="rot-index-img" src={placeImg(p.id)} alt={p.name} hint="16:10">

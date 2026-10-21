@@ -1,3 +1,4 @@
+import { RichText, hasText } from "../components/richblock.jsx";
 import { useState } from "react";
 import { ROTEIROS, roteiroImg, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
@@ -140,7 +141,7 @@ function RoteiroView({ r, mine = false }) {
         <section className="place-row split-60-30" id="sec-visao">
           <div className="about-text">
             <h2 className="h2t">Sobre este roteiro</h2>
-            <p>{r.about || r.desc || (mine ? "Escreva um texto sobre o roteiro em “Editar roteiro”." : "")}</p>
+            {hasText(r.about) ? <RichText value={r.about} /> : <p>{r.desc || (mine ? "Escreva um texto sobre o roteiro em “Editar roteiro”." : "")}</p>}
             {tags.length > 0 && (
               <ul className="place-tags" aria-label="Tags">
                 {tags.map(t => <li key={t}>{t}</li>)}

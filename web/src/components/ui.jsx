@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { htmlToText, asHtml } from "../richtext.js";
 import { AFFINITIES, TYPES, priceLabel } from "../data.js";
 import { useNav, useCity } from "../nav.js";
 import { CitySelect, singleCity } from "./cityselect.jsx";
@@ -319,7 +320,7 @@ export function PlaceCard({ p, onClick }) {
       <div className="body">
         <ChipType>{p.type}</ChipType>
         <h4>{p.name}</h4>
-        <p className="sub">{p.bairro} · {p.desc.split(".")[0]}.</p>
+        <p className="sub">{p.bairro} · {htmlToText(asHtml(p.desc || "")).split(".")[0]}.</p>
       </div>
       <div className="footer">
         <span>{priceLabel(p.priceLevel)}</span>
