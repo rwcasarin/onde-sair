@@ -4,7 +4,7 @@ import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } fro
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, affById,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer,
 } from "../components/site.jsx";
 import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
@@ -79,7 +79,6 @@ function DetalheView({ p }) {
   const closePhotos = () => { setLb(null); setFotoParam(null); };
   // motivos e vibes sem conteúdo (ou vibe desativada no painel) não aparecem
   const reasons = (p.reasons || []).filter(([, text]) => filled(text));
-  const vibeNames = (p.affs || []).map(affById).filter(Boolean).map(a => a.label.toLowerCase().replace(/^(para|pra) /, ""));
   const site = siteHref(p.site), tel = telHref(p.phone);
   const [tab, setTab] = useState("visao");
   const [shared, setShared] = useState(false);
@@ -171,10 +170,6 @@ function DetalheView({ p }) {
           <div className="about-text">
             <h2 className="h2t">Sobre o lugar</h2>
             {hasText(p.desc) && <RichText value={p.desc} />}
-            {vibeNames.length > 0 && <p>
-              É o tipo de lugar que faz você querer ficar mais um pouco: a gente indica
-              pra {vibeNames.join(", ")}.
-            </p>}
             {p.tags?.length > 0 && (
               <ul className="place-tags" aria-label="Tags">
                 {p.tags.map(t => <li key={t}>{t}</li>)}
