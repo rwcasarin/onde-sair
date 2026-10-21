@@ -158,9 +158,10 @@ export function SettingsPage({ initialTab }) {
           <div className="a-form-grid">
             <Input label="Instagram" value={draft.instagram} onChange={(instagram) => set({ instagram })} prefix="instagram.com/" />
             <Input label="TikTok" value={draft.tiktok} onChange={(tiktok) => set({ tiktok })} prefix="tiktok.com/" />
-            <Input label="YouTube" value={draft.youtube} onChange={(youtube) => set({ youtube })} prefix="youtube.com" />
-            <Input label="Spotify" value={draft.spotify} onChange={(spotify) => set({ spotify })} />
+            <Input label="YouTube" value={draft.youtube} onChange={(youtube) => set({ youtube })} prefix="youtube.com/" />
+            <Input label="Spotify" value={draft.spotify} onChange={(spotify) => set({ spotify })} placeholder="https://open.spotify.com/…" hint="Cole o link do perfil ou da playlist." />
           </div>
+          <p className="a-muted">Aparecem no topo do site, no menu do celular e no rodapé. Deixe em branco para esconder uma rede.</p>
         </Card>
       )}
 

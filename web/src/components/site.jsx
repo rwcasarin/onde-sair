@@ -6,6 +6,7 @@ import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
 import { href, go, toPath } from "../router.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
+import { SITE } from "../admin/store.js";
 import { MenuLink } from "./ui.jsx";
 import { menuItems } from "../menus.js";
 
@@ -292,7 +293,6 @@ export function MapArt({ pins = [], route = false, park = true, className = "", 
 
 // ---------- Rodapé ----------
 export function Footer() {
-  const social = [["instagram", "Instagram"], ["tiktok", "TikTok"], ["youtube", "YouTube"], ["spotify", "Spotify"]];
   return (
     <footer className="site-footer">
       <div className="shell">
@@ -304,11 +304,11 @@ export function Footer() {
           <nav className="site-footer-links">
             {menuItems("footer").map(({ it, to }) => <MenuLink key={it.id} to={to}>{it.label}</MenuLink>)}
           </nav>
-          <div className="site-footer-social">
-            {social.map(([icon, label]) => (
-              <a key={icon} href="#" aria-label={label} onClick={(e) => e.preventDefault()}><Icon name={icon} size={20} /></a>
-            ))}
-          </div>
+          {(SITE.social || []).length > 0 && (
+            <div className="site-footer-social">
+              {SITE.social.map(s => <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label + " do Onde Sair (abre em nova aba)"}><Icon name={s.id} size={20} /></a>)}
+            </div>
+          )}
         </div>
         <div className="site-footer-bottom">
           <span>© {new Date().getFullYear()} Onde Sair. Todos os direitos reservados.</span>

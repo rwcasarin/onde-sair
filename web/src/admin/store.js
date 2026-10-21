@@ -16,6 +16,7 @@ import {
 } from "../data.js";
 import { applyUpdates, applyAsyncUpdates } from "./updates.js";
 import { carouselOf } from "../carousel.js";
+import { socialLinks } from "../social.js";
 
 const KEY = "onde-sair-cms-v1";
 const SESSION_KEY = "onde-sair-cms-session";
@@ -388,6 +389,7 @@ export function syncPublic() {
 
   Object.assign(TAGLINES, { sub: db.settings.tagline, campaign: db.settings.campaign });
   SITE.announcement = db.settings.announcement;
+  SITE.social = socialLinks(db.settings);
   SITE.maintenance = db.settings.maintenance;
   SITE.maintenanceTitle = db.settings.maintenanceTitle || MAINTENANCE_TITLE;
   SITE.maintenanceMessage = db.settings.maintenanceMessage || MAINTENANCE_TEXT;
@@ -416,7 +418,7 @@ export const ROTEIROS_PAUSED_TEXT = "Os roteiros estão em manutenção por algu
 export const EVENTS_PAUSED_TEXT = "A agenda de eventos está em manutenção por alguns instantes. Lugares, roteiros e o Radar seguem disponíveis normalmente.";
 export const MAINTENANCE_TITLE = "Voltamos já.";
 export const MAINTENANCE_TEXT = "Estamos ajustando a curadoria. Enquanto isso, siga a gente nas redes.";
-export const SITE = { eventsPaused: false, eventsHidden: false, eventsBar: true, eventsMessage: EVENTS_PAUSED_TEXT, roteirosPaused: false, roteirosHidden: false, roteirosBar: true, roteirosMessage: ROTEIROS_PAUSED_TEXT, announcement: null, maintenance: false, accountsPaused: false, accountsMessage: ACCOUNTS_PAUSED_TEXT, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
+export const SITE = { social: [], eventsPaused: false, eventsHidden: false, eventsBar: true, eventsMessage: EVENTS_PAUSED_TEXT, roteirosPaused: false, roteirosHidden: false, roteirosBar: true, roteirosMessage: ROTEIROS_PAUSED_TEXT, announcement: null, maintenance: false, accountsPaused: false, accountsMessage: ACCOUNTS_PAUSED_TEXT, defaultCity: "sorocaba", mapsKey: "", seoTitle: "", seoDesc: "" };
 
 // ---------------------------------------------------------------------
 // Mídia enviada pelo painel (sobrepõe os arquivos em images/…)

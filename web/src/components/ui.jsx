@@ -1,10 +1,12 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AFFINITIES, TYPES, priceLabel } from "../data.js";
 import { useNav, useCity } from "../nav.js";
 import { CitySelect, singleCity } from "./cityselect.jsx";
 import { SearchOverlay, useSearchHotkey } from "./searchbox.jsx";
-import { href, toPath, go } from "../router.js";
+import { href, toPath, go, onPathChange } from "../router.js";
 import { menuItems, isActive } from "../menus.js";
+import { SITE } from "../admin/store.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 
@@ -62,10 +64,27 @@ export function MenuLink({ to, className, children, ...rest }) {
   );
 }
 
+// Redes sociais (Configurações › Redes); vazias não aparecem
+export function SocialLinks({ className = "", size = 18 }) {
+  const list = SITE.social || [];
+  if (!list.length) return null;
+  return (
+    <div className={"social-links " + className}>
+      {list.map(s => (
+        <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label + " do Onde Sair (abre em nova aba)"} title={s.label}>
+          <Icon name={s.id} size={size} />
+        </a>
+      ))}
+    </div>
+  );
+}
+
 export function TopNav({ current, params = {}, unread, user, paused }) {
   const nav = useNav();
   const [searching, setSearching] = useState(false);
-  const openSearch = useCallback(() => setSearching(true), []);
+  const [menu, setMenu] = useState(false);
+  const burger = useRef(null);
+  const openSearch = useCallback(() => { setMenu(false); setSearching(true); }, []);
   useSearchHotkey(openSearch);
   return (
     <header className="topnav">
@@ -78,6 +97,7 @@ export function TopNav({ current, params = {}, unread, user, paused }) {
           ))}
         </nav>
         <div className="nav-right">
+          <SocialLinks className="nav-social" size={17} />
           <IconBtn title="Buscar (/)" onClick={openSearch}><Icon name="search" size={20} /></IconBtn>
           {!paused && <IconBtn title="Favoritos" onClick={() => nav("favoritos")}><Icon name="heart" size={20} /></IconBtn>}
           {user && <IconBtn title="Notificações" badge={unread > 0 ? unread : null} onClick={() => nav("notificacoes")}><Icon name="bell" size={20} /></IconBtn>}
@@ -86,10 +106,134 @@ export function TopNav({ current, params = {}, unread, user, paused }) {
                 {user.avatar ? <img src={user.avatar} alt="" /> : <span>{(user.name || "?").trim().charAt(0).toUpperCase()}</span>}
               </button>
             : !paused && <button className="btn-enter" onClick={() => nav("entrar")}>Entrar</button>}
+          <button ref={burger} type="button" className={"nav-burger" + (menu ? " is-open" : "")} aria-label="Abrir menu" aria-expanded={menu} aria-controls="menu-mobile" onClick={() => setMenu(true)}>
+            <span className="nav-burger-lines" aria-hidden="true"><i /><i /><i /></span>
+            {user && unread > 0 && <span className="badge" aria-hidden="true" />}
+          </button>
         </div>
       </div>
       <SearchOverlay open={searching} onClose={() => setSearching(false)} />
+      <MobileMenu open={menu} onClose={() => setMenu(false)} returnFocus={burger} current={current} params={params} user={user} unread={unread} paused={paused} onSearch={openSearch} />
     </header>
+  );
+}
+
+// ícone de cada seção do menu (itens do painel; páginas e links usam o genérico)
+const SECTION_ICON = { home: "sun", vibes: "heart", "home#vibes": "heart", lista: "pin", roteiros: "map", eventos: "calendar", mapa: "map", historias: "sparkle", "home#parceiros": "users", favoritos: "heart" };
+const SECTION_TONE = ["tone-yellow", "tone-magenta", "tone-teal", "tone-purple"];
+
+// Menu do celular e tablet: painel lateral com a cidade, a busca, as seções, a conta e as redes
+function MobileMenu({ open, onClose, returnFocus, current, params, user, unread, paused, onSearch }) {
+  const nav = useNav();
+  const panel = useRef(null);
+  const drag = useRef(null);
+  const [dx, setDx] = useState(0);
+  useEffect(() => {
+    if (!open) return;
+    // foco no botão de fechar sem rolar nada (o painel ainda está entrando)
+    const t = setTimeout(() => panel.current?.querySelector(".mmenu-close")?.focus({ preventScroll: true }), 60);
+    const key = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); close(); }
+      if (e.key === "Tab" && panel.current) {           // o foco fica dentro do menu
+        const els = [...panel.current.querySelectorAll("a[href], button:not([disabled]), input")].filter(el => el.offsetParent !== null);
+        if (!els.length) return;
+        const first = els[0], last = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener("keydown", key);
+    document.documentElement.classList.add("menu-lock");   // a página atrás não rola
+    const off = onPathChange(() => onClose());          // fecha ao navegar
+    return () => { clearTimeout(t); document.removeEventListener("keydown", key); off(); document.documentElement.classList.remove("menu-lock"); };
+  }, [open]); // eslint-disable-line
+  function close() { onClose(); setTimeout(() => returnFocus?.current?.focus({ preventScroll: true }), 0); }
+  const go2 = (screen, p) => () => { onClose(); nav(screen, p); };
+
+  // arrastar para a direita fecha
+  const down = (e) => { if (e.pointerType !== "mouse") drag.current = { x: e.clientX, y: e.clientY, on: false }; };
+  const move = (e) => {
+    const d = drag.current; if (!d) return;
+    const mx = e.clientX - d.x, my = e.clientY - d.y;
+    if (!d.on && Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my)) d.on = true;
+    if (d.on) setDx(Math.max(0, mx));
+  };
+  const up = () => { const d = drag.current; drag.current = null; if (d?.on && dx > 90) close(); setDx(0); };
+
+  const main = menuItems("header");
+  const more = [...menuItems("footer"), ...menuItems("legal")].filter((x, i, l) => !main.some(m => m.it.label === x.it.label) && l.findIndex(y => y.it.label === x.it.label) === i);
+  return createPortal(
+    <div className={"mmenu" + (open ? " open" : "") + (dx ? " dragging" : "")} aria-hidden={!open} inert={open ? undefined : ""}>
+      <div className="mmenu-bg" onClick={close} style={dx ? { opacity: Math.max(0, 1 - dx / 300) } : undefined} />
+      <aside className="mmenu-panel" id="menu-mobile" role="dialog" aria-modal="true" aria-label="Menu" ref={panel}
+        style={dx ? { transform: `translateX(${dx}px)` } : undefined}
+        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { drag.current = null; setDx(0); }}
+        onClick={(e) => { if (e.target.closest("a")) onClose(); }}>
+        <div className="mmenu-head">
+          <Brand />
+          <CityPill />
+          <button type="button" className="mmenu-close" onClick={close} aria-label="Fechar menu"><Icon name="x" size={20} /></button>
+        </div>
+
+        <div className="mmenu-body">
+          <button type="button" className="mmenu-search mmenu-in" style={{ "--i": 0 }} onClick={onSearch}>
+            <Icon name="search" size={18} /><span>Buscar lugares, eventos, roteiros…</span>
+          </button>
+
+          <nav className="mmenu-main" aria-label="Seções">
+            {main.map(({ it, to }, i) => {
+              const on = isActive(it, current, params);
+              const icon = it.type === "site" ? SECTION_ICON[it.target] || "arrow" : it.type === "page" ? "list" : "link";
+              return (
+                <MenuLink key={it.id} to={to} className={"mmenu-link mmenu-in" + (on ? " active" : "")} aria-current={on ? "page" : undefined} style={{ "--i": i + 1 }}>
+                  <span className={"mmenu-ico " + SECTION_TONE[i % SECTION_TONE.length]}><Icon name={icon} size={18} /></span>
+                  <span className="mmenu-label">{it.label}</span>
+                  <Icon name={to.external ? "ext" : "right"} size={18} />
+                </MenuLink>
+              );
+            })}
+          </nav>
+
+          {!paused && (
+            <section className="mmenu-account mmenu-in" style={{ "--i": main.length + 1 }} aria-label="Sua conta">
+              {user ? (
+                <>
+                  <button type="button" className="mmenu-user" onClick={go2("perfil")}>
+                    <span className="mmenu-avatar" aria-hidden="true">{user.avatar ? <img src={user.avatar} alt="" /> : <span>{(user.name || "?").trim().charAt(0).toUpperCase()}</span>}</span>
+                    <span><strong>{user.name}</strong><em>Ver meu perfil</em></span>
+                    <Icon name="right" size={18} />
+                  </button>
+                  <div className="mmenu-quick">
+                    <button type="button" onClick={go2("perfil", { tab: "favoritos" })}><Icon name="heart" size={18} /> Favoritos</button>
+                    <button type="button" onClick={go2("notificacoes")}><Icon name="bell" size={18} /> Avisos{unread > 0 && <em className="mmenu-count">{unread}</em>}</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="mmenu-pitch">Salve lugares, monte roteiros e receba dicas da cidade.</p>
+                  <div className="mmenu-auth">
+                    <button type="button" className="btn-pill" onClick={go2("entrar")}>Entrar</button>
+                    <button type="button" className="btn-enter" onClick={go2("entrar", { mode: "cadastro" })}>Criar conta</button>
+                  </div>
+                  <button type="button" className="mmenu-fav" onClick={go2("favoritos")}><Icon name="heart" size={18} /> Meus favoritos <Icon name="right" size={16} /></button>
+                </>
+              )}
+            </section>
+          )}
+
+          <div className="mmenu-foot mmenu-in" style={{ "--i": main.length + 2 }}>
+            <SocialLinks className="mmenu-social" size={20} />
+            {more.length > 0 && (
+              <nav className="mmenu-more" aria-label="Mais links">
+                {more.map(({ it, to }) => <MenuLink key={it.id} to={to}>{it.label}</MenuLink>)}
+              </nav>
+            )}
+          </div>
+        </div>
+        <div className="mmenu-geo" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+      </aside>
+    </div>,
+    document.body,
   );
 }
 
