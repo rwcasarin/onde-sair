@@ -247,7 +247,6 @@ function DetalheView({ p }) {
               {hours ? (
                 <div className="info-hours"><Icon name="clock" size={20} /><dt>Funcionamento</dt>
                   <dd>
-                    {status && <span className={"hours-status" + (status.open ? " is-open" : "")}>{status.text}</span>}
                     <ul className="hours-week">
                       {hoursGroups(hours).map(g => (
                         <li key={g.label} className={(g.days.includes(today) ? "is-today" : "") + (g.closed ? " is-closed" : "")}>
