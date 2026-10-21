@@ -1,24 +1,17 @@
-// Horário de funcionamento do lugar: dias da semana abertos, horário padrão (1 ou 2 turnos)
+// Horário de funcionamento do lugar: dias da semana abertos, horário padrão (um por dia)
 // e dias com horário diferente — no modelo do cadastro de eventos.
 import { useState } from "react";
-import { AIcon, Btn, Field, Input, Toggle } from "../kit.jsx";
-import { WEEK, WEEK_SHORT, WEEK_ORDER, blankHours, normalizeHours, hasHours, hoursLabel, dayShiftsLabel, parseOpen } from "../../hours.js";
+import { AIcon, Field, Input, Toggle } from "../kit.jsx";
+import { WEEK, WEEK_SHORT, WEEK_ORDER, blankHours, normalizeHours, hasHours, hoursLabel, parseOpen } from "../../hours.js";
 
+// um horário por dia: abre às / fecha às
 function ShiftInputs({ shifts, onChange, label = "", compact }) {
-  const list = shifts.length ? shifts : [["", ""]];
-  const upd = (i, k, v) => onChange(list.map((s, j) => (j === i ? (k === 0 ? [v, s[1]] : [s[0], v]) : s)));
+  const [from = "", to = ""] = shifts[0] || [];
   return (
-    <div className={"a-hours-shifts" + (compact ? " compact" : "")}>
-      {list.map((s, i) => (
-        <div className="a-hours-shift" key={i}>
-          {!compact && list.length > 1 && <span className="a-hours-turn">{i + 1}º horário</span>}
-          <input className="a-input" type="time" value={s[0]} aria-label={`Abre às${label}${list.length > 1 ? ` (${i + 1}º horário)` : ""}`} onChange={(e) => upd(i, 0, e.target.value)} />
-          <span className="a-muted">às</span>
-          <input className="a-input" type="time" value={s[1]} aria-label={`Fecha às${label}${list.length > 1 ? ` (${i + 1}º horário)` : ""}`} onChange={(e) => upd(i, 1, e.target.value)} />
-          {list.length > 1 && <button type="button" className="a-icon-btn" aria-label={`Remover ${i + 1}º horário${label}`} onClick={() => onChange(list.filter((_, j) => j !== i))}><AIcon name="x" size={14} /></button>}
-        </div>
-      ))}
-      {list.length < 2 && <button type="button" className="a-link a-hours-add" onClick={() => onChange([...list, ["", ""]])}>+ {compact ? "2º horário" : "Segundo horário (ex.: almoço e jantar)"}</button>}
+    <div className={"a-hours-shift" + (compact ? " compact" : "")}>
+      <input className="a-input" type="time" value={from} aria-label={`Abre às${label}`} onChange={(e) => onChange([[e.target.value, to]])} />
+      <span className="a-muted">às</span>
+      <input className="a-input" type="time" value={to} aria-label={`Fecha às${label}`} onChange={(e) => onChange([[from, e.target.value]])} />
     </div>
   );
 }
@@ -27,8 +20,8 @@ function ShiftInputs({ shifts, onChange, label = "", compact }) {
 export function hoursErrors(h) {
   if (!h) return null;
   const n = h;
-  const bad = (list) => (list || []).some(([a, b]) => (!!a) !== (!!b));
-  if (bad(n.shifts) || Object.values(n.own || {}).some(bad)) return "Preencha a abertura e o fechamento de cada horário.";
+  const bad = (list) => (list || []).slice(0, 1).some(([a, b]) => (!!a) !== (!!b));
+  if (bad(n.shifts) || Object.values(n.own || {}).some(bad)) return "Preencha a abertura e o fechamento.";
   if ((n.days || []).length && !hasHours(n)) return "Informe o horário dos dias abertos.";
   return null;
 }
@@ -67,6 +60,7 @@ export function HoursEditor({ value, legacy, onChange, error }) {
             <div className="a-hours-std">
               <span className="a-hours-label">{perDay ? "Horário padrão" : "Horário"}</span>
               {allDay ? <span className="a-hours-24">Aberto 24 horas</span> : <ShiftInputs shifts={h.shifts} onChange={(shifts) => set({ shifts })} />}
+              {!allDay && <span className="a-hint">Se fechar depois da meia-noite, use o horário do dia seguinte (ex.: 02:00).</span>}
             </div>
             <div className="a-hours-toggles">
               <Toggle label="Aberto 24 horas" checked={allDay} onChange={(on) => set({ shifts: on ? [["00:00", "23:59"]] : [["", ""]] })} />
@@ -94,9 +88,8 @@ export function HoursEditor({ value, legacy, onChange, error }) {
           </>)}
           <Input label="Observação" value={h.note || ""} onChange={(note) => set({ note })} maxCount={140} placeholder="Ex.: Feriados: confira no Instagram · Cozinha fecha às 22h" />
           {preview
-            ? <p className="a-hint">No site: <strong>{preview}</strong>{h.note ? ` · ${h.note}` : ""}</p>
+            ? <p className="a-hint">No site: <strong>{preview}</strong>{h.note ? `. ${h.note}` : ""}</p>
             : <p className="a-hint">Marque os dias em que o lugar abre e o horário. Sem dias marcados, a página não mostra o funcionamento.</p>}
-          {ordered.length > 0 && perDay && <p className="a-hint a-hours-week">{WEEK_ORDER.map(d => `${WEEK_SHORT[d]}: ${dayShiftsLabel(h.days.includes(d) ? (h.own[d] || h.shifts).filter(([a, b]) => a && b) : [])}`).join(" · ")}</p>}
         </div>
       )}
     </Field>

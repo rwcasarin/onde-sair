@@ -61,8 +61,8 @@ export function PlacesList() {
 // Editor
 // ---------------------------------------------------------------------
 const BLANK = {
-  name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", cuisine: "", tagline: "", desc: "", dica: "", by: "",
-  affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]], momento: [], ambiente: [],
+  name: "", slug: "", type: "Restaurantes", bairro: "", city: "sp", sub: "", tagline: "", desc: "", dica: "", by: "",
+  affs: [], tags: [], reasons: [["star", ""], ["heart", ""], ["users", ""]],
   photos: [], open: "", end: "", cep: "", geo: null, placeId: "", phone: "", whatsapp: "", site: "", insta: "", note: "",
   showGallery: true,
   map: { x: 50, y: 50 }, tint: "tint-impress", seo: { title: "", desc: "" }, status: "rascunho",
@@ -169,10 +169,6 @@ function PlaceForm({ initial, isNew }) {
             </div>
             <HoursEditor value={draft.hours || null} legacy={draft.open} error={errors.hours && (hoursErrors(draft.hours) || errors.hours)}
               onChange={(hours) => set({ hours, open: hasHours(hours) ? hoursLabel(hours) : (hours.days.length ? draft.open : "") })} />
-            <div className="a-form-grid">
-              <PillPicker label="Momento" value={draft.momento} onChange={(momento) => set({ momento })} options={MOMENTOS.map(m => [m, m])} hint="Aparece como tag na página do lugar e vira filtro nas listas." />
-              <PillPicker label="Ambiente" value={draft.ambiente} onChange={(ambiente) => set({ ambiente })} options={AMBIENTES.map(m => [m, m])} hint="Aparece como tag na página do lugar e vira filtro nas listas." />
-            </div>
           </Card>
         )}
 
@@ -180,7 +176,7 @@ function PlaceForm({ initial, isNew }) {
           <Card>
             <OrderedPicker label="Vibes" error={errors.affs} hint="A ordem aqui é a ordem em que as vibes aparecem no site."
               value={draft.affs} onChange={(affs) => set({ affs })} options={db.vibes.map(v => [v.id, v.label, v.cls])} />
-            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} hint="Aparecem na página do lugar (abaixo do texto “Sobre o lugar”) e ajudam na busca. De 3 a 5 funcionam melhor."
+            <ChipInput label="Tags" value={draft.tags} onChange={(tags) => set({ tags })} suggestions={[...MOMENTOS, ...AMBIENTES]} hint="Aparecem na página do lugar (abaixo do texto “Sobre o lugar”) e ajudam na busca. De 3 a 5 funcionam melhor. Inclua o momento (Jantar, Happy hour…) e o ambiente (interno, externo)."
               suggestions={[...new Set(db.places.flatMap(p => p.tags || []))]} />
           </Card>
         )}

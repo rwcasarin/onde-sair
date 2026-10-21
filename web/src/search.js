@@ -88,8 +88,8 @@ function docsOf() {
   const docs = [];
   PLACES.forEach(p => docs.push({ kind: "place", id: p.id, item: p, title: p.name, path: placePath(p),
     sub: [p.type, p.bairro].filter(Boolean).join(" · "), city: p.city, bairros: p.bairro ? [p.bairro] : [], date: publishedDate(p) || "",
-    fields: [field(W.title, p.name), field(W.key, p.type, p.cuisine, p.sub, p.bairro, p.tags, (p.affs || []).map(affLabel)),
-      field(W.sub, p.tagline, p.momento, p.ambiente, cityName(p.city)), field(W.text, htmlToText(p.desc || ""), p.dica, (p.reasons || []).map(r => r[1]))] }));
+    fields: [field(W.title, p.name), field(W.key, p.type, p.sub, p.bairro, p.tags, (p.affs || []).map(affLabel)),
+      field(W.sub, p.tagline, cityName(p.city)), field(W.text, htmlToText(p.desc || ""), p.dica, (p.reasons || []).map(r => r[1]))] }));
   if (on.has("event")) EVENTS.forEach(e => {
     const cat = EVENT_CATEGORIES.find(c => c.id === e.category);
     docs.push({ kind: "event", id: e.id, item: e, title: e.title, path: eventPath(e), past: isPast(e),

@@ -1,7 +1,7 @@
 // Busca (/busca?q=…): resultados de todo o site em abas (Tudo, Lugares, Eventos, Roteiros, Radar, Páginas),
 // com filtros próprios de cada tipo, ordenação e tudo guardado no link.
 import { useMemo, useState } from "react";
-import { CITIES, TYPES, MOMENTOS, AMBIENTES, VIBE_ORDER, EVENT_CATEGORIES, RADAR_CATEGORIES } from "../data.js";
+import { CITIES, TYPES, VIBE_ORDER, EVENT_CATEGORIES, RADAR_CATEGORIES } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { Crumbs, VibePill, PlaceCard, EventCard, RoteiroCard, Footer, affById } from "../components/site.jsx";
 import { StoryCard } from "./historia.jsx";
@@ -49,7 +49,7 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
   const { f, set, toggle, reset } = useFilters({
     q: ["q", "one"], tipo: ["tipo", "one", "tudo"], ordem: ["ordem", "one", "relevancia"],
     cidade: ["cidade", "one", "todas"], bairro: ["bairro", "set"], vibe: ["vibe", "set"],
-    tipoLugar: ["tipo-de-lugar", "set"], momento: ["momento", "set"], ambiente: ["ambiente", "set"],
+    tipoLugar: ["tipo-de-lugar", "set"],
     quando: ["quando", "one"], categoria: ["categoria", "set"], encerrados: ["encerrados", "bool"],
     tamanho: ["paradas", "set"], radar: ["assunto", "set"],
   });
@@ -73,14 +73,12 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
     bairro: (d) => !f.bairro.size || d.bairros.some(b => f.bairro.has(fslug(b))),
     vibe: (d) => !f.vibe.size || vibesOf(d).some(a => f.vibe.has(a)),
     tipoLugar: (d) => !f.tipoLugar.size || f.tipoLugar.has(fslug(d.item.type)),
-    momento: (d) => !f.momento.size || (d.item.momento || []).some(m => f.momento.has(fslug(m))),
-    ambiente: (d) => !f.ambiente.size || (d.item.ambiente || []).some(m => f.ambiente.has(fslug(m))),
     quando: (d) => !f.quando || inRange(d.item, (WHEN.find(w => w[0] === f.quando) || WHEN[0])[2](now)),
     categoria: (d) => !f.categoria.size || (catOf(d.item) && f.categoria.has(catSlug(catOf(d.item)))),
     tamanho: (d) => !f.tamanho.size || STOPS.some(([k, , fn]) => f.tamanho.has(k) && fn(d.item.steps?.length || 0)),
     radar: (d) => !f.radar.size || f.radar.has(fslug(d.item.tag)),
   };
-  const KEYS = { lugares: ["cidade", "bairro", "tipoLugar", "vibe", "momento", "ambiente"], eventos: ["quando", "cidade", "bairro", "categoria", "vibe"], roteiros: ["cidade", "bairro", "vibe", "tamanho"], radar: ["radar"], paginas: [] }[tab] || [];
+  const KEYS = { lugares: ["cidade", "bairro", "tipoLugar", "vibe"], eventos: ["quando", "cidade", "bairro", "categoria", "vibe"], roteiros: ["cidade", "bairro", "vibe", "tamanho"], radar: ["radar"], paginas: [] }[tab] || [];
   const base = K ? byKind(K.kind) : [];
   const pass = (d, skip) => KEYS.every(k => k === skip || tests[k](d));
   const count = (key, fn) => base.filter(d => pass(d, key) && fn(d)).length;
@@ -106,13 +104,11 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
     ...(KEYS.includes("tipoLugar") ? setChips("tipoLugar", TIPOS) : []),
     ...(KEYS.includes("categoria") ? setChips("categoria", CATS) : []),
     ...(KEYS.includes("vibe") ? setChips("vibe", VIBES) : []),
-    ...(KEYS.includes("momento") ? setChips("momento", MOMENTOS.map(m => [fslug(m), m])) : []),
-    ...(KEYS.includes("ambiente") ? setChips("ambiente", AMBIENTES.map(m => [fslug(m), m])) : []),
     ...(KEYS.includes("tamanho") ? setChips("tamanho", STOPS.map(([k, l]) => [k, l])) : []),
     ...(KEYS.includes("radar") ? setChips("radar", RCATS) : []),
     ...(tab === "eventos" && f.encerrados ? [{ key: "past", label: "Com encerrados", onRemove: () => set("encerrados", false) }] : []),
   ];
-  function clearAll() { reset(["bairro", "vibe", "tipoLugar", "momento", "ambiente", "quando", "categoria", "encerrados", "tamanho", "radar"]); set("cidade", "todas"); }
+  function clearAll() { reset(["bairro", "vibe", "tipoLugar", "quando", "categoria", "encerrados", "tamanho", "radar"]); set("cidade", "todas"); }
   function changeCity(v) { set("cidade", v || "todas"); reset(["bairro"]); if (v) setGlobalCity(v); }
   function pickTab(id) { set("tipo", id); if (!(TAB_SORTS[id] || []).includes(f.ordem)) set("ordem", "relevancia"); window.scrollTo({ top: 0 }); }
 
@@ -227,8 +223,6 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
             {KEYS.includes("tipoLugar") && <FilterBlock title="Tipo de lugar"><CheckList options={opt("tipoLugar", TIPOS, d => [fslug(d.item.type)])} selected={f.tipoLugar} onToggle={(v) => toggle("tipoLugar", v)} /></FilterBlock>}
             {KEYS.includes("categoria") && <FilterBlock title="Categoria"><CheckList options={opt("categoria", CATS, d => catOf(d.item) ? [catSlug(catOf(d.item))] : [])} selected={f.categoria} onToggle={(v) => toggle("categoria", v)} /></FilterBlock>}
             {KEYS.includes("vibe") && <FilterBlock title="Vibe"><CheckList options={opt("vibe", VIBES, vibesOf)} selected={f.vibe} onToggle={(v) => toggle("vibe", v)} /></FilterBlock>}
-            {KEYS.includes("momento") && <FilterBlock title="Momento"><CheckList options={opt("momento", MOMENTOS.map(m => [fslug(m), m]), d => (d.item.momento || []).map(fslug))} selected={f.momento} onToggle={(v) => toggle("momento", v)} /></FilterBlock>}
-            {KEYS.includes("ambiente") && <FilterBlock title="Ambiente"><CheckList options={opt("ambiente", AMBIENTES.map(m => [fslug(m), m]), d => (d.item.ambiente || []).map(fslug))} selected={f.ambiente} onToggle={(v) => toggle("ambiente", v)} /></FilterBlock>}
             {KEYS.includes("tamanho") && <FilterBlock title="Tamanho"><CheckList options={STOPS.map(([k, l, fn]) => ({ value: k, label: l, count: count("tamanho", d => fn(d.item.steps?.length || 0)) }))} selected={f.tamanho} onToggle={(v) => toggle("tamanho", v)} /></FilterBlock>}
             {KEYS.includes("radar") && <FilterBlock title="Assunto"><CheckList options={opt("radar", RCATS, d => [fslug(d.item.tag)])} selected={f.radar} onToggle={(v) => toggle("radar", v)} /></FilterBlock>}
             {tab === "eventos" && <FilterBlock title="Encerrados"><CheckRow checked={f.encerrados} onChange={() => set("encerrados", !f.encerrados)}>Incluir eventos encerrados</CheckRow></FilterBlock>}

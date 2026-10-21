@@ -1,5 +1,5 @@
 import { RichText, hasText } from "../components/richblock.jsx";
-import { placeHours, weekShifts, hoursStatus, dayShiftsLabel, WEEK, WEEK_ORDER } from "../hours.js";
+import { placeHours, hoursStatus, hoursGroups } from "../hours.js";
 import { useState } from "react";
 import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
@@ -118,13 +118,12 @@ function DetalheView({ p }) {
     } catch { /* cancelado */ }
   }
 
-  // funcionamento: cadastrado ou convertido do texto antigo; momento e ambiente entram nas tags
+  // funcionamento: cadastrado ou convertido do texto antigo
   const hours = placeHours(p);
-  const week = weekShifts(hours);
   const today = new Date().getDay();
   const status = hours ? hoursStatus(hours) : null;
   const typeInfo = TYPES.find(t => t.label === p.type);
-  const tagList = [...new Set([...(p.tags || []), ...(p.momento || []), ...(p.ambiente || [])].map(t => String(t).trim()).filter(Boolean))];
+  const tagList = [...new Set((p.tags || []).map(t => String(t).trim()).filter(Boolean))];
 
   return (
     <main className="home2">
@@ -250,9 +249,9 @@ function DetalheView({ p }) {
                   <dd>
                     {status && <span className={"hours-status" + (status.open ? " is-open" : "")}>{status.text}</span>}
                     <ul className="hours-week">
-                      {WEEK_ORDER.map(d => (
-                        <li key={d} className={(d === today ? "is-today" : "") + (week[d].length ? "" : " is-closed")}>
-                          <span>{WEEK[d]}{d === today && <em> (hoje)</em>}</span><span>{dayShiftsLabel(week[d])}</span>
+                      {hoursGroups(hours).map(g => (
+                        <li key={g.label} className={(g.days.includes(today) ? "is-today" : "") + (g.closed ? " is-closed" : "")}>
+                          <span>{g.label}{g.days.includes(today) && <em> (hoje)</em>}</span><span>{g.closed ? "Fechado" : g.text}</span>
                         </li>
                       ))}
                     </ul>

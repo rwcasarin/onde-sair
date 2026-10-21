@@ -1,9 +1,9 @@
-// Horário de funcionamento dos lugares: dias da semana abertos, até dois turnos por dia
-// (ex.: almoço e jantar) e dias com horário próprio — no modelo do cadastro de eventos.
+// Horário de funcionamento dos lugares: dias da semana abertos, um horário por dia
+// e dias com horário próprio — no modelo do cadastro de eventos.
 //
 // place.hours = {
 //   days:   [2, 3, 4, 5, 6],                 // dias abertos (0 = domingo … 6 = sábado)
-//   shifts: [["17:00", "22:00"]],            // horário padrão dos dias abertos (1 ou 2 turnos)
+//   shifts: [["17:00", "22:00"]],            // horário padrão dos dias abertos (um turno)
 //   own:    { "6": [["12:00", "22:00"]] },   // dias com horário diferente
 //   note:   "Feriados: confira no Instagram"  // observação (opcional)
 // }
@@ -15,7 +15,7 @@ export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];              // a semana começ
 const HM = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
 export const blankHours = () => ({ days: [], shifts: [["", ""]], own: {}, note: "" });
-const cleanShifts = (list) => (Array.isArray(list) ? list : []).filter(s => Array.isArray(s) && HM.test(s[0] || "") && HM.test(s[1] || "")).slice(0, 2).map(([a, b]) => [a, b]).sort((x, y) => x[0].localeCompare(y[0]));   // em ordem do dia
+const cleanShifts = (list) => (Array.isArray(list) ? list : []).filter(s => Array.isArray(s) && HM.test(s[0] || "") && HM.test(s[1] || "")).slice(0, 1).map(([a, b]) => [a, b]);   // um horário por dia
 
 export function normalizeHours(h) {
   if (!h || typeof h !== "object") return null;
@@ -35,26 +35,28 @@ export function weekShifts(h) {
 
 // "18h", "18h30"; "00:00" vira "0h" e "23:59" vira "24h"
 export const hmLabel = (t = "") => { if (t === "23:59") return "24h"; const [h, m] = t.split(":").map(Number); return `${h}h${m ? String(m).padStart(2, "0") : ""}`; };
-const shiftLabel = ([a, b]) => (a === "00:00" && b === "23:59" ? "24 horas" : `${hmLabel(a)}–${hmLabel(b)}`);
-export const dayShiftsLabel = (list) => (list.length ? list.map(shiftLabel).join(" e ") : "Fechado");
 
-// texto resumido: dias seguidos com o mesmo horário viram uma faixa ("Ter–Sex · 17h–22h · Sáb 12h–22h")
-export function hoursLabel(h) {
+// dias seguidos com o mesmo horário juntos: [{ label: "Seg a sex", text: "das 10h às 22h", days: [1..5], closed }]
+const span = (list) => (list[0] && list[0][0] === "00:00" && list[0][1] === "23:59" ? "24 horas" : list[0] ? `das ${hmLabel(list[0][0])} às ${hmLabel(list[0][1])}` : "fechado");
+export function hoursGroups(h) {
   const week = weekShifts(h);
-  if (!week.some(s => s.length)) return "";
-  const key = (s) => s.map(x => x.join("-")).join("|");
-  if (week.every(s => s.length && key(s) === key(week[0]))) return `Todos os dias · ${dayShiftsLabel(week[0])}`;
+  if (!week.some(x => x.length)) return [];
+  const key = (d) => JSON.stringify(week[d]);
+  if (WEEK_ORDER.every(d => week[d].length && key(d) === key(1))) return [{ label: "Todos os dias", text: span(week[1]), days: [...WEEK_ORDER], closed: false }];
   const groups = [];
   WEEK_ORDER.forEach(d => {
-    const s = week[d];
-    if (!s.length) return;
     const last = groups[groups.length - 1];
-    const prev = WEEK_ORDER[WEEK_ORDER.indexOf(d) - 1];
-    if (last && key(last.s) === key(s) && last.to === prev) last.to = d; else groups.push({ from: d, to: d, s });
+    if (last && key(last.days[last.days.length - 1]) === key(d)) last.days.push(d); else groups.push({ days: [d] });
   });
-  const days = (g) => g.from === g.to ? WEEK_SHORT[g.from] : `${WEEK_SHORT[g.from]}${WEEK_ORDER.indexOf(g.to) - WEEK_ORDER.indexOf(g.from) === 1 ? " e " : "–"}${WEEK_SHORT[g.to]}`;
-  return groups.map((g, i) => `${days(g)}${i === 0 ? " · " : " "}${dayShiftsLabel(g.s)}`).join(" · ");
+  const name = (d, i) => (i ? WEEK_SHORT[d].toLowerCase() : WEEK_SHORT[d]);
+  return groups.map(g => ({
+    days: g.days, closed: !week[g.days[0]].length, text: span(week[g.days[0]]),
+    label: g.days.length === 1 ? name(g.days[0], 0) : g.days.length === 2 ? `${name(g.days[0], 0)} e ${name(g.days[1], 1)}` : `${name(g.days[0], 0)} a ${name(g.days[g.days.length - 1], 1)}`,
+  }));
 }
+// texto resumido (cards, posts do Radar): "Seg a sex, das 10h às 22h. Sáb e dom, das 15h às 22h"
+export const hoursLabel = (h) => hoursGroups(h).filter(g => !g.closed).map(g => `${g.label}, ${g.text}`).join(". ");
+export const dayShiftsLabel = (list) => span(list);
 
 // aberto agora? { open, text } — turnos que passam da meia-noite valem até o dia seguinte
 const mins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m + (t === "23:59" ? 1 : 0); };
@@ -113,7 +115,14 @@ export function parseOpen(text) {
     if (tm) shift = [toHM(+tm[1], +tm[2] || 0), +tm[3] === 24 && !+tm[4] ? "23:59" : toHM(+tm[3], +tm[4] || 0)];
     if (shift) {
       const days = cur.length ? cur : [0, 1, 2, 3, 4, 5, 6];
-      days.forEach(d => { if (!week[d]) week[d] = []; if (week[d].length < 2) week[d].push(shift); });
+      days.forEach(d => {
+        if (!week[d] || !week[d].length) { week[d] = [shift]; return; }
+        const [a, b] = week[d][0], m = (t) => +t.slice(0, 2) * 60 + +t.slice(3);
+        const endOf = (s0, e0) => (m(e0) <= m(s0) ? m(e0) + 1440 : m(e0));
+        const start = m(shift[0]) < m(a) ? shift[0] : a;
+        const end = endOf(a, b) >= endOf(shift[0], shift[1]) ? b : shift[1];
+        week[d] = [[start, end]];
+      });
       freshDays = false; pendingAnd = false; understood++; continue;
     }
   }
