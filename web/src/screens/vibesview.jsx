@@ -9,7 +9,8 @@ import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { SITE } from "../admin/store.js";
-import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, sortBy, fslug } from "../filters.jsx";
+import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, sortBy, fslug, WhenFilter, whenChips } from "../filters.jsx";
+import { matchesWhen } from "../hours.js";
 
 const SORTS = ["relevancia", "az", "recentes"];
 const STOPS = [["curto", "Até 3 paradas", (n) => n <= 3], ["longo", "4 paradas ou mais", (n) => n >= 4]];
@@ -41,8 +42,10 @@ export function VibesView({ aff = null, q = "" }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { f, set, toggle, reset } = useFilters({
     busca: ["busca", "one", q], mostrar: ["mostrar", "set"], cidade: ["cidade", "one", globalCity || "todas"], bairro: ["bairro", "set"],
-    tipo: ["tipo", "set"], tamanho: ["tamanho", "set"], ordem: ["ordem", "one", "relevancia"],
+    tipo: ["tipo", "set"], tamanho: ["tamanho", "set"], aberto: ["aberto", "bool"], dia: ["dia", "one"], periodo: ["periodo", "one"], ordem: ["ordem", "one", "relevancia"],
   });
+  const when = { agora: f.aberto, dia: f.dia, periodo: f.periodo };
+  const setWhen = (k, v) => set(k === "agora" ? "aberto" : k, v);
   const query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade, kinds = f.mostrar;
 
   const a = aff ? affById(aff) : null;
@@ -62,6 +65,7 @@ export function VibesView({ aff = null, q = "" }) {
     mostrar: (x) => shown(x.kind),
     bairro: (x) => !f.bairro.size || x.bairros.some(b => f.bairro.has(fslug(b))),
     tipo: (x) => x.kind !== "lugar" || !f.tipo.size || f.tipo.has(fslug(x.p.type)),
+    when: (x) => x.kind !== "lugar" || matchesWhen(x.p, when),
     tamanho: (x) => x.kind !== "roteiro" || !f.tamanho.size || STOPS.some(([k, , fn]) => f.tamanho.has(k) && fn(x.stops)),
   };
   const pass = (x, skip) => Object.entries(tests).every(([k, t]) => k === skip || t(x));
@@ -82,9 +86,10 @@ export function VibesView({ aff = null, q = "" }) {
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
     ...chipsOf("mostrar", KINDS), ...chipsOf("bairro", BAIRROS),
     ...chipsOf("tipo", TIPOS), ...chipsOf("tamanho", STOPS),
+    ...whenChips(when, setWhen),
   ];
   const filterCount = chips.length;
-  function clearAll() { reset(["busca", "mostrar", "bairro", "tipo", "tamanho"]); }
+  function clearAll() { reset(["busca", "mostrar", "bairro", "tipo", "tamanho", "aberto", "dia", "periodo"]); }
 
   const title = a ? a.label : "Vibes";
   const lede = page ? page.lede : "Lugares e roteiros reunidos pelo clima do rolê. Escolha uma vibe ou use os filtros.";
@@ -129,6 +134,7 @@ export function VibesView({ aff = null, q = "" }) {
             <FilterBlock title="Tipo de lugar">
               <CheckList options={TIPOS.map(([value, l]) => ({ value, label: l, count: count("tipo", x => x.kind === "lugar" && fslug(x.p.type) === value) }))} selected={f.tipo} onToggle={(v) => toggle("tipo", v)} />
             </FilterBlock>
+            <WhenFilter value={when} onChange={setWhen} count={(patch) => count("when", x => x.kind === "lugar" && matchesWhen(x.p, { ...when, ...patch }))} />
           </>}
           {hasRoteiros && shown("roteiro") && <>
             <p className="filters-group">Só para roteiros</p>

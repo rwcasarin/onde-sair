@@ -12,7 +12,8 @@ import {
 import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
-import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, sortBy, fslug } from "../filters.jsx";
+import { matchesWhen } from "../hours.js";
+import { WhenFilter, whenChips, useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, sortBy, fslug } from "../filters.jsx";
 
 const SORTS = ["relevancia", "az", "recentes"];
 export { CheckRow, toggleIn } from "../filters.jsx";
@@ -27,8 +28,10 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   // filtros no link: /lugares?busca=…&cidade=…&bairro=centro,vila-nova&tipo=bares&preco=1,2
   const { f, set, toggle, reset } = useFilters({
     busca: ["busca", "one", q], cidade: ["cidade", "one", globalCity || "todas"], bairro: ["bairro", "set"], tipo: ["tipo", "set", tipo ? [tipo] : []],
-    ordem: ["ordem", "one", "relevancia"],
+    aberto: ["aberto", "bool"], dia: ["dia", "one"], periodo: ["periodo", "one"], ordem: ["ordem", "one", "relevancia"],
   });
+  const when = { agora: f.aberto, dia: f.dia, periodo: f.periodo };
+  const setWhen = (k, v) => set(k === "agora" ? "aberto" : k, v);
   const query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade;
 
   const a = vibe ? affById(vibe) : null;
@@ -52,6 +55,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
   const tests = {
     bairro: (p) => !f.bairro.size || f.bairro.has(fslug(p.bairro)),
     tipo: (p) => !f.tipo.size || f.tipo.has(fslug(p.type)),
+    when: (p) => matchesWhen(p, when),
   };
   const pass = (p, skip) => Object.entries(tests).every(([k, t]) => k === skip || t(p));
   const count = (key, fn) => base.filter(p => pass(p, key) && fn(p)).length;
@@ -68,9 +72,10 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
     ...[...f.tipo].map(v => ({ key: "t" + v, label: label(TIPOS, v), onRemove: () => toggle("tipo", v) })),
     ...[...f.bairro].map(v => ({ key: "b" + v, label: label(BAIRROS, v), onRemove: () => toggle("bairro", v) })),
+    ...whenChips(when, setWhen),
   ];
   const filterCount = chips.length - (a ? 1 : 0);
-  function clearAll() { reset(["busca", "bairro", "tipo"]); }
+  function clearAll() { reset(["busca", "bairro", "tipo", "aberto", "dia", "periodo"]); }
   const typeTitle = f.tipo.size === 1 ? label(TIPOS, [...f.tipo][0]) : "";
 
   const title = a ? a.label : query ? "Resultados da busca" : typeTitle || "Lugares";
@@ -115,6 +120,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
           <FilterBlock title="Tipo de lugar">
             <CheckList options={opts("tipo", TIPOS, p => [fslug(p.type)])} selected={f.tipo} onToggle={(v) => toggle("tipo", v)} />
           </FilterBlock>
+          <WhenFilter value={when} onChange={setWhen} count={(patch) => count("when", p => matchesWhen(p, { ...when, ...patch }))} />
         </FilterPanel>
 
         {/* ---------- Resultados ---------- */}

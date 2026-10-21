@@ -141,3 +141,42 @@ export function parseOpen(text) {
 
 // horários do lugar: os cadastrados ou, para lugares antigos, os convertidos do texto
 export const placeHours = (p) => (hasHours(p?.hours) ? normalizeHours(p.hours) : parseOpen(p?.open));
+
+// ---------------------------------------------------------------------
+// Filtros por dia e horário (listas de lugares)
+// ---------------------------------------------------------------------
+export const DAY_SLUGS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+export const PERIODS = [
+  ["manha", "Manhã", "6h às 12h", 360, 720],
+  ["tarde", "Tarde", "12h às 18h", 720, 1080],
+  ["noite", "Noite", "18h à 0h", 1080, 1440],
+  ["madrugada", "Madrugada", "0h às 6h", 0, 360],
+];
+const memo = new WeakMap();
+export function cachedHours(p) {
+  if (!p || typeof p !== "object") return null;
+  if (!memo.has(p)) memo.set(p, placeHours(p));
+  return memo.get(p);
+}
+// aberto em algum momento entre from e to (minutos do dia) no dia `day`? (inclui quem vem da noite anterior)
+export function openDuring(h, day, from = 0, to = 1440) {
+  const week = weekShifts(h);
+  const m = (t) => { const [a, b] = t.split(":").map(Number); return a * 60 + b + (t === "23:59" ? 1 : 0); };
+  const spans = [
+    ...week[day].map(([a, b]) => [m(a), m(b) <= m(a) ? m(b) + 1440 : m(b)]),
+    ...week[(day + 6) % 7].map(([a, b]) => [m(a) - 1440, (m(b) <= m(a) ? m(b) + 1440 : m(b)) - 1440]),
+  ];
+  return spans.some(([s, e]) => s < to && e > from);
+}
+// { agora, dia, periodo } do filtro → o lugar atende?
+export function matchesWhen(p, { agora, dia, periodo } = {}, now = new Date()) {
+  if (!agora && !dia && !periodo) return true;
+  const h = cachedHours(p);
+  if (!h) return false;
+  if (agora && !hoursStatus(h, now)?.open) return false;
+  if (!dia && !periodo) return true;
+  const per = PERIODS.find(x => x[0] === periodo);
+  const [from, to] = per ? [per[3], per[4]] : [0, 1440];
+  const days = dia === "hoje" ? [now.getDay()] : dia ? [DAY_SLUGS.indexOf(dia)].filter(d => d >= 0) : [0, 1, 2, 3, 4, 5, 6];
+  return days.some(d => openDuring(h, d, from, to));
+}

@@ -5,6 +5,7 @@ import { Icon } from "./components/icons.jsx";
 import { currentPath, HASH_MODE } from "./router.js";
 import { slugify } from "./admin/store.js";
 import { PRICE_BUCKETS } from "./data.js";
+import { WEEK as WEEK_NAMES, WEEK_ORDER as WHEN_DAY_ORDER, DAY_SLUGS as WHEN_DAY_SLUGS, PERIODS as WHEN_PERIODS } from "./hours.js";
 
 export function toggleIn(set, v) { const n = new Set(set); n.has(v) ? n.delete(v) : n.add(v); return n; }
 export const fslug = (s = "") => slugify(String(s));
@@ -189,4 +190,39 @@ export function ActiveChips({ chips, onClear }) {
       {chips.length > 1 && <button type="button" className="link-btn" onClick={onClear}>Limpar tudo</button>}
     </div>
   );
+}
+
+// Dia e horário (lugares): "aberto agora", dia da semana (ou hoje) e período do dia.
+// value: { agora: bool, dia: "" | "hoje" | "seg"…, periodo: "" | "manha"… }; count(patch) → nº de lugares com o filtro aplicado
+export function WhenFilter({ value, onChange, count }) {
+  const today = new Date().getDay();
+  const DAYS = [["hoje", `Hoje (${WEEK_NAMES[today]})`], ...WHEN_DAY_ORDER.map(d => [WHEN_DAY_SLUGS[d], WEEK_NAMES[d]])];
+  return (
+    <FilterBlock title="Dia e horário">
+      <CheckRow checked={!!value.agora} onChange={() => onChange("agora", !value.agora)} count={count({ agora: true })}>Aberto agora</CheckRow>
+      <label className="when-day">
+        <span className="sr-only">Dia</span>
+        <span className="select-wrap">
+          <select value={value.dia || ""} onChange={(e) => onChange("dia", e.target.value)} aria-label="Dia">
+            <option value="">Qualquer dia</option>
+            {DAYS.map(([v, l]) => <option key={v} value={v}>{l} ({count({ dia: v })})</option>)}
+          </select>
+          <Icon name="chevron" size={16} />
+        </span>
+      </label>
+      {WHEN_PERIODS.map(([v, l, range]) => (
+        <CheckRow key={v} checked={value.periodo === v} onChange={() => onChange("periodo", value.periodo === v ? "" : v)} count={count({ periodo: v })}>
+          {l} <small className="when-range">{range}</small>
+        </CheckRow>
+      ))}
+    </FilterBlock>
+  );
+}
+// rótulos das etiquetas de filtros ativos
+export function whenChips(value, onChange) {
+  const out = [];
+  if (value.agora) out.push({ key: "w-agora", label: "Aberto agora", onRemove: () => onChange("agora", false) });
+  if (value.dia) out.push({ key: "w-dia", label: value.dia === "hoje" ? "Hoje" : WEEK_NAMES[WHEN_DAY_SLUGS.indexOf(value.dia)] || value.dia, onRemove: () => onChange("dia", "") });
+  if (value.periodo) out.push({ key: "w-per", label: WHEN_PERIODS.find(p => p[0] === value.periodo)?.[1] || value.periodo, onRemove: () => onChange("periodo", "") });
+  return out;
 }
