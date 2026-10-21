@@ -697,6 +697,10 @@ export function removeCampaign(id, user) { db.campaigns = db.campaigns.filter(c 
 let attempts = 0, lockedUntil = 0;
 // ID do cliente do login com Google (vem do servidor; vazio = botão escondido)
 export const GOOGLE = { clientId: "" };
+export async function refreshGoogle() {
+  if (!REMOTE) return;
+  try { GOOGLE.clientId = (await api("auth/me")).google || ""; } catch { /* mantém */ }
+}
 export async function loginWithGoogle(credential, remember = true) {
   if (!REMOTE) return { error: "google-off" };
   try {

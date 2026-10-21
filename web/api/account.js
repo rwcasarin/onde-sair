@@ -101,7 +101,7 @@ export const GET = handle(async (request) => {
   }
   if (action(request) !== "me") return fail(404, "Ação desconhecida");
   const [u, paused] = await Promise.all([currentUser(request), accountsPaused()]);
-  return json({ user: u && !paused ? publicUser(u) : null, paused, google: googleClientId() });
+  return json({ user: u && !paused ? publicUser(u) : null, paused, google: await googleClientId() });
 });
 
 export const POST = handle(async (request) => {

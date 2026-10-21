@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, ImageField, useAdmin, useDraft } from "../kit.jsx";
+import { AIcon, Btn, Card, Input, Textarea, Select, Toggle, Tabs, Segmented, Field, PageHeader, ImageField, useAdmin, useDraft, Badge } from "../kit.jsx";
 import { SHARE_DEFAULT_IMG } from "../../../shared/share.js";
-import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT, ROTEIROS_PAUSED_TEXT, EVENTS_PAUSED_TEXT, MAINTENANCE_TITLE, MAINTENANCE_TEXT } from "../store.js";
+import { saveSettings, getDB, resetDemo, importDB, REMOTE, ACCOUNTS_PAUSED_TEXT, ROTEIROS_PAUSED_TEXT, EVENTS_PAUSED_TEXT, MAINTENANCE_TITLE, MAINTENANCE_TEXT, GOOGLE, refreshGoogle } from "../store.js";
 
 const TABS = [["geral", "Geral"], ["seo", "SEO"], ["aviso", "Aviso no topo"], ["pausas", "Pausas"], ["redes", "Redes sociais"], ["integracoes", "Integrações"], ["dados", "Dados"]];
 
@@ -20,10 +20,12 @@ export function SettingsPage({ initialTab }) {
   const evp = { paused: false, hideCatalog: true, showBar: true, message: "", ...(draft.eventsPause || {}) };
   const setEvp = (patch) => set({ eventsPause: { ...evp, ...patch } });
 
-  function save() {
+  const [, bump] = useState(0);
+  async function save() {
     if (!draft.siteName.trim()) return toast("O nome do site não pode ficar vazio.", "error");
+    if (draft.googleClientId && !GOOGLE_ID_RE.test(draft.googleClientId)) { setTab("integracoes"); return toast("Confira o ID do cliente do login com Google.", "error"); }
     saveSettings(draft, user); commit(draft);
-    saved("Configurações salvas.");
+    if (await saved("Configurações salvas.")) { await refreshGoogle(); bump(x => x + 1); }
   }
   function exportJson() {
     const blob = new Blob([JSON.stringify(getDB(), null, 2)], { type: "application/json" });
@@ -177,6 +179,7 @@ export function SettingsPage({ initialTab }) {
             <li>Cole a chave aqui e salve. O campo de endereço passa a sugerir endereços na hora.</li>
           </ol>
         </Card>
+        <GoogleLoginCard value={draft.googleClientId || ""} onChange={(googleClientId) => set({ googleClientId })} />
       </>)}
 
       {tab === "dados" && (
@@ -219,6 +222,31 @@ function PauseCard({ title, label, value, onChange, defaultText, effects, noBarH
         <span className="a-label">Prévia da faixa</span>
         <div className={"site-announce tone-yellow" + (value.paused ? "" : " off")}>{value.message || defaultText}</div>
       </>}
+    </Card>
+  );
+}
+
+// Login com Google: ID do cliente OAuth (público; o servidor confere cada login com o Google)
+const GOOGLE_ID_RE = /^[\w-]+\.apps\.googleusercontent\.com$/;
+function GoogleLoginCard({ value, onChange }) {
+  const v = value.trim();
+  const valid = !v || GOOGLE_ID_RE.test(v);
+  const active = GOOGLE.clientId;                       // o que o servidor está usando agora
+  const status = !active ? ["gray", "Desligado"] : v && active === v ? ["green", "Ativo"] : !v && active ? ["blue", "Ativo pela variável da Vercel"] : ["amber", "Salve para ativar"];
+  return (
+    <Card title="Login com Google" subtitle="Botão “Fazer login com o Google” no Entrar e Criar conta do site e no login do painel."
+      actions={<Badge tone={status[0]}>{status[1]}</Badge>}>
+      <Input label="ID do cliente OAuth" value={value} onChange={(x) => onChange(x.trim())}
+        placeholder="000000000000-xxxxxxxx.apps.googleusercontent.com" autoComplete="off" spellCheck={false}
+        error={valid ? null : "O ID termina em .apps.googleusercontent.com (não use a “chave secreta do cliente”)."}
+        hint="É um identificador público, não uma senha. Deixe em branco para desligar o botão." />
+      <ol className="a-steps">
+        <li>No <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noreferrer">Google Cloud Console</a>, configure a <em>Tela de consentimento OAuth</em>: tipo <strong>Externo</strong>, nome “Onde Sair”, e-mail de suporte e logo.</li>
+        <li>Em <em><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">APIs e serviços › Credenciais</a></em>, crie um <strong>ID do cliente OAuth</strong> do tipo <strong>Aplicativo da Web</strong>.</li>
+        <li>Em <em>Origens JavaScript autorizadas</em>, adicione <code>https://www.ondesair.com.br</code> e <code>https://ondesair.com.br</code>. Não precisa de URI de redirecionamento.</li>
+        <li>Copie o <strong>ID do cliente</strong>, cole aqui e salve. O botão aparece no site na hora.</li>
+      </ol>
+      <p className="a-muted">No site, quem entra com o Google tem a conta criada ou conectada pelo e-mail. No painel, só entra quem já está na equipe com o mesmo e-mail. As prévias da Vercel (<code>*.vercel.app</code>) não são aceitas pelo Google: teste no endereço oficial.</p>
     </Card>
   );
 }
