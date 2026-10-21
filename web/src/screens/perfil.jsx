@@ -198,9 +198,10 @@ function AccountData({ user, onGone }) {
       setMsg("Dados salvos.");
     } catch (err) { setMsg(err.message); }
   }
+  const noPw = user.hasPassword === false;     // conta criada com o Google
   async function savePw(e) {
     e.preventDefault();
-    try { await changeAccountPassword(pw.current, pw.next); setPw({ current: "", next: "" }); setPwMsg("Senha alterada."); }
+    try { await changeAccountPassword(pw.current, pw.next); setPw({ current: "", next: "" }); setPwMsg(noPw ? "Senha criada. Agora você também pode entrar com e-mail e senha." : "Senha alterada."); }
     catch (err) { setPwMsg(err.message); }
   }
 
@@ -223,12 +224,13 @@ function AccountData({ user, onGone }) {
       </form>
 
       <div className="info-box">
-        <h2 className="h2t">Trocar senha</h2>
+        <h2 className="h2t">{noPw ? "Criar senha" : "Trocar senha"}</h2>
+        {user.google && <p className="account-google"><span className="account-google-g" aria-hidden="true">G</span> Conta conectada ao Google ({user.email}).{noPw ? " Crie uma senha se quiser entrar também com e-mail e senha." : ""}</p>}
         <form className="auth-form" onSubmit={savePw}>
-          <div className="auth-field"><label htmlFor="ac-cur">Senha atual</label><input id="ac-cur" type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>
-          <div className="auth-field"><label htmlFor="ac-new">Nova senha</label><input id="ac-new" type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
+          {!noPw && <div className="auth-field"><label htmlFor="ac-cur">Senha atual</label><input id="ac-cur" type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>}
+          <div className="auth-field"><label htmlFor="ac-new">{noPw ? "Senha" : "Nova senha"}</label><input id="ac-new" type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
           {pwMsg && <p className="auth-hint" role="status">{pwMsg}</p>}
-          <button className="btn-outline" type="submit">Trocar senha</button>
+          <button className="btn-outline" type="submit">{noPw ? "Criar senha" : "Trocar senha"}</button>
         </form>
       </div>
 

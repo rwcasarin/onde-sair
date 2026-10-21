@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { go as goPath } from "../../router.js";
 import { OSLogo, OSIcon } from "../../components/brand.jsx";
 import { AIcon, Btn } from "../kit.jsx";
-import { login, ROLES, REMOTE } from "../store.js";
+import { login, loginWithGoogle, GOOGLE, ROLES, REMOTE } from "../store.js";
+import { GoogleButton, googleError } from "../../components/google.jsx";
 import { Busy } from "../../components/loader.jsx";
 
 const DEMO = [
@@ -54,6 +55,14 @@ export function Login({ onLogin }) {
     });
   }
 
+  async function google(credential) {
+    setFormError(""); setBusy(true);
+    const r = await loginWithGoogle(credential, remember);
+    setBusy(false);
+    if (r.user) return onLogin(r.user);
+    setFormError(r.error === "network" ? "Não foi possível falar com o servidor. Verifique a conexão e tente de novo." : googleError(r.error));
+  }
+
   function forgot(e) {
     e.preventDefault();
     if (!validate(false)) return;
@@ -89,6 +98,13 @@ export function Login({ onLogin }) {
               <h1>Entrar no painel</h1>
               <p className="a-login-sub">Acesso restrito à equipe Onde Sair.</p>
               {formError && <div className="a-alert tone-error" role="alert"><AIcon name="alert" size={16} /> {formError}</div>}
+
+              {GOOGLE.clientId && (
+                <div className="a-login-google">
+                  <GoogleButton clientId={GOOGLE.clientId} onCredential={google} busy={busy} text="signin_with" />
+                  <p className="a-login-or"><span>ou com e-mail e senha</span></p>
+                </div>
+              )}
 
               <div className={"a-field" + (errors.email ? " has-error" : "")}>
                 <label className="a-label" htmlFor="l-email">E-mail</label>

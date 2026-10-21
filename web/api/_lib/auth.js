@@ -53,7 +53,7 @@ export async function loadTeam() {
   try { const etag = await writeJSON("team", team, null); return { data: team, etag }; }
   catch { return readJSON("team"); }
 }
-export const publicMember = ({ hash, sessionVersion, ...m }) => m;
+export const publicMember = ({ hash, sessionVersion, googleSub, ...m }) => ({ ...m, google: !!googleSub });
 
 export async function currentUser(request) {
   const s = readSession(request);

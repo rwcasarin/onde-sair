@@ -8,7 +8,7 @@ const LOCAL_USERS = "onde-sair-users";
 const LOCAL_SESSION = "onde-sair-user";
 const listeners = new Set();
 
-export const account = { user: null, ready: false };
+export const account = { user: null, ready: false, google: "" };   // google: ID do cliente do login com Google
 const emit = () => listeners.forEach(fn => fn({ ...account }));
 export const subscribeAccount = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
 
@@ -26,7 +26,7 @@ const localId = () => "u" + Math.random().toString(36).slice(2, 10);
 
 export async function loadAccount() {
   if (REMOTE) {
-    try { const r = await api("account?action=me"); account.user = r.user; } catch { /* */ }
+    try { const r = await api("account?action=me"); account.user = r.user; account.google = r.google || ""; } catch { /* */ }
   } else {
     try {
       const id = localStorage.getItem(LOCAL_SESSION);
@@ -75,6 +75,15 @@ export async function login(email, password) {
   if (!u || u.password !== await hash(password || "")) return { message: "E-mail ou senha incorretos." };
   localStorage.setItem(LOCAL_SESSION, u.id);
   return { user: setUser(pub(u)) };
+}
+
+// Entrar (ou criar a conta) com o Google — created: conta nova, vai para as boas-vindas
+export async function loginWithGoogle(credential, { city, marketing } = {}) {
+  if (!REMOTE) return { message: "O login com o Google só funciona no site publicado." };
+  try {
+    const r = await api("account?action=google", { method: "POST", body: { credential, city, marketing } });
+    return { user: setUser(r.user), created: !!r.created };
+  } catch (e) { return { error: e.data?.error || e.message }; }
 }
 
 export async function updateAccount(patch) {
@@ -147,7 +156,7 @@ export async function deleteAccount() {
 }
 
 export async function changeAccountPassword(current, next) {
-  if (REMOTE) { await api("account?action=password", { method: "POST", body: { current, next } }); return; }
+  if (REMOTE) { await api("account?action=password", { method: "POST", body: { current, next } }); setUser({ ...account.user, hasPassword: true }); return; }
   const users = readLocal();
   const u = users.find(x => x.id === account.user.id);
   if (u.password !== await hash(current)) throw new Error("A senha atual não confere.");
