@@ -1537,3 +1537,13 @@ body.search-lock { overflow: hidden; }
 .a-login-or::before, .a-login-or::after { background: var(--a-line, #E6E3EE); }
 .account-google { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 14px; color: var(--ink-2); }
 .account-google-g { flex-shrink: 0; display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 1px solid var(--line-strong); font-weight: 800; color: #4285F4; }
+
+/* Texto rico em "Sobre o lugar / o evento / este roteiro": no tamanho do texto da seção */
+.about-text .rich-inline { font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+.about-text .rich-inline p { margin: 0 0 12px; font-size: inherit; }
+.about-text .rich-inline h2 { font-size: 22px; margin: 1.3em 0 .4em; }
+.about-text .rich-inline h3 { font-size: 18px; margin: 1.2em 0 .35em; }
+.about-text .rich-inline blockquote { font-size: 17px; }
+.about-text .rich-inline ul, .about-text .rich-inline ol { margin: 0 0 12px; }
+.about-text .rich-inline + p { margin-top: 0; }
+@media (max-width: 760px) { .about-text .rich-inline { font-size: 15px; } }

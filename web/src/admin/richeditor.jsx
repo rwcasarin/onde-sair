@@ -15,7 +15,7 @@ const BLOCKS = [["p", "Parágrafo"], ["h2", "Título"], ["h3", "Subtítulo"], ["
 const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 // places: lista de lugares que podem virar card no texto (posts do Radar). Sem ela, o botão "Lugar" não aparece.
-export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, placeholder = "Escreva o conteúdo da página…", places }) {
+export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, placeholder = "Escreva o conteúdo da página…", places, required }) {
   const EDITOR = useMemo(() => ({
     editor: true, resolveImg: resolveMedia, embedLabel,
     placeLabel: (id) => { const p = places?.find(x => x.id === id); return p ? `${p.name} · ${[p.sub, p.bairro].filter(Boolean).join(" · ")}` : "Lugar não encontrado (excluído ou não publicado) · clique para trocar"; },
@@ -152,7 +152,7 @@ export function RichEditor({ value, onChange, label = "Conteúdo", error, hint, 
 
   return (
     <div className="a-field">
-      <span className="a-label" id="rte-label">{label}</span>
+      <span className="a-label" id="rte-label">{label}{required && <span className="a-req" aria-hidden="true">*</span>}</span>
       <div className={"a-rte" + (error ? " has-error" : "")}>
         <div className="a-md-bar a-rte-bar" role="toolbar" aria-label="Formatação">
           <select className="a-rte-block" aria-label="Estilo do parágrafo" value={state.block || "p"}

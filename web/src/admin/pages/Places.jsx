@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { RichEditor } from "../richeditor.jsx";
+import { htmlToText, asHtml } from "../../richtext.js";
 import { SEED_TYPES, MOMENTOS, AMBIENTES, placeImg } from "../../data.js";
 import { photosForEdit, blankPhoto, safeUrl, MAX_PHOTOS } from "../../photos.js";
 import { placesNav } from "./Types.jsx";
@@ -71,7 +73,7 @@ const RULES = [
   ["type", (d) => !!d.type, "Escolha o tipo.", true],
   ["city", (d) => !!d.city, "Escolha a cidade.", true],
   ["bairro", (d) => !!d.bairro, "Escolha o bairro.", true],
-  ["desc", (d) => d.desc.trim().length >= 40, "Escreva pelo menos 40 caracteres.", true],
+  ["desc", (d) => htmlToText(asHtml(d.desc || "")).length >= 40, "Escreva pelo menos 40 caracteres.", true],
   ["affs", (d) => d.affs.length > 0, "Marque ao menos uma vibe.", true],
   ["end", (d) => !!d.end.trim(), "Informe o endereço.", true],
 ];
@@ -94,7 +96,7 @@ function PlaceForm({ initial, isNew }) {
   const tabErr = (keys) => keys.some(k => errors[k]) ? "!" : null;
   const checklist = [
     ["Nome e subtítulo", !!draft.name && !!draft.sub],
-    ["Descrição com 40+ caracteres", draft.desc.length >= 40],
+    ["Descrição com 40+ caracteres", htmlToText(asHtml(draft.desc || "")).length >= 40],
     ["Dica da curadoria", !!draft.dica],
     ["3 ou mais motivos para ir", draft.reasons.filter(r => r[1]).length >= 3],
     ["Ao menos uma vibe", draft.affs.length > 0],
@@ -128,8 +130,8 @@ function PlaceForm({ initial, isNew }) {
               <Input label="Tipo de cozinha / programa" value={draft.cuisine} onChange={(v) => set({ cuisine: v })} hint="Ex.: Contemporânea, Café e brunch." />
             </div>
             <Input label="Frase de destaque" value={draft.tagline} onChange={(v) => set({ tagline: v })} maxCount={110} hint="Linha fina abaixo do nome na página do lugar." />
-            <Textarea label="Descrição" required value={draft.desc} onChange={(v) => set({ desc: v })} error={errors.desc} rows={5} maxCount={400}
-              hint="Texto de “Sobre o lugar”. Só vai para os cards quando a frase de destaque está vazia. Tom de amigo, não de guia." />
+            <RichEditor label="Descrição" required value={draft.desc} onChange={(v) => set({ desc: v })} error={errors.desc} placeholder="Conte como é o lugar…"
+              hint="Texto de “Sobre o lugar”. Sem limite de tamanho. Só vai para os cards (sem formatação) quando a frase de destaque está vazia. Tom de amigo, não de guia." />
             <div className="a-form-grid">
               <Textarea label="A dica que importa" value={draft.dica} onChange={(v) => set({ dica: v })} rows={3} maxCount={220} hint="Aparece como citação da equipe." />
               <div>

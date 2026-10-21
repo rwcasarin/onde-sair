@@ -1,3 +1,4 @@
+import { RichText, hasText } from "../components/richblock.jsx";
 import { useState } from "react";
 import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
@@ -169,7 +170,7 @@ function DetalheView({ p }) {
         <section className={"place-row" + (filled(p.dica) ? " split-60-30" : "")} id="sec-visao">
           <div className="about-text">
             <h2 className="h2t">Sobre o lugar</h2>
-            {filled(p.desc) && <p>{p.desc}</p>}
+            {hasText(p.desc) && <RichText value={p.desc} />}
             {vibeNames.length > 0 && <p>
               É o tipo de lugar que faz você querer ficar mais um pouco: a gente indica
               pra {vibeNames.join(", ")}.

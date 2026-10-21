@@ -1,4 +1,6 @@
 // Eventos no painel: lista (Eventos | Categorias) e editor no modelo do cadastro de lugar
+import { RichEditor } from "../richeditor.jsx";
+import { htmlToText, asHtml } from "../../richtext.js";
 import { useState } from "react";
 import { SEED_EVENT_CATEGORIES, AGE_RATINGS, eventImg, eventGallery } from "../../data.js";
 import { EventCard } from "../../components/site.jsx";
@@ -85,7 +87,7 @@ const RULES = [
   ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
   ["ticketUrl", (d) => !d.ticket?.url || /^https?:\/\/\S+\.\S+/.test(d.ticket.url), "Use o link completo da venda (https://…)."],
   ["category", (d) => !!d.category, "Escolha a categoria.", true],
-  ["desc", (d) => d.desc.trim().length >= 40, "Escreva pelo menos 40 caracteres.", true],
+  ["desc", (d) => htmlToText(asHtml(d.desc || "")).length >= 40, "Escreva pelo menos 40 caracteres.", true],
   ["affs", (d) => d.affs.length > 0, "Marque ao menos uma vibe.", true],
   ["end", (d) => !!d.end.trim(), "Informe o endereço do evento.", true],
   ["city", (d) => !!d.city, "Escolha a cidade.", true],
@@ -136,7 +138,7 @@ function EventForm({ initial, isNew }) {
 
   const checklist = [
     ["Nome e frase de destaque", !!draft.title && !!draft.tagline],
-    ["Descrição com 40+ caracteres", draft.desc.length >= 40],
+    ["Descrição com 40+ caracteres", htmlToText(asHtml(draft.desc || "")).length >= 40],
     ["Período e horários", !!draft.dateFrom && !!draft.timeFrom],
     ["Valor ou entrada gratuita", draft.price.free || !!draft.price.from],
     ["Categoria e vibes", !!draft.category && draft.affs.length > 0],
@@ -168,8 +170,7 @@ function EventForm({ initial, isNew }) {
               <Input label="Endereço na URL (slug)" value={draft.slug} placeholder={slugify(draft.title)} onChange={(v) => set({ slug: slugify(v) })} prefix="/eventos/" hint="Deixe em branco para gerar a partir do nome." />
             </div>
             <Input label="Frase de destaque" value={draft.tagline} onChange={(tagline) => set({ tagline })} maxCount={120} hint="Linha fina abaixo do nome e resumo dos cards." />
-            <Textarea label="Sobre o evento" required value={draft.desc} onChange={(desc) => set({ desc })} error={errors.desc} rows={6} maxCount={900}
-              hint="Atrações, programação, o que esperar e o que levar. Separe parágrafos com uma linha em branco." />
+            <RichEditor label="Sobre o evento" required value={draft.desc} onChange={(desc) => set({ desc })} error={errors.desc} placeholder="Conte o que vai rolar…" hint="Sem limite de tamanho. Use títulos, listas e links para organizar programação, atrações e regras." />
             <Input label="Frase manuscrita da foto" value={draft.note} onChange={(note) => set({ note })} maxCount={60} hint="Texto à mão sobre a foto do topo." />
             <Field label="Por que ir?" hint="Opcional. Até 5 motivos curtos, com ícone.">
               <Repeater items={draft.reasons} max={5} addLabel="Adicionar motivo" newItem={() => ["star", ""]} onChange={(reasons) => set({ reasons })}

@@ -44,7 +44,7 @@ export const vibeRecord = ([id, label, sub, icon, cls, tint, page]) => ({ id, la
 
 // Tipos que saíram: para onde vai cada lugar (pelo texto do cadastro)
 export function newTypeFor(p) {
-  const txt = [p.name, p.sub, p.cuisine, p.tagline, p.desc].join(" ").toLowerCase();
+  const txt = [p.name, p.sub, p.cuisine, p.tagline, String(p.desc || "").replace(/<[^>]+>/g, " ")].join(" ").toLowerCase();
   if (p.type === "Shows e baladas") return /show|ao vivo|samba|banda|palco|jazz|mpb|forr[oó]|pagode|sertanej/.test(txt) ? "Música ao vivo" : "Baladas e festas";
   if (p.type === "Eventos") return /feira|mercad/.test(txt) ? "Feiras e mercados" : "Cultura";
   return p.type;

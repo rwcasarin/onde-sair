@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { RichEditor } from "../richeditor.jsx";
 import { roteiroVibes, vibesFromPlaces, roteiroBairros } from "../../vibes.js";
 import { roteiroImg, placeImg } from "../../data.js";
 import { PlaceMap } from "../../components/placemap.jsx";
@@ -116,7 +117,7 @@ function RoteiroForm({ initial, isNew }) {
           <Card>
             <Input label="Título" required value={draft.title} onChange={(v) => set({ title: v })} error={errors.title} maxCount={80} />
             <Textarea label="Resumo" required value={draft.desc} onChange={(v) => set({ desc: v })} error={errors.desc} rows={2} maxCount={180} hint="Linha fina do topo e texto dos cards." />
-            <Textarea label="Sobre este roteiro" value={draft.about} onChange={(v) => set({ about: v })} rows={5} />
+            <RichEditor label="Sobre este roteiro" value={draft.about || ""} onChange={(v) => set({ about: v })} placeholder="Conte a ideia do roteiro…" hint="Texto de “Sobre este roteiro”. Sem limite de tamanho. Vazio, a página usa o resumo." />
             <div className="a-form-grid">
               <Input label="Citação em destaque" value={draft.quote} onChange={(v) => set({ quote: v })} maxCount={90} />
               <Input label="Frase manuscrita da foto" value={draft.note} onChange={(v) => set({ note: v })} maxCount={60} />
