@@ -36,12 +36,14 @@ export function HomeCarousel({ car, slides }) {
   const [focus, setFocus] = useState(false);
   const [stopped, setStopped] = useState(() => reducedMotion());    // pausa pelo botão (opcional) ou movimento reduzido
   const [hidden, setHidden] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const drag = useRef(null);
   const swiped = useRef(false);
+  const trackRef = useRef(null);
   const n = slides.length;
   const many = n > 1;
   const auto = many && car.autoplay !== false;
-  const paused = !auto || stopped || hover || focus || hidden;
+  const paused = !auto || stopped || hover || focus || hidden || dragging;
   const ms = Math.max(3, +car.interval || 6) * 1000;
 
   const goTo = (i) => setCur(((i % n) + n) % n);
@@ -62,13 +64,45 @@ export function HomeCarousel({ car, slides }) {
     if (e.key === "ArrowLeft") { e.preventDefault(); goTo(cur - 1); }
     if (e.key === "ArrowRight") { e.preventDefault(); goTo(cur + 1); }
   };
-  // arrastar (toque ou mouse) troca de slide
-  const down = (e) => { if (many && e.isPrimary) drag.current = { x: e.clientX, y: e.clientY, moved: false }; };
-  const up = (e) => {
-    const d = drag.current; drag.current = null;
-    if (!d) return;
+  // arrastar (toque ou mouse): o slide acompanha o dedo e, ao soltar, vai para o próximo
+  // se passou de 20% da largura ou se foi um gesto rápido; nas pontas, puxa com resistência
+  const down = (e) => {
+    if (!many || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
+    const now = performance.now();
+    drag.current = { x: e.clientX, y: e.clientY, dx: 0, v: 0, axis: null, w: e.currentTarget.clientWidth || 1, lastX: e.clientX, lastT: now };
+  };
+  const move = (e) => {
+    const d = drag.current, track = trackRef.current;
+    if (!d || !track) return;
     const dx = e.clientX - d.x, dy = e.clientY - d.y;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { goTo(cur + (dx < 0 ? 1 : -1)); swiped.current = true; setTimeout(() => { swiped.current = false; }, 50); }
+    if (!d.axis) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      d.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      if (d.axis === "y") { drag.current = null; return; }    // rolagem da página
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+      track.style.transition = "none";
+      setDragging(true);
+    }
+    const now = performance.now();
+    d.v = (e.clientX - d.lastX) / Math.max(1, now - d.lastT); d.lastX = e.clientX; d.lastT = now;
+    d.dx = dx;
+    const edge = (cur === 0 && dx > 0) || (cur === n - 1 && dx < 0);
+    track.style.transform = `translateX(calc(${-cur * 100}% + ${edge ? dx * 0.3 : dx}px))`;
+  };
+  const end = (cancel) => {
+    const d = drag.current, track = trackRef.current; drag.current = null;
+    if (!d || d.axis !== "x" || !track) return;
+    setDragging(false);
+    const dir = d.dx < 0 ? 1 : -1;
+    const flick = Math.abs(d.v) > 0.35 && Math.abs(d.dx) > 15 && Math.sign(d.v) === Math.sign(d.dx);
+    let next = cur;
+    if (!cancel && (Math.abs(d.dx) > d.w * 0.2 || flick)) next = Math.min(n - 1, Math.max(0, cur + dir));
+    // termina o movimento a partir de onde o dedo soltou, com desaceleração suave
+    track.style.transition = reducedMotion() ? "none" : "transform .42s cubic-bezier(.2,.8,.2,1)";
+    track.style.transform = `translateX(-${next * 100}%)`;
+    setTimeout(() => { if (trackRef.current) trackRef.current.style.transition = ""; }, 450);
+    if (Math.abs(d.dx) > 6) { swiped.current = true; setTimeout(() => { swiped.current = false; }, 50); }
+    setCur(next);
   };
 
   return (
@@ -76,9 +110,10 @@ export function HomeCarousel({ car, slides }) {
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       onFocus={() => setFocus(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setFocus(false); }}
       onKeyDown={onKey}>
-      <div className="hcar-viewport" onPointerDown={down} onPointerUp={up} onPointerCancel={() => { drag.current = null; }}
+      <div className={"hcar-viewport" + (dragging ? " is-dragging" : "")} onPointerDown={down} onPointerMove={move} onPointerUp={() => end(false)} onPointerCancel={() => end(true)}
+        onDragStart={(e) => e.preventDefault()}
         onClickCapture={(e) => { if (swiped.current) { e.preventDefault(); e.stopPropagation(); } }}>
-        <div className="hcar-track" style={{ transform: `translateX(-${cur * 100}%)` }} aria-live={paused ? "polite" : "off"}>
+        <div className="hcar-track" ref={trackRef} style={{ transform: `translateX(-${cur * 100}%)` }} aria-live={paused ? "polite" : "off"}>
           {slides.map((s, i) => {
             const on = i === cur;
             return (

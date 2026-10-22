@@ -200,6 +200,9 @@ button.vibe-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8p
 .hcar-wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter) 6px; }   /* o respiro acima é o mesmo do menu (header de 84px, botões de 42px) */
 .hcar { position: relative; border-radius: 28px; overflow: hidden; background: var(--primary); isolation: isolate; }
 .hcar-viewport { overflow: hidden; touch-action: pan-y; }
+.hcar:not(.is-single) .hcar-viewport { cursor: grab; }
+.hcar .hcar-viewport.is-dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.hcar-viewport.is-dragging .hcar-slide { pointer-events: none; }
 .hcar-track { display: flex; transition: transform .6s cubic-bezier(.65,0,.35,1); will-change: transform; }
 .hcar-slide { position: relative; flex: 0 0 100%; height: clamp(340px, 36vw, 470px); color: #fff; }
 .hcar-img { position: absolute; inset: 0; width: 100%; height: 100%; }
