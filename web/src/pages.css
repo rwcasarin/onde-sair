@@ -543,7 +543,9 @@
 }
 
 /* Pílula de vibe selecionada (filtros e preferências) */
-.vibe-pill.active { box-shadow: inset 0 0 0 2px var(--heading); font-weight: 600; }
+.vibe-pill { --vibe-ring: color-mix(in srgb, var(--vibe) 45%, var(--vibe-ink)); }
+.vibe-pill.active { box-shadow: inset 0 0 0 2px var(--vibe-ring); font-weight: 600; }
+button.vibe-pill.active:hover { box-shadow: inset 0 0 0 2px var(--vibe-ring), 0 6px 16px -8px rgba(30,21,80,.35); }
 
 /* =================================================================
    Página de lugar — distribuição v4
@@ -1131,7 +1133,7 @@ a.btn-pill { text-decoration: none; }
 .accounts-paused h1 { margin: 0 0 14px; font-family: var(--serif); font-weight: 700; font-size: clamp(40px, 6vw, 64px); letter-spacing: -0.04em; color: var(--heading); }
 .accounts-paused p { margin: 0 0 28px; font-size: 16px; line-height: 1.5; color: var(--ink-2); }
 /* Vibes: menu de vibes no topo (a da página fica marcada) e grupos de filtros */
-.vibes-menu .vibe-pill.active { box-shadow: inset 0 0 0 2px var(--heading), 0 6px 16px -10px rgba(30,21,80,.6); }
+.vibes-menu .vibe-pill.active { box-shadow: inset 0 0 0 2px var(--vibe-ring), 0 6px 16px -10px var(--vibe-ring); }
 .filters-group { margin: 22px 0 4px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
 /* Roteiros: busca nos filtros */
 .filter-search { width: 100%; height: 42px; padding: 0 14px; border: 1px solid var(--line-strong, rgba(30,21,80,.2)); border-radius: 10px; background: #fff; font: inherit; font-size: 14px; color: var(--heading); }
