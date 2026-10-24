@@ -132,7 +132,7 @@ export function Historias() {
                 const n = count("categoria", x => x.cat === c.label), on = cat?.slug === c.slug;
                 return (
                   <button key={c.slug} type="button" className={"radar-chip tone-" + (c.tone || "purple") + (on ? " on" : "") + (!n && !on ? " is-empty" : "")} aria-pressed={on} onClick={() => pickCat(c)}>
-                    <i className="radar-chip-dot" aria-hidden="true" />{c.label} <span className="radar-chip-n">{n}</span>
+                    {c.label} <span className="radar-chip-n">{n}</span>
                   </button>
                 );
               })}

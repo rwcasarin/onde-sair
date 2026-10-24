@@ -1014,7 +1014,6 @@ a.btn-pill { text-decoration: none; }
   transition: transform .15s, box-shadow .15s, opacity .15s;
 }
 .radar-chip-all { background: #fff; color: var(--heading); box-shadow: inset 0 0 0 1px rgba(30,21,80,.15); }
-.radar-chip-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; flex-shrink: 0; margin-left: -2px; }
 .radar-chip-n { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: rgba(255,255,255,.62); color: inherit; font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .radar-chip-all .radar-chip-n { background: rgba(30,21,80,.07); }
 .radar-chip.tone-purple .radar-chip-n { background: rgba(255,255,255,.18); }
