@@ -74,7 +74,7 @@
 .hero2-page .hero2-media { width: 59%; height: 100%; }
 .hero2-page .hero2-copy > * { max-width: min(600px, 40vw); }
 .hero2-page .hero2-copy > .page-title { max-width: min(560px, 36vw); }
-.hero2-page .hero2-copy > .hero2-vibes, .hero2-page .hero2-copy > .radar-cats { max-width: min(700px, 48vw); }
+.hero2-page .hero2-copy > .hero2-vibes { max-width: min(700px, 48vw); }
 .page-title {
   margin: 0;
   font-family: var(--serif); font-weight: 700;
@@ -116,7 +116,7 @@
 
 @media (max-width: 900px) {
   .hero2-page .hero2-media { height: 280px; width: 100%; }
-  .hero2-page .hero2-copy > *, .hero2-page .hero2-copy > .hero2-vibes, .hero2-page .hero2-copy > .radar-cats, .hero2-page .hero2-copy > .page-title { max-width: none; }
+  .hero2-page .hero2-copy > *, .hero2-page .hero2-copy > .hero2-vibes, .hero2-page .hero2-copy > .page-title { max-width: none; }
   .hero2-media.shape-diagonal .hero2-photo { clip-path: polygon(0 0, 100% 0, 100% 100%, 12% 100%); }
 }
 
@@ -1007,7 +1007,7 @@ a.btn-pill { text-decoration: none; }
 .rich-text .post-place-cta { align-self: flex-start; margin-top: auto; text-decoration: none; color: #fff; }
 @media (max-width: 720px) { .post-place { grid-template-columns: 1fr; } .post-place-head h3 { font-size: 21px; } }
 /* Radar: menu de categorias no topo, no mesmo desenho das pílulas de vibe */
-.radar-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.radar-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 .radar-chip {
   display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px 0 18px;
   border: 0; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer;
@@ -1026,6 +1026,8 @@ a.btn-pill { text-decoration: none; }
 .radar-chip-all.on { background: var(--heading); color: #fff; }
 .radar-chip-all.on .radar-chip-n { background: rgba(255,255,255,.18); }
 .radar-chip.is-empty { opacity: .5; }
+/* Radar: a lista começa logo abaixo do topo, como no Guia */
+.radar-layout { padding-top: 0; }
 /* Radar: cards dos posts na grade da listagem (foto em cima, texto embaixo) */
 .radar-grid .story-card { display: flex; flex-direction: column; min-height: 0; border-radius: 16px; overflow: hidden; transition: transform .15s, box-shadow .15s; }
 .radar-grid .story-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -20px rgba(30,21,80,.45); }
@@ -1130,7 +1132,7 @@ a.btn-pill { text-decoration: none; }
   .stories-grid.stories-2 { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .radar-hero .hero2-copy { width: 100%; min-width: 0; box-sizing: border-box; }
+  .page-head-copy:has(> .radar-cats) { width: 100%; min-width: 0; }
   .radar-cats { flex-wrap: nowrap; overflow-x: auto; width: calc(100% + 32px); max-width: none; margin: 16px 0 0 -16px; padding: 4px 16px 10px; box-sizing: border-box; scrollbar-width: none; scroll-padding: 0 16px; scroll-snap-type: x proximity; }
   .radar-cats::-webkit-scrollbar { display: none; }
   .radar-chip { flex: 0 0 auto; height: 42px; padding: 0 10px 0 15px; font-size: 13px; scroll-snap-align: start; }

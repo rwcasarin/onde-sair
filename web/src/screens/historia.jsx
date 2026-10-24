@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ALL_STORIES, PLACES, RADAR_CATEGORIES, VIBE_ORDER, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, FaveButton, HeroMedia, Crumbs, affById } from "../components/site.jsx";
+import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, FaveButton, affById } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, fslug } from "../filters.jsx";
@@ -120,13 +120,9 @@ export function Historias() {
 
   return (
     <main className="home2">
-      <section className="hero2 hero2-page radar-hero">
-        <HeroMedia img="images/radar/capa.jpg" note="o que está acontecendo na cidade, em primeira mão."
-          words={["Novidades,", "listas", "e", "achados."]} hint="Foto do Radar · ~1400×800" />
-        <div className="hero2-copy">
-          <Crumbs items={[["Início", "home"], ["Radar"]]} />
-          <h1 className="page-title">Radar</h1>
-          <p className="hero2-lede">Novidades, atualizações e listas de lugares: o radar de quem vive {city || "a cidade"}.</p>
+      <div className="shell">
+        <PageHead crumbs={[["Início", "home"], ["Radar"]]} title="Radar"
+          lede={`Novidades, atualizações e listas de lugares: o radar de quem vive ${city || "a cidade"}.`}>
           {cats.length > 0 && (
             <nav className="radar-cats" aria-label="Categorias do Radar">
               <button type="button" className={"radar-chip radar-chip-all" + (!cat ? " on" : "")} aria-pressed={!cat} onClick={() => pickCat(null)}>
@@ -142,10 +138,10 @@ export function Historias() {
               })}
             </nav>
           )}
-        </div>
-      </section>
+        </PageHead>
+      </div>
 
-      <div className="shell listing-layout">
+      <div className="shell listing-layout radar-layout">
         <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={results.length} noun={noun(results.length)}>
           <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Assunto, lugar ou bairro" />
           <FilterBlock title="Publicado">

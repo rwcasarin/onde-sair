@@ -13,7 +13,6 @@ export function expectedImages(db) {
   db.stories.forEach(s => add(s.img || `images/historias/${s.id}.jpg`, `Post · ${s.title}`, "Radar", "3 / 4"));
   db.vibes.forEach(v => add(vibeImg(v.id), `Vibe · ${v.label}`, "Vibes", "16 / 7"));
   add("images/vibes/lugares.jpg", "Página Lugares", "Vibes", "16 / 7");
-  add("images/radar/capa.jpg", "Página Radar · foto do topo", "Radar", "16 / 7");
   db.places.forEach(p => {
     add(placeImg(p.id), `${p.name} · capa`, "Lugares");
     photosForEdit(p).forEach((g, i) => add(g.path, `${p.name} · galeria ${i + 1}`, "Lugares", "4 / 3"));
