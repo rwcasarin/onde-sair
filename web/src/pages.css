@@ -74,7 +74,7 @@
 .hero2-page .hero2-media { width: 59%; height: 100%; }
 .hero2-page .hero2-copy > * { max-width: min(600px, 40vw); }
 .hero2-page .hero2-copy > .page-title { max-width: min(560px, 36vw); }
-.hero2-page .hero2-copy > .hero2-vibes { max-width: min(700px, 48vw); }
+.hero2-page .hero2-copy > .hero2-vibes, .hero2-page .hero2-copy > .radar-cats { max-width: min(700px, 48vw); }
 .page-title {
   margin: 0;
   font-family: var(--serif); font-weight: 700;
@@ -116,7 +116,7 @@
 
 @media (max-width: 900px) {
   .hero2-page .hero2-media { height: 280px; width: 100%; }
-  .hero2-page .hero2-copy > *, .hero2-page .hero2-copy > .hero2-vibes, .hero2-page .hero2-copy > .page-title { max-width: none; }
+  .hero2-page .hero2-copy > *, .hero2-page .hero2-copy > .hero2-vibes, .hero2-page .hero2-copy > .radar-cats, .hero2-page .hero2-copy > .page-title { max-width: none; }
   .hero2-media.shape-diagonal .hero2-photo { clip-path: polygon(0 0, 100% 0, 100% 100%, 12% 100%); }
 }
 
@@ -1006,22 +1006,34 @@ a.btn-pill { text-decoration: none; }
 .post-place-open { display: inline-flex; align-items: center; gap: 4px; }
 .rich-text .post-place-cta { align-self: flex-start; margin-top: auto; text-decoration: none; color: #fff; }
 @media (max-width: 720px) { .post-place { grid-template-columns: 1fr; } .post-place-head h3 { font-size: 21px; } }
-.radar-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+/* Radar: menu de categorias no topo, no mesmo desenho das pílulas de vibe */
+.radar-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
 .radar-chip {
-  display: inline-flex; align-items: center; height: 36px; padding: 0 16px;
-  border: 0; border-radius: 999px;
-  font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(30,21,80,.15); transition: box-shadow .15s, opacity .15s;
+  display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px 0 18px;
+  border: 0; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  transition: transform .15s, box-shadow .15s, opacity .15s;
 }
-.radar-chip:not([class*="tone-"]) { background: #fff; color: var(--heading); }
-.radar-chip[class*="tone-"] { box-shadow: none; }
-.radar-chip:hover { box-shadow: inset 0 0 0 1.5px currentColor; }
+.radar-chip-all { background: #fff; color: var(--heading); box-shadow: inset 0 0 0 1px rgba(30,21,80,.15); }
+.radar-chip-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; flex-shrink: 0; margin-left: -2px; }
+.radar-chip-n { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: rgba(255,255,255,.62); color: inherit; font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.radar-chip-all .radar-chip-n { background: rgba(30,21,80,.07); }
+.radar-chip.tone-purple .radar-chip-n { background: rgba(255,255,255,.18); }
+.radar-chip:hover { transform: translateY(-2px); box-shadow: 0 6px 16px -8px rgba(30,21,80,.35); }
+.radar-chip-all:hover { box-shadow: inset 0 0 0 1px rgba(30,21,80,.15), 0 6px 16px -8px rgba(30,21,80,.35); }
 .radar-chip[class*="tone-"] { --chip-ring: color-mix(in srgb, currentColor 70%, transparent); }
 .radar-chip.tone-purple { --chip-ring: var(--heading); }
-.radar-chip.on, .radar-chip.on:hover { box-shadow: inset 0 0 0 2px var(--chip-ring, var(--heading)), 0 6px 16px -10px var(--chip-ring, var(--heading)); }
-.radar-chip:not([class*="tone-"]).on { background: var(--heading); color: #fff; }
-.radar-filters:has(.radar-chip.on[class*="tone-"]) .radar-chip:not(.on) { opacity: .55; }
-.radar-filters:has(.radar-chip.on[class*="tone-"]) .radar-chip:not(.on):hover { opacity: 1; }
+.radar-chip.on, .radar-chip.on:hover { font-weight: 600; box-shadow: inset 0 0 0 2px var(--chip-ring, var(--heading)), 0 6px 16px -10px var(--chip-ring, var(--heading)); }
+.radar-chip-all.on { background: var(--heading); color: #fff; }
+.radar-chip-all.on .radar-chip-n { background: rgba(255,255,255,.18); }
+.radar-chip.is-empty { opacity: .5; }
+/* Radar: cards dos posts na grade da listagem (foto em cima, texto embaixo) */
+.radar-grid .story-card { display: flex; flex-direction: column; min-height: 0; border-radius: 16px; overflow: hidden; transition: transform .15s, box-shadow .15s; }
+.radar-grid .story-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -20px rgba(30,21,80,.45); }
+.radar-grid .story-img { height: auto; min-height: 0; aspect-ratio: 16 / 10; }
+.radar-grid .story-body { flex: 1; padding: 18px 20px 18px; }
+.radar-grid .story-tag { font-size: 9.5px; padding: 4px 11px; }
+.radar-grid .story-body h3 { margin: 12px 0 8px; font-size: 22px; line-height: 1.1; }
+.radar-grid .story-body p { font-size: 13.5px; line-height: 1.5; margin-bottom: 16px; }
 .back-link { display: inline-flex; align-items: center; gap: 4px; margin: -6px 0 0; color: var(--heading); font-size: 14px; font-weight: 600; text-decoration: none; }
 .back-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 
@@ -1118,8 +1130,11 @@ a.btn-pill { text-decoration: none; }
   .stories-grid.stories-2 { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .radar-filters { flex-wrap: nowrap; overflow-x: auto; margin-right: -16px; padding: 4px 16px 4px 4px; margin-left: -4px; scrollbar-width: none; }
-  .radar-chip { flex: 0 0 auto; }
+  .radar-hero .hero2-copy { width: 100%; min-width: 0; box-sizing: border-box; }
+  .radar-cats { flex-wrap: nowrap; overflow-x: auto; width: calc(100% + 32px); max-width: none; margin: 16px 0 0 -16px; padding: 4px 16px 10px; box-sizing: border-box; scrollbar-width: none; scroll-padding: 0 16px; scroll-snap-type: x proximity; }
+  .radar-cats::-webkit-scrollbar { display: none; }
+  .radar-chip { flex: 0 0 auto; height: 42px; padding: 0 10px 0 15px; font-size: 13px; scroll-snap-align: start; }
+  .radar-chip:hover { transform: none; }
   .stories-2 .story-card { grid-template-columns: 1fr; }
   .stories-2 .story-img { min-height: 0; aspect-ratio: 16 / 10; }
   .stories-2 .story-body h3 { font-size: 23px; }
