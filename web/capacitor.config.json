@@ -1,0 +1,12 @@
+{
+  "appId": "br.com.ondesair.app",
+  "appName": "Onde Sair",
+  "webDir": "dist",
+  "server": {
+    "url": "https://ondesair.com.br",
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#3B2A7C"
+  }
+}
