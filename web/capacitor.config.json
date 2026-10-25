@@ -4,9 +4,15 @@
   "webDir": "dist",
   "server": {
     "url": "https://ondesair.com.br",
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "allowNavigation": ["ondesair.com.br", "*.ondesair.com.br", "*.vercel.app"]
   },
   "android": {
     "backgroundColor": "#3B2A7C"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
   }
 }

@@ -687,7 +687,18 @@ export function saveCampaign(c, user) {
   db.campaigns = exists ? db.campaigns.map(x => x.id === next.id ? next : x) : [next, ...db.campaigns];
   log(user, next.status === "enviada" ? "enviou a notificação" : next.status === "agendada" ? "agendou a notificação" : "salvou a notificação", next.title, "notificação");
   commit();
+  if (next.status === "enviada") sendPush(next);
   return next;
+}
+// Push no celular de quem tem o app: o alcance passa a ser o número de aparelhos que receberam
+export async function sendPush(c) {
+  if (!REMOTE) return null;
+  try {
+    const r = await api("push?action=send", { method: "POST", body: { campaign: { id: c.id, kind: c.kind, title: c.title, body: c.body, audience: c.audience } } });
+    db.campaigns = db.campaigns.map(x => x.id === c.id ? { ...x, reach: r.sent, push: { sent: r.sent, failed: r.failed } } : x);
+    commit();
+    return r;
+  } catch (e) { return { error: e.data?.message || e.message }; }
 }
 export function removeCampaign(id, user) { db.campaigns = db.campaigns.filter(c => c.id !== id); log(user, "excluiu notificação", id, "notificação"); commit(); }
 

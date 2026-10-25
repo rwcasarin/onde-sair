@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícone das notificações (monocromático, o Android pinta de branco) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="398.34" android:viewportHeight="398.97">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M398.34,221.13 L398.29,175.29 L228.4,186.22 L358.1,72.65 L325.35,40.16 L210.85,171.11 L222.71,0 L176.23,.05 L187.15,170.21 L73.33,40.75 L40.89,72.87 L170.75,186.63 L0,175.14 L.23,221.3 L171.38,209.75 L40.3,324.3 L72.95,356.87 L187.73,225.39 L176.07,398.97 L222.75,398.9 L211.36,226.95 L325.73,356.56 L358.06,323.92 L227.39,209.64 L398.34,221.13 Z"/>
+</vector>

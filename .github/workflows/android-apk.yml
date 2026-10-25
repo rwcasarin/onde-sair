@@ -32,6 +32,18 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+      # push: google-services.json do Firebase no secret GOOGLE_SERVICES_JSON (sem ele, o app sai sem push)
+      - name: Configura o Firebase
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            node -e 'const f="capacitor.config.json",c=require("./"+f);c.appendUserAgent="OndeSairApp/push";require("fs").writeFileSync(f,JSON.stringify(c,null,2))'
+          else
+            echo "::warning::Secret GOOGLE_SERVICES_JSON não configurado: APK gerado sem push."
+          fi
+
       - run: npx cap sync android
 
       - name: Gera o APK

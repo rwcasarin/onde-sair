@@ -14,7 +14,7 @@ export function CampaignsPage() {
   return (
     <>
       <PageHeader title="Notificações" crumbs={[["Painel", "/"], ["Notificações"]]}
-        subtitle="Avisos que aparecem no sino do site para quem usa o Onde Sair."
+        subtitle="Avisos que aparecem no sino do site e chegam como push no celular de quem tem o app."
         actions={<Btn kind="primary" icon="plus" onClick={() => setEdit({ kind: "ROTEIRO NOVO", title: "", body: "", audience: "Todos", status: "rascunho", when: "agora" })}>Nova notificação</Btn>} />
       <div className="a-kpis a-kpis-4">
         <div className="a-kpi static"><span className="a-kpi-label">Enviadas</span><strong className="a-kpi-value">{sent.length}</strong></div>

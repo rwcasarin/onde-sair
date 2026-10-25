@@ -26,6 +26,7 @@ import { Pagina } from "./screens/pagina.jsx";
 import { htmlToText } from "./richtext.js";
 import { account, loadAccount, subscribeAccount, updateAccount, setIntent, takeIntent, findMyRoteiro } from "./account.js";
 import { autoTitle, autoDesc } from "./seo.js";
+import { initPush, refreshPush } from "./push.js";
 
 const NO_FAVES = new Set();
 
@@ -125,6 +126,10 @@ export default function App() {
     if (!account.ready) loadAccount(); else prevId = null;
     return off;
   }, []);
+
+  // app Android: push no celular (tocar abre a rota da notificação); o token acompanha a cidade e a conta
+  useEffect(() => { initPush({ city, onOpen: (route) => { go(route); window.scrollTo(0, 0); } }); }, [city]);
+  useEffect(() => { refreshPush(city); }, [user?.id]); // eslint-disable-line
 
   // nav("lista", { aff: "dates" }) → /vibes/para-dates · nav("home", { anchor: "vibes" })
   const nav = useCallback((s, p = {}) => {
