@@ -150,9 +150,13 @@ function ensureMigrated() {
   if (!migrated) migrated = migrate().catch(e => { migrated = null; throw e; });
   return migrated;
 }
+// só a produção (ou o desenvolvimento local) copia: uma prévia copiaria dados que a produção ainda vai alterar
+const canMigrate = () => !process.env.VERCEL_ENV || process.env.VERCEL_ENV === "production";
 async function migrate() {
   const [done] = await sql()`select 1 from versions where name = ${MIGRATED}`;
   if (done) return;
+  // prévia antes da cópia: nem lê (banco vazio) nem grava (o painel criaria um conteúdo inicial por cima)
+  if (!canMigrate()) throw Object.assign(new Error("O banco ainda não recebeu os dados da produção."), { status: 503 });
   // lê os arquivos antes de abrir a transação (pode demorar); grava tudo de uma vez
   const legacy = {};
   if (legacyReader) for (const name of LEGACY) legacy[name] = await legacyReader(name).catch(() => null);
