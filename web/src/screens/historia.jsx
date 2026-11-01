@@ -102,7 +102,7 @@ export function Historias() {
       </div>
 
       <div className="shell listing-layout radar-layout">
-        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun={noun(L.total)}>
+        <FilterPanel sort={f.ordem} sorts={RADAR_SORTS} onSort={(v) => set("ordem", v)} open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun={noun(L.total)}>
           <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Assunto, lugar ou bairro" />
           <FilterBlock title="Publicado">
             <CheckList options={facet("publicado")} selected={f.publicado} onToggle={(v) => toggle("publicado", v)} />

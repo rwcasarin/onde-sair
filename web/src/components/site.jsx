@@ -227,6 +227,22 @@ export function EventCard({ e }) {
 export const ListingCard = ({ p }) => <PlaceCard p={p} />;
 export const MiniPlaceCard = ({ p }) => <PlaceCard p={p} />;
 
+// Abas das páginas de detalhe (lugar, roteiro, evento). No celular viram um menu fixo embaixo, com ícones.
+const TAB_ICONS = { visao: "eye", porque: "star", fotos: "image", chegar: "pin", confira: "sparkle", paradas: "list", mapa: "map", dicas: "bulb" };
+export function PageTabs({ tabs, tab, onTab }) {
+  return (
+    <nav className="page-tabs" aria-label="Seções">
+      <div className="shell">
+        {tabs.map(([id, label]) => (
+          <button key={id} type="button" className={tab === id ? "on" : ""} aria-current={tab === id ? "true" : undefined} onClick={() => onTab(id)}>
+            <Icon name={TAB_ICONS[id] || "list"} size={20} className="page-tab-icon" /><span>{label}</span>
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 // Card de roteiro — o mesmo em todo o site (lista de roteiros, página do lugar, "Continue explorando", perfil).
 // mine: roteiro criado pelo visitante (foto da 1ª parada, abre o roteiro dele); actions: botões extras no rodapé.
 export function RoteiroCard({ r, mine = false, actions }) {

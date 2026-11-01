@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { EVENTS, EVENT_CATEGORIES, VIBE_ORDER, CITIES, PLACES, eventImg, eventGallery } from "../data.js";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { Icon } from "../components/icons.jsx";
-import { HeroMedia, Crumbs, VibePill, EventCard, PlaceCard, CategoryPill, FaveButton, Footer, affById } from "../components/site.jsx";
+import { HeroMedia, Crumbs, VibePill, EventCard, PlaceCard, CategoryPill, FaveButton, Footer, affById, PageTabs } from "../components/site.jsx";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
@@ -92,7 +92,7 @@ export function EventosLista() {
       </section>
 
       <div className="shell listing-layout">
-        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun={L.total === 1 ? "evento" : "eventos"}>
+        <FilterPanel sort={f.ordem} sorts={SORTS} onSort={(v) => set("ordem", v)} open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun={L.total === 1 ? "evento" : "eventos"}>
           <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Evento, local ou assunto" />
           <FilterBlock title="Quando">
             {(facet("quando").length ? facet("quando") : WHEN.map(([value, label]) => ({ value, label, count: null }))).map(({ value: k, label: l, count: n }) => (
@@ -238,11 +238,7 @@ export function Evento({ id }) {
         </div>
       </section>
 
-      <nav className="page-tabs" aria-label="Seções">
-        <div className="shell">
-          {tabs.map(([t, label]) => <button key={t} className={tab === t ? "on" : ""} onClick={() => goTab(t)}>{label}</button>)}
-        </div>
-      </nav>
+      <PageTabs tabs={tabs} tab={tab} onTab={goTab} />
 
       <div className="shell place-body">
         {/* 1 · Sobre o evento (60%) + caixa de data, valor e ingressos (30%) */}

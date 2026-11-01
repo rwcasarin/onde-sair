@@ -71,7 +71,7 @@ export function VibesView({ aff = null, q = "" }) {
       </section>
 
       <div className="shell listing-layout">
-        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun="resultados">
+        <FilterPanel sort={f.ordem} sorts={SORTS} onSort={(v) => set("ordem", v)} open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun="resultados">
           <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Nome, bairro ou tag" />
           {hasRoteiros && (
             <FilterBlock title="Mostrar">

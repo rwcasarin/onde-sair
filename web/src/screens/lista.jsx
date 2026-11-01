@@ -86,7 +86,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
 
       <div className="shell listing-layout">
         {/* ---------- Filtros ---------- */}
-        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={total} noun={total === 1 ? "lugar" : "lugares"}>
+        <FilterPanel sort={f.ordem} sorts={SORTS} onSort={(v) => set("ordem", v)} open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={total} noun={total === 1 ? "lugar" : "lugares"}>
           <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Nome, bairro ou tag" />
           <FilterBlock title="Cidade"><CityField value={cityF} onChange={changeCity} counts={cityCounts} /></FilterBlock>
           <FilterBlock title="Bairro / Região">
@@ -103,8 +103,8 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
           <ResultsBar title={`${total} ${total === 1 ? "lugar encontrado" : "lugares encontrados"} ${cityF ? `em ${CITIES.find(c => c.id === cityF)?.name || city}` : "em todas as cidades"}`}
             active={filterCount} onOpenFilters={() => setFiltersOpen(true)} sort={f.ordem} sorts={SORTS} onSort={(v) => set("ordem", v)}>
             <div className="view-toggle" role="group" aria-label="Modo de visualização">
-              <button className={view === "lista" ? "on" : ""} onClick={() => setView("lista")}><Icon name="list" size={18} /> Lista</button>
-              <button className={view === "mapa" ? "on" : ""} onClick={() => setView("mapa")}><Icon name="pin" size={18} /> Mapa</button>
+              <button className={view === "lista" ? "on" : ""} onClick={() => setView("lista")} aria-label="Ver em lista" aria-pressed={view === "lista"}><Icon name="list" size={18} /><span className="vt-label">Lista</span></button>
+              <button className={view === "mapa" ? "on" : ""} onClick={() => setView("mapa")} aria-label="Ver no mapa" aria-pressed={view === "mapa"}><Icon name="pin" size={18} /><span className="vt-label">Mapa</span></button>
             </div>
           </ResultsBar>
           <ActiveChips chips={chips} onClear={() => { clearAll(); setVibe(null); }} />
