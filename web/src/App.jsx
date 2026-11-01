@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useContext } from "react";
 import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, EVENTS, cityName } from "./data.js";
-import { SITE, staffSession } from "./admin/store.js";
+import { SITE, staffSession, viewLoaded, loadView } from "./admin/store.js";
 import { LoaderScreen } from "./components/loader.jsx";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
 import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
@@ -96,7 +96,16 @@ function applyMeta({ title, desc, noindex }) {
 }
 
 export default function App() {
-  const path = usePath();
+  const url = usePath();
+  // cada tela busca o que usa na primeira vez (ver loadView); enquanto chega, a tela anterior continua à vista
+  const [path, setPath] = useState(url);
+  useEffect(() => {
+    if (viewLoaded(url)) { setPath(url); return; }
+    let alive = true;
+    loadView(url).catch(() => {}).finally(() => { if (alive) setPath(url); });
+    return () => { alive = false; };
+  }, [url]);
+  const loading = path !== url;
   const { screen, params } = fromPath(path);
 
   const [city, setCity] = useState(SITE.defaultCity);
@@ -223,6 +232,7 @@ export default function App() {
     <FavContext.Provider value={{ faves: paused ? NO_FAVES : faves, toggle: toggleFave }}>
     <AccountContext.Provider value={{ user: paused ? null : user, ask, paused, roteirosPaused: rotPaused, roteirosHidden: rotHidden, eventsPaused: evPaused, eventsHidden: evHidden }}>
       <div className="app">
+        {loading && <div className="route-progress" role="progressbar" aria-label="Carregando" />}
         {SITE.announcement?.enabled && SITE.announcement.text && (
           <div className={"site-announce tone-" + (SITE.announcement.tone || "primary")} role="status">{SITE.announcement.text}</div>
         )}

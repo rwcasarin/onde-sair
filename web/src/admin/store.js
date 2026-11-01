@@ -15,6 +15,7 @@ import {
   EVENTS, EVENT_CATEGORIES, SEED_EVENT_CATEGORIES,
 } from "../data.js";
 import { applyUpdates, applyAsyncUpdates } from "./updates.js";
+import { viewCovers } from "../../shared/pageview.js";
 import { carouselOf } from "../carousel.js";
 import { socialLinks } from "../social.js";
 
@@ -215,20 +216,72 @@ export async function api(path, { method = "GET", body } = {}) {
   return data;
 }
 
-// Carga inicial do site: tenta a API; sem ela, segue no modo local
-export async function boot() {
+// ---------------------------------------------------------------------
+// Site público na nuvem: cada tela pede só o que usa (GET /api/content?view=/caminho, ver shared/pageview.js)
+// e o que chega fica guardado para as próximas telas. O painel carrega o banco completo (adminLoad).
+// ---------------------------------------------------------------------
+let partial = false;                // o site tem só parte do conteúdo (vem por tela)
+const views = new Map();            // caminho → carga (Promise com .done)
+const viewKey = (path = "/") => String(path).split(/[?#]/)[0].replace(/\/+$/, "") || "/";
+// listas completas chegam na ordem do banco; o que já havia e não veio fica no fim
+function mergeList(cur = [], next = []) {
+  const ids = new Set(next.map(x => x.id));
+  return [...next, ...cur.filter(x => !ids.has(x.id))];
+}
+async function fetchView(path, shell, have = []) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    // no-cache: o navegador sempre confere com a CDN (sem servir uma cópia velha depois de uma edição)
+    const r = await fetch(`/api/content?view=${encodeURIComponent(path)}${shell ? "" : "&shell=0"}${have.length ? "&have=" + have.sort().join(",") : ""}`, { signal: ctrl.signal, cache: "no-cache", headers: { accept: "application/json" } });
+    if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) throw new Error("conteúdo " + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+const doneView = (k) => views.set(k, Object.assign(Promise.resolve(), { done: true }));
+const complete = new Set();         // listas que já vieram inteiras
+let pins = new Map();               // lugares só como pin do mapa (fora de PLACES)
+function mergeView(part) {
+  ["places", "roteiros", "stories", "events"].forEach(key => { if (part[key]) db[key] = mergeList(db[key], part[key]); });
+  (part.complete || []).forEach(key => complete.add(key));
+  (part.pins || []).forEach(p => pins.set(p.id, p));
+}
+
+// a tela do caminho já tem o que precisa? (já pedida, ou tudo o que ela usa já veio inteiro)
+export const viewLoaded = (path) => !partial || !!views.get(viewKey(path))?.done || viewCovers(viewKey(path)).every(k => complete.has(k));
+// lugares da cidade para o mapa do detalhe: os completos e, dos outros, o pin
+export const mapPlaces = (city) => {
+  const full = PLACES.filter(p => p.city === city);
+  const have = new Set(full.map(p => p.id));
+  return [...full, ...[...pins.values()].filter(p => p.city === city && !have.has(p.id))];
+};
+// busca o que a tela do caminho usa (uma vez por caminho)
+export function loadView(path) {
+  if (!partial) return Promise.resolve();
+  const k = viewKey(path);
+  let v = views.get(k);
+  if (v) return v;
+  v = fetchView(k, false, [...complete]).then(({ db: part }) => {
+    if (partial && part) { mergeView(part); syncPublic(); notify(); }
+    v.done = true;
+  }).catch(e => { views.delete(k); throw e; });
+  views.set(k, v);
+  return v;
+}
+
+// Carga inicial do site: o básico + o que a tela aberta usa; sem API, segue no modo local
+export async function boot(path = "/") {
   if (location.protocol === "file:") return;
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 6000);
-    // no-cache: o navegador sempre confere com a CDN (sem servir uma cópia velha depois de uma edição)
-    const r = await fetch("/api/content", { signal: ctrl.signal, cache: "no-cache", headers: { accept: "application/json" } });
-    clearTimeout(t);
-    if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) return;
-    const data = await r.json();
-    REMOTE = true;
-    db = data.db ? { ...clone(SEED), ...data.db } : clone(SEED);
-    applyUpdates(db);   // só na memória: o visitante já vê o conteúdo novo; quem grava é o painel
+    const data = await fetchView(viewKey(path), true);
+    if (data.empty || !data.db) return;
+    REMOTE = true; partial = true;
+    // sem as contas e a equipe de demonstração da semente; conteúdo novo do código (updates.js)
+    // aparece no site depois que um administrador abre o painel (não dá para aplicar sobre parte do banco)
+    const { complete: c, pins: p, ...first } = data.db;
+    db = { ...clone(SEED), members: [], team: [], activity: [], ...first };
+    mergeView({ complete: c, pins: p });
+    doneView(viewKey(path));
     syncPublic();
   } catch { /* offline ou sem API: modo local */ }
 }
@@ -237,6 +290,7 @@ export async function boot() {
 export async function adminLoad() {
   if (!REMOTE) return;
   const r = await api("admin/db");
+  partial = false;                  // daqui em diante o banco está completo
   if (r.db) { db = { ...clone(SEED), ...r.db }; etag = r.etag; base = contentOf(db); }
   else {
     const seedDb = { ...clone(SEED), team: [] };
@@ -370,7 +424,7 @@ export function syncPublic() {
   replace(STORIES, db.home.storyIds.map(id => db.stories.find(s => s.id === id)).filter(s => s && isLive(s)).map(s => ({ ...s, tone: catTone(s), img: s.img || `images/historias/${s.id}.jpg` })));
 
   const vibes = db.vibes.filter(v => v.active);
-  replace(AFFINITIES, vibes.map(v => ({ id: v.id, label: v.label, sub: v.sub, slug: v.slug, tint: v.tint, count: db.places.filter(p => isLive(p) && p.affs.includes(v.id)).length })));
+  replace(AFFINITIES, vibes.map(v => ({ id: v.id, label: v.label, sub: v.sub, slug: v.slug, tint: v.tint, count: partial && db.vibeCounts ? db.vibeCounts[v.id] || 0 : db.places.filter(p => isLive(p) && p.affs.includes(v.id)).length })));
   replace(VIBE_ORDER, vibes.map(v => v.id));
   vibes.forEach(v => {
     VIBE_STYLE[v.id] = { icon: v.icon, cls: v.cls };
