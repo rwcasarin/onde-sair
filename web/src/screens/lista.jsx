@@ -61,7 +61,7 @@ export function Lista({ aff = null, q = "", tipo = "" }) {
 
   return (
     <main className="home2">
-      <section className="hero2 hero2-page">
+      <section className="hero2 hero2-page hero2-list">
         <HeroMedia
           img={vibe ? vibeImg(vibe) : "images/vibes/lugares.jpg"}
           note={page ? page.note : "a cidade tem mais do que você imagina."}

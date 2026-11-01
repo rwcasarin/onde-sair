@@ -21,7 +21,8 @@ export function Home() {
   const { id: cityId, name } = useCity();
 
   // próximos e atuais (até 6), da cidade escolhida, numa linha só
-  const events = upcoming(EVENTS.filter(e => !cityId || e.city === cityId)).slice(0, 6);
+  const pool = SITE.homeEvents ? EVENTS.filter(e => SITE.homeEvents.includes(e.id)) : EVENTS;
+  const events = upcoming(pool.filter(e => !cityId || e.city === cityId)).slice(0, 6);
   // modo carrossel com ao menos um destaque no ar; sem nenhum, volta ao topo fixo
   const slides = HOME_TOP.mode === "carrossel" ? visibleSlides(HOME_TOP.carousel) : [];
   const search = (

@@ -238,9 +238,23 @@ async function fetchView(path, shell, have = []) {
     return await r.json();
   } finally { clearTimeout(t); }
 }
-const doneView = (k) => views.set(k, Object.assign(Promise.resolve(), { done: true }));
+const doneView = (k) => views.set(k, Object.assign(Promise.resolve(), { done: true, at: Date.now() }));
+const stale = (v, k) => FRESH.has(k) && v?.done && Date.now() - v.at > FRESH_MS;
 const complete = new Set();         // listas que já vieram inteiras
+// telas que sempre buscam de novo no banco ao abrir (a carga vale só por alguns segundos)
+const FRESH = new Set(["/"]);
+const FRESH_MS = 5000;
 function mergeView(part) {
+  // home atualizada: some o que saiu das dicas e dos destaques (despublicado ou trocado)
+  if (part.home) {
+    const ids = (list) => new Set((list || []).map(x => x.id));
+    const tips = new Set((db.home?.tips || []).map(t => t.place)), stories = new Set(db.home?.storyIds || []);
+    const gotP = ids(part.places), gotS = ids(part.stories);
+    db.places = (db.places || []).filter(p => !tips.has(p.id) || gotP.has(p.id) || complete.has("places"));
+    db.stories = (db.stories || []).filter(s => !stories.has(s.id) || gotS.has(s.id) || complete.has("stories"));
+    db.home = part.home;
+    db.homeEvents = part.homeEvents || [];
+  }
   ["places", "roteiros", "stories", "events"].forEach(key => { if (part[key]) db[key] = mergeList(db[key], part[key]); });
   (part.complete || []).forEach(key => complete.add(key));
 }
@@ -248,17 +262,22 @@ function mergeView(part) {
 // o site tem só parte do conteúdo? (com tudo na memória, as listagens rodam aqui mesmo)
 export const isPartial = () => partial;
 // a tela do caminho já tem o que precisa? (já pedida, ou tudo o que ela usa já veio inteiro)
-export const viewLoaded = (path) => !partial || !!views.get(viewKey(path))?.done || viewCovers(viewKey(path)).every(k => complete.has(k));
+export const viewLoaded = (path) => {
+  if (!partial) return true;
+  const k = viewKey(path), v = views.get(k);
+  if (FRESH.has(k)) return !!v?.done && !stale(v, k);
+  return !!v?.done || viewCovers(k).every(c => complete.has(c));
+};
 
 // busca o que a tela do caminho usa (uma vez por caminho)
 export function loadView(path) {
   if (!partial) return Promise.resolve();
   const k = viewKey(path);
   let v = views.get(k);
-  if (v) return v;
+  if (v && !stale(v, k)) return v;
   v = fetchView(k, false, [...complete]).then(({ db: part }) => {
     if (partial && part) { mergeView(part); syncPublic(); notify(); }
-    v.done = true;
+    v.done = true; v.at = Date.now();
   }).catch(e => { views.delete(k); throw e; });
   views.set(k, v);
   return v;
@@ -472,6 +491,8 @@ export function syncPublic() {
   SITE.seoTitle = db.settings.seoTitle || "";
   SITE.seoDesc = db.settings.seoDesc || "";
   SITE.defaultCity = CITIES.some(c => c.id === db.settings.defaultCity) ? db.settings.defaultCity : CITIES[0]?.id;
+  // eventos que a home mostra (vindos do banco na última abertura da home)
+  SITE.homeEvents = partial && db.homeEvents ? db.homeEvents : null;
 }
 // Configurações lidas pelo site público (faixa de aviso, manutenção)
 // pausa de contas e interações (manutenções e instabilidades): texto padrão do aviso no site

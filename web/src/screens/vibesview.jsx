@@ -50,7 +50,7 @@ export function VibesView({ aff = null, q = "" }) {
 
   return (
     <main className="home2">
-      <section className="hero2 hero2-page vibes-hero">
+      <section className="hero2 hero2-page hero2-list vibes-hero">
         <HeroMedia
           img={aff ? vibeImg(aff) : "images/vibes/lugares.jpg"}
           note={page ? page.note : "cada rolê tem a sua vibe."}

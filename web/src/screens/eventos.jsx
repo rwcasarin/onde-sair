@@ -78,7 +78,7 @@ export function EventosLista() {
 
   return (
     <main className="home2">
-      <section className="hero2 hero2-page">
+      <section className="hero2 hero2-page hero2-list">
         <HeroMedia img={eventImg("capa")} note="a cidade tem programa todo dia da semana."
           words={["Shows,", "feiras,", "festas", "e", "encontros."]} hint="Foto da agenda · ~1400×800" />
         <div className="hero2-copy">

@@ -1617,3 +1617,33 @@ body.search-lock { overflow: hidden; }
 .sb-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--primary-border); border-top-color: var(--primary); animation: sb-spin .7s linear infinite; }
 @keyframes sb-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .sb-spin { animation: none; } }
+
+/* celular: listas sem a foto de capa e cards de dois em dois (também nas dicas da home) */
+@media (max-width: 760px) {
+  .hero2-list .hero2-media { display: none; }
+  .hero2-list { min-height: 0; padding-bottom: 8px; }
+}
+@media (max-width: 640px) {
+  .listing-grid, .tips-grid.tips-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
+/* cards de dois em dois: mais compactos */
+@media (max-width: 640px) {
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-body { padding: 0 10px 12px; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-body:not(:has(.rot-index-vibes)) { padding-top: 10px; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-vibes { margin: -11px 0 6px; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-vibes .vibe-pill { font-size: 11px; gap: 6px; max-width: 100%; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-body h3 { font-size: 16px; line-height: 1.15; letter-spacing: -0.02em; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-meta { font-size: 11px; gap: 4px 10px; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-card .rot-index-body p { margin: 6px 0 8px; font-size: 12px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-card .card-more { font-size: 12px; }
+  :is(.listing-grid, .tips-grid.tips-4) .fave-float { width: 32px; height: 32px; top: 8px; right: 8px; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-badge { top: 8px; left: 8px; font-size: 10px; padding: 3px 8px; }
+}
+@media (max-width: 640px) {
+  :is(.listing-grid, .tips-grid.tips-4) .event-date { top: 8px; left: 8px; min-width: 52px; border-radius: 10px; }
+  :is(.listing-grid, .tips-grid.tips-4) .event-date em { font-size: 9.5px; letter-spacing: .08em; }
+  :is(.listing-grid, .tips-grid.tips-4) .event-date em:first-child { padding: 5px 6px 0; }
+  :is(.listing-grid, .tips-grid.tips-4) .event-date strong { margin: 1px 0; font-size: 20px; }
+  :is(.listing-grid, .tips-grid.tips-4) .event-date em:nth-child(3) { padding: 0 6px 4px; }
+  :is(.listing-grid, .tips-grid.tips-4) .event-date b { padding: 3px 6px; font-size: 10px; }
+}
