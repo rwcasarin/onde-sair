@@ -128,6 +128,30 @@ export async function dbWrite(name, data, etag) {
   });
 }
 
+// Conteúdo para o site público numa ida só ao banco: só itens publicados/agendados (o filtro fino é do publicView)
+// e sem as cópias de segurança. Devolve { content, media } ou null se o banco ainda não tem conteúdo.
+const LIVE_TABLES = new Set(["places", "roteiros", "stories", "events", "pages"]);
+export async function dbPublicContent() {
+  await ensureMigrated();
+  const tables = Object.entries(CONTENT_TABLES).filter(([, t]) => t !== "backups");
+  const s = sql();
+  const cols = tables.map(([key, t]) => LIVE_TABLES.has(t)
+    ? s`(select coalesce(json_agg(data order by position), '[]') from ${s(t)} where status in ('publicado', 'agendado')) as ${s(key)}`
+    : s`(select coalesce(json_agg(data order by position), '[]') from ${s(t)}) as ${s(key)}`);
+  const [row] = await s`select
+    (select coalesce(json_object_agg(key, value), '{}') from site_config) as __cfg,
+    (select coalesce(json_object_agg(path, version), '{}') from media) as __media,
+    ${cols.reduce((acc, c, i) => i ? s`${acc}, ${c}` : c, s``)}`;
+  const cfg = row.__cfg;
+  if (!Array.isArray(cfg[KEYS])) return null;
+  const content = {};
+  for (const key of cfg[KEYS]) {
+    if (key in cfg) content[key] = cfg[key];
+    else if (key in row) content[key] = row[key];
+  }
+  return { content, media: row.__media };
+}
+
 export async function dbDelete(name) {
   await ensureMigrated();
   await sql().begin(async (tx) => {

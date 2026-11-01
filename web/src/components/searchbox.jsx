@@ -7,6 +7,7 @@ import { ImageSlot } from "./image-slot.jsx";
 import { placeImg, eventImg, roteiroImg, AFFINITIES, VIBE_ORDER } from "../data.js";
 import { go, href, vibePath } from "../router.js";
 import { search, shortcuts, didYouMean, highlightParts, kindInfo, kindsOn, recentSearches, saveRecent, removeRecent, clearRecent } from "../search.js";
+import { viewLoaded, loadView } from "../admin/store.js";
 
 export const searchPath = (q, tab) => "/busca" + (q || tab ? "?" + new URLSearchParams({ ...(q ? { q } : {}), ...(tab && tab !== "tudo" ? { tipo: tab } : {}) }).toString() : "");
 export const thumbOf = (d) => d.kind === "place" ? placeImg(d.id) : d.kind === "event" ? eventImg(d.id) : d.kind === "roteiro" ? roteiroImg(d.id) : d.kind === "story" ? d.item.img : "";
@@ -50,6 +51,9 @@ export function SearchBox({ value = "", onSubmit, autoFocus, variant = "hero", p
   const box = useRef(null), input = useRef(null), list = useRef(null);
   const id = useId();
   useEffect(() => setQ(value), [value]);
+  // as sugestões buscam em todo o site: o conteúdo completo vem quando a pessoa começa a buscar
+  const loadAll = () => { if (!viewLoaded("/busca")) loadView("/busca").then(() => bump(n => n + 1), () => {}); };
+  useEffect(() => { if (autoFocus) loadAll(); }, []); // eslint-disable-line
   const { groups, total, toks } = useOptions(q);
   const flat = groups.flatMap(([, l]) => l);
   const hasMore = q.trim() && total > 0;
@@ -96,7 +100,7 @@ export function SearchBox({ value = "", onSubmit, autoFocus, variant = "hero", p
         <Icon name="search" size={variant === "hero" ? 22 : 20} />
         <input ref={input} type="search" value={q} autoFocus={autoFocus} placeholder={placeholder} aria-label={label}
           role="combobox" aria-expanded={!!show} aria-controls={id} aria-autocomplete="list" aria-activedescendant={active >= 0 ? optId(active) : undefined}
-          onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onKeyDown={onKey} autoComplete="off" enterKeyHint="search" />
+          onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => { setOpen(true); loadAll(); }} onKeyDown={onKey} autoComplete="off" enterKeyHint="search" />
         {q && <button type="button" className="sb-clear" aria-label="Limpar busca" onClick={() => { setQ(""); input.current?.focus(); setOpen(true); }}><Icon name="x" size={16} /></button>}
         {children}
         <button type="submit" className="btn-pill">Buscar</button>

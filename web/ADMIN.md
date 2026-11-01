@@ -47,7 +47,8 @@ O banco publicado não é recriado a partir da semente. Para incluir conteúdo p
 
 | Rota | Acesso | Função |
 |---|---|---|
-| `GET /api/content` | público | conteúdo publicado (sem rascunhos, equipe ou usuários) |
+| `GET /api/content?view=/caminho` | público | o que a tela do caminho usa (ver abaixo); `shell=0` sem o básico, `have=` sem as listas que o site já tem |
+| `GET /api/content` | público | todo o conteúdo publicado (sem rascunhos, equipe ou usuários) |
 | `GET /api/media?p=` | público | imagens enviadas pelo painel (cache de 1 ano, versionadas) |
 | `POST /api/auth/login` · `logout` · `GET me` · `POST password` | — | sessão; 5 erros → bloqueio de 30 s |
 | `GET/PUT /api/admin/db` | equipe | banco completo; o servidor valida as permissões do perfil a cada gravação |
@@ -165,6 +166,16 @@ O campo de endereço do lugar usa o autocompletar da **Places API (New)**. Para 
 
 Ao escolher um endereço, o painel preenche rua e número, CEP, coordenadas, **cidade** e **bairro**. Se a cidade ou o bairro ainda não existem, um aviso oferece cadastrá-los com um clique. Os campos Cidade e Bairro também aceitam cadastro direto (a cidade pede a UF). Não há duplicidade: a comparação ignora acentos, maiúsculas e espaços. Cidades novas entram **inativas** no site. O Bairro só lista os bairros da cidade escolhida. Sem chave, o endereço é digitado à mão.
 
+## Como o site carrega o conteúdo
+
+Cada tela busca só o que usa, na primeira vez que é aberta (`loadView` em `src/admin/store.js`; a escolha de cada tela fica em `shared/pageview.js`):
+
+- **Primeiro acesso:** o básico (configurações, menus, cidades, vibes, páginas, notificações e o índice de mídia) + o que a tela aberta usa.
+- **Home:** dicas do dia, posts em destaque, roteiros por vibe e a agenda. **Lugares, Guia, Vibes:** todos os lugares. **Detalhe:** o lugar, os 2 do "Confira também", os roteiros da cidade e os outros lugares da cidade só como pins do mapa. **Roteiros, Radar, Eventos:** a lista da seção e os lugares citados. **Busca e área da conta:** tudo. **Páginas, login, cidade, notificações:** só o básico (não pedem nada).
+- O que chega fica guardado até recarregar; listas que vieram inteiras não são pedidas de novo. A caixa de busca do topo traz o conteúdo completo quando é aberta.
+- Enquanto a próxima tela carrega, a anterior continua à vista, com uma barra no topo.
+- Conteúdo novo vindo do código (`updates.js`) aparece no site depois que um administrador abre o painel.
+
 ## Como o painel conversa com o site
 
 Ao salvar, `syncPublic()` copia o conteúdo publicado para os mesmos arrays que o site já lê (`PLACES`, `ROTEIROS`, `STORIES`, `AFFINITIES`, `HERO`…). Assim o site reflete na hora: nomes, lugares novos, home, vibes, cidades, notificações, avaliações em destaque, aviso no topo e modo manutenção.
@@ -176,7 +187,7 @@ Imagens enviadas no painel são comprimidas (máx. 1600 px, JPEG) e sobrepõem o
 ```
 web/api/                # funções do Vercel (backend)
 ├── _lib/storage.js     # dados no banco (db.js) ou JSON no Blob/.data/; imagens no Blob
-├── _lib/db.js          # Supabase (Postgres) e migração única dos JSON
+├── _lib/db.js          # Supabase (Postgres), leitura pública numa ida só e migração única dos JSON
 ├── _lib/auth.js        # senhas, sessão, equipe
 ├── _lib/users.js       # contas de visitantes (cookie os_user)
 ├── content.js · media.js
@@ -184,6 +195,7 @@ web/api/                # funções do Vercel (backend)
 ├── auth/  login · logout · me · password
 └── admin/ db · media · team
 web/shared/roles.js     # perfis/permissões usados pelo front e pela API
+web/shared/pageview.js  # o que cada tela do site recebe de /api/content?view=
 web/src/admin/
 ├── AdminApp.jsx        # rotas /admin/*, login obrigatório, menu lateral por permissão, busca rápida (Ctrl K)
 ├── store.js            # dados, persistência, sincronização com o site, papéis/permissões, autenticação, atividade

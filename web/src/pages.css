@@ -1589,3 +1589,9 @@ body.search-lock { overflow: hidden; }
 .when-day select { width: 100%; height: 40px; padding: 0 34px 0 12px; border: 1.5px solid var(--line-strong); border-radius: 10px; background: var(--paper); font: inherit; font-size: 13.5px; color: var(--ink); appearance: none; }
 .when-day .select-wrap svg { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--ink-3); }
 .when-range { margin-left: 4px; font-size: 11.5px; color: var(--ink-3); }
+
+/* carregando a próxima tela (a anterior continua à vista) */
+.route-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1000; overflow: hidden; background: var(--primary-soft); }
+.route-progress::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--primary); animation: route-progress 1s ease-in-out infinite; }
+@keyframes route-progress { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+@media (prefers-reduced-motion: reduce) { .route-progress::after { animation: none; width: 100%; opacity: .6; } }

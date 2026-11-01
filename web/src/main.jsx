@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { boot } from "./admin/store.js"; // conteúdo salvo (local) ou da API (nuvem)
-import { usePath, migrateLegacyHash } from "./router.js";
+import { usePath, migrateLegacyHash, currentPath } from "./router.js";
 import App from "./App.jsx";
 import "./styles.css";
 import "./home.css";
@@ -20,5 +20,5 @@ function Root() {
 
 // links antigos (#/admin/...) continuam funcionando
 migrateLegacyHash();
-// busca o conteúdo publicado na API antes de renderizar (sem API, segue o modo local)
-boot().finally(() => createRoot(document.getElementById("root")).render(<Root />));
+// busca o básico e o que a tela aberta usa antes de renderizar (sem API, segue o modo local)
+boot(currentPath()).finally(() => createRoot(document.getElementById("root")).render(<Root />));

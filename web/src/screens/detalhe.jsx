@@ -9,7 +9,7 @@ import {
 } from "../components/site.jsx";
 import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
-import { SITE } from "../admin/store.js";
+import { SITE, mapPlaces } from "../admin/store.js";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
 import { roteiroVibes } from "../vibes.js";
@@ -237,7 +237,7 @@ function DetalheView({ p }) {
               <a href={googleMapsUrl(p)} className="h2-link" target="_blank" rel="noreferrer">Ver no Google Maps <Icon name="arrow" size={16} /></a>
             </div>
             <PlaceMap className="where-map where-map-lg" mainId={p.id} activeId={mapSel} onSelect={setMapSel}
-              items={[{ id: p.id, place: p }, ...PLACES.filter(x => x.id !== p.id && x.city === p.city).map(x => ({ id: x.id, place: x }))]} />
+              items={[{ id: p.id, place: p }, ...mapPlaces(p.city).filter(x => x.id !== p.id).map(x => ({ id: x.id, place: x }))]} />
             <p className="where-address"><Icon name="pin" size={16} /> {fullAddress(p)}
               <a className="where-route" href={directions(p)} target="_blank" rel="noreferrer">Como chegar <Icon name="arrow" size={14} /></a></p>
           </div>
