@@ -6,24 +6,34 @@ Painel para a equipe gerenciar todo o conteúdo do site. Acesso: **`/admin`** (n
 
 | | **Nuvem** (site publicado no Vercel) | **Offline** (`onde-sair.html` / sem servidor) |
 |---|---|---|
-| Banco | Vercel Blob (store privado) via `/api/*` | `localStorage` do navegador |
+| Banco | Postgres no Supabase via `/api/*` (imagens no Vercel Blob) | `localStorage` do navegador |
 | Login | Real: senha com hash (scrypt), sessão em cookie HttpOnly assinado | Demonstração (acessos na tela de login) |
 | Site × painel | Todo visitante vê o que foi publicado | Só no mesmo navegador |
 
 O modo é escolhido sozinho na carga: se `/api/content` responde, é nuvem.
 
-## Banco de dados (Vercel Blob)
+## Banco de dados (Supabase)
 
-Store **privado** `onde-sair-cms`, ligado ao projeto pela variável `BLOB_READ_WRITE_TOKEN`:
+Projeto **onde-sair** no Supabase (Postgres, São Paulo), ligado pela variável `DATABASE_URL`.
+O esquema está em `supabase/migrations/`. Cada item é uma linha; o objeto completo fica em `data` (jsonb)
+e as colunas principais (slug, nome, status, cidade…) são geradas a partir dele.
 
-| Arquivo | Conteúdo | Quem grava |
+| Tabela | Conteúdo | Quem grava |
 |---|---|---|
-| `cms/content.json` | lugares, roteiros, histórias, vibes, home, avaliações, usuários, cidades, notificações, configurações, atividade | `PUT /api/admin/db` |
-| `cms/team.json` | equipe do painel (com hash de senha — nunca sai do servidor) | `/api/auth/*`, `/api/admin/team` |
-| `cms/media.json` | mapa caminho → versão das imagens enviadas | `/api/admin/media` |
-| `media/images/...` | arquivos de imagem | `/api/admin/media` |
+| `places`, `roteiros`, `stories`, `events`, `pages`, `campaigns` | lugares, roteiros, Radar, agenda, páginas, notificações | `PUT /api/admin/db` (eventos enviados pelo site: `/api/account`) |
+| `cities`, `vibes`, `place_types`, `event_categories`, `radar_categories`, `backups` | cadastros de apoio e cópias de segurança | `PUT /api/admin/db` |
+| `site_config` | home, configurações, menus, atividade e o resto do conteúdo | `PUT /api/admin/db` |
+| `team` | equipe do painel (com hash de senha — nunca sai do servidor) | `/api/auth/*`, `/api/admin/team` |
+| `site_users` | contas de visitantes | `/api/account`, `/api/admin/db` |
+| `media` | mapa caminho → versão das imagens enviadas | `/api/admin/media`, `/api/account` |
+| `versions` | versão de cada conjunto (controle de concorrência) | todas as gravações |
 
-Gravações usam **ETag** (controle de concorrência). Se duas pessoas salvarem ao mesmo tempo, o painel mescla automaticamente as alterações (campo a campo / item a item); só avisa se não conseguir.
+As **imagens** continuam no Vercel Blob (`media/images/...`, variável `BLOB_READ_WRITE_TOKEN`).
+O acesso ao banco é só pelo servidor: RLS ligada e sem políticas, então a API pública do Supabase não lê nem grava nada.
+
+Gravações conferem a **versão** do conjunto dentro de uma transação. Se duas pessoas salvarem ao mesmo tempo, o painel mescla automaticamente as alterações (campo a campo / item a item); só avisa se não conseguir.
+
+**Migração dos JSON:** na primeira leitura com `DATABASE_URL`, o servidor copia sozinho os arquivos antigos do Blob (`cms/content.json`, `team.json`, `users.json`, `media.json`) para o banco, uma única vez (`versions._migrated_from_json`). Os arquivos ficam no Blob como cópia. Sem `DATABASE_URL`, a API continua no modo antigo (Blob ou `.data/`).
 
 ### Conteúdo novo vindo do código
 
@@ -50,7 +60,8 @@ Proteções: cookie `HttpOnly` + `Secure` + `SameSite=Lax`, cabeçalho `x-cms` o
 
 | Variável | Uso |
 |---|---|
-| `BLOB_READ_WRITE_TOKEN` | criada pelo Vercel ao conectar o store |
+| `DATABASE_URL` | conexão com o Supabase: Connect › Transaction pooler (porta 6543), com a senha do banco |
+| `BLOB_READ_WRITE_TOKEN` | criada pelo Vercel ao conectar o store (imagens; e de onde vêm os JSON na migração) |
 | `SESSION_SECRET` | assinatura dos cookies de sessão |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | criam o primeiro administrador quando a equipe ainda não existe |
 
@@ -60,7 +71,7 @@ Proteções: cookie `HttpOnly` + `Secure` + `SameSite=Lax`, cabeçalho `x-cms` o
 cd web
 ADMIN_EMAIL=voce@exemplo.com ADMIN_PASSWORD=uma-senha SESSION_SECRET=dev npm run dev
 ```
-Sem `BLOB_READ_WRITE_TOKEN`, a API grava em `web/.data/` (ignorada pelo git).
+Sem `DATABASE_URL` nem `BLOB_READ_WRITE_TOKEN`, a API grava em `web/.data/` (ignorada pelo git). Para usar um Postgres local, aplique `supabase/migrations/` e defina `DATABASE_URL=postgres://...@localhost:5432/...`.
 
 ## Acessos de demonstração (somente modo offline)
 
@@ -164,7 +175,8 @@ Imagens enviadas no painel são comprimidas (máx. 1600 px, JPEG) e sobrepõem o
 
 ```
 web/api/                # funções do Vercel (backend)
-├── _lib/storage.js     # Vercel Blob (produção) ou .data/ (local)
+├── _lib/storage.js     # dados no banco (db.js) ou JSON no Blob/.data/; imagens no Blob
+├── _lib/db.js          # Supabase (Postgres) e migração única dos JSON
 ├── _lib/auth.js        # senhas, sessão, equipe
 ├── _lib/users.js       # contas de visitantes (cookie os_user)
 ├── content.js · media.js

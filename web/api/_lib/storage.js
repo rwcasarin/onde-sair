@@ -1,13 +1,17 @@
 // Armazenamento do CMS.
-// Produção: Vercel Blob (store privado). Desenvolvimento: pasta local .data/
+// Dados (JSON do conteúdo, equipe, contas, mídia): banco no Supabase quando há DATABASE_URL (ver db.js);
+// sem ele, Vercel Blob (store privado) ou, no desenvolvimento, a pasta local .data/.
+// Arquivos de mídia (imagens): sempre no Vercel Blob ou em .data/.
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { Conflict } from "./errors.js";
+import { useDb, dbRead, dbWrite, dbDelete, setLegacyReader } from "./db.js";
 
 const useBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
 const LOCAL = path.join(process.cwd(), ".data");
 
-export class Conflict extends Error {}
+export { Conflict };
 
 async function blobLib() { return import("@vercel/blob"); }
 
@@ -37,7 +41,7 @@ async function readRaw(name) {
 
 // Lê { data, etag }. Com `expect`, tolera leitura atrasada logo após uma gravação
 // (relê algumas vezes antes de concluir que outra pessoa alterou o arquivo).
-export async function readJSON(name, expect) {
+async function fileReadJSON(name, expect) {
   let raw;
   for (let i = 0; i < 4; i++) {
     raw = await readRaw(name);
@@ -49,10 +53,10 @@ export async function readJSON(name, expect) {
 }
 
 // etag: versão esperada (precisa bater) | null (o arquivo não pode existir) | undefined (sem checagem)
-export async function writeJSON(name, data, etag) {
+async function fileWriteJSON(name, data, etag) {
   const body = JSON.stringify(data);
   if (etag !== undefined) {
-    const cur = await readJSON(name, etag || undefined);
+    const cur = await fileReadJSON(name, etag || undefined);
     if (etag === null && cur) throw new Conflict("exists");
     if (etag && (!cur || cur.etag !== etag)) throw new Conflict("stale");
     if (useBlob && cur?.blobEtag) {
@@ -63,7 +67,7 @@ export async function writeJSON(name, data, etag) {
       } catch (e) {
         if (!isPrecondition(e)) throw e;
         // o Blob recusou o ifMatch: só é conflito se o conteúdo realmente mudou
-        const again = await readJSON(name);
+        const again = await fileReadJSON(name);
         if (!again || again.etag !== cur.etag) throw new Conflict("changed");
       }
     }
@@ -80,11 +84,17 @@ export async function writeJSON(name, data, etag) {
   return version(body);
 }
 
+// o banco traz os JSON antigos na primeira leitura (migração única)
+setLegacyReader((name) => fileReadJSON(name));
+export const readJSON = (name, expect) => useDb() ? dbRead(name) : fileReadJSON(name, expect);
+export const writeJSON = (name, data, etag) => useDb() ? dbWrite(name, data, etag) : fileWriteJSON(name, data, etag);
+export const deleteJSON = (name) => useDb() ? dbDelete(name) : fileDeleteJSON(name);
+
 const PUT_OPTS = { access: "private", contentType: "application/json", addRandomSuffix: false, cacheControlMaxAge: 60 };
 const isPrecondition = (e) => /precondition|already exists|412|409/i.test(String(e?.message) + e?.name);
 
 // Apaga um JSON do CMS (sem erro se não existir)
-export async function deleteJSON(name) {
+async function fileDeleteJSON(name) {
   if (useBlob) {
     const { del } = await blobLib();
     await del(`cms/${name}.json`).catch(() => {});
