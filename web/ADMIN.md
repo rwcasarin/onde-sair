@@ -33,7 +33,7 @@ O acesso ao banco é só pelo servidor: RLS ligada e sem políticas, então a AP
 
 Gravações conferem a **versão** do conjunto dentro de uma transação. Se duas pessoas salvarem ao mesmo tempo, o painel mescla automaticamente as alterações (campo a campo / item a item); só avisa se não conseguir.
 
-**Migração dos JSON:** na primeira leitura com `DATABASE_URL`, o servidor copia sozinho os arquivos antigos do Blob (`cms/content.json`, `team.json`, `users.json`, `media.json`) para o banco, uma única vez (`versions._migrated_from_json`). Os arquivos ficam no Blob como cópia. Sem `DATABASE_URL`, a API continua no modo antigo (Blob ou `.data/`).
+**Migração dos JSON:** na primeira leitura com `DATABASE_URL`, o servidor copia sozinho os arquivos antigos do Blob (`cms/content.json`, `team.json`, `users.json`, `media.json`) para o banco, uma única vez (`versions._migrated_from_json`). Os arquivos ficam no Blob como cópia. Só a produção faz a cópia: antes dela, as prévias respondem 503 (não leem nem gravam o banco vazio). Sem `DATABASE_URL`, a API continua no modo antigo (Blob ou `.data/`).
 
 ### Conteúdo novo vindo do código
 
@@ -60,7 +60,7 @@ Proteções: cookie `HttpOnly` + `Secure` + `SameSite=Lax`, cabeçalho `x-cms` o
 
 | Variável | Uso |
 |---|---|
-| `DATABASE_URL` | conexão com o Supabase: Connect › Transaction pooler (porta 6543), com a senha do banco |
+| `DATABASE_URL` | conexão com o Supabase pelo Transaction pooler (`aws-1-sa-east-1.pooler.supabase.com:6543`), com o usuário `ondesair_app`, que só acessa as tabelas do site (`supabase/migrations/0002`) |
 | `BLOB_READ_WRITE_TOKEN` | criada pelo Vercel ao conectar o store (imagens; e de onde vêm os JSON na migração) |
 | `SESSION_SECRET` | assinatura dos cookies de sessão |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | criam o primeiro administrador quando a equipe ainda não existe |
