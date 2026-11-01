@@ -44,7 +44,7 @@ export function RoteirosLista() {
 
   return (
     <main className="home2">
-      <section className="hero2 hero2-page">
+      <section className="hero2 hero2-page hero2-list">
         <HeroMedia img={roteiroImg("capa")} note="o melhor rolê é o que tem começo, meio e fim."
           words={["Roteiros", "prontos,", "do", "seu", "jeito."]} hint="Foto dos roteiros · ~1400×800" />
         <div className="hero2-copy">

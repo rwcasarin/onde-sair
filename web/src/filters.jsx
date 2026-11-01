@@ -237,19 +237,21 @@ async function fetchList(qs, signal) {
 // { data, loading }: enquanto a próxima página chega, a anterior continua na tela
 export function useListing(kind, f, { page = 1, map = false } = {}) {
   const qs = listQuery(kind, f, { page, map });
+  // eventos: sempre direto do banco (não guarda páginas já vistas)
+  const keep = kind !== "eventos";
   // sem servidor ou com o banco todo na memória (modo local, painel): roda aqui mesmo
   const local = !REMOTE || !isPartial();
   const first = useRef(true);
-  const [state, setState] = useState(() => local ? { data: runList(kind, new URLSearchParams(qs)), loading: false } : { data: listCache.get(qs) || null, loading: !listCache.has(qs) });
+  const [state, setState] = useState(() => local ? { data: runList(kind, new URLSearchParams(qs)), loading: false } : { data: (keep && listCache.get(qs)) || null, loading: true });
   useEffect(() => {
     if (local) { setState({ data: runList(kind, new URLSearchParams(qs)), loading: false }); return; }
-    if (listCache.has(qs)) { setState({ data: listCache.get(qs), loading: false }); first.current = false; return; }
+    if (keep && listCache.has(qs)) { setState({ data: listCache.get(qs), loading: false }); first.current = false; return; }
     setState(s => ({ ...s, loading: true }));
     const ctrl = new AbortController();
     // espera a digitação parar (busca no campo de texto) antes de pedir
     const t = setTimeout(() => {
       fetchList(qs, ctrl.signal).then(d => {
-        listCache.set(qs, d);
+        if (keep) listCache.set(qs, d);
         mergeObjects(d.db);
         setState({ data: d, loading: false });
       }).catch(e => { if (e.name !== "AbortError") setState(s => ({ ...s, loading: false, error: true })); });

@@ -55,7 +55,7 @@ function need(pv, path) {
       // agenda: os próximos 6 de cada cidade (a home mostra os da cidade escolhida)
       const cities = [...new Set((pv.events || []).map(e => e.city))];
       const eventIds = cities.flatMap(c => upcoming((pv.events || []).filter(e => e.city === c)).slice(0, 6).map(e => e.id));
-      return { placeIds: (home.tips || []).map(t => t.place), storyIds: home.storyIds || [], roteiroIds: (home.vibeRoteiros || []).map(v => v.roteiro), eventIds };
+      return { home: true, placeIds: (home.tips || []).map(t => t.place), storyIds: home.storyIds || [], roteiroIds: (home.vibeRoteiros || []).map(v => v.roteiro), eventIds };
     }
     case "lugares": {
       if (!b) return {};                            // a lista pede a própria página (src/listings.js)
@@ -95,6 +95,8 @@ export function pageView(pv, path, { shell = true, have = [] } = {}) {
     complete: [n.places && "places", n.roteiros && "roteiros", n.stories && "stories", n.events && "events"].filter(Boolean),
   };
   for (const k of have) if (out[k]) { out[k] = []; out.complete = out.complete.filter(c => c !== k); }
+  // home: sempre com a própria configuração e os eventos que ela mostra (vem sempre atualizada do banco)
+  if (n.home) { out.home = pv.home; out.homeEvents = [...eventIds]; }
   if (shell) {
     for (const k of SHELL_KEYS) if (pv[k] !== undefined) out[k] = pv[k];
     // quantos lugares cada vibe tem (o site não recebe todos os lugares para contar)

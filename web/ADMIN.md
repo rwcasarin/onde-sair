@@ -174,6 +174,7 @@ Cada tela busca só o que precisa para ser montada, como num site WordPress. As 
 - **Listas (Lugares, Vibes, Roteiros, Radar, Eventos e Busca):** o servidor filtra, conta e ordena, e devolve só a página atual (12 itens) com as contagens de cada filtro (`/api/content?list=`, lógica em `src/listings.js`). A página vai no link (`?pagina=2`); mudar um filtro volta para a 1. O texto digitado nos filtros espera a pessoa parar de digitar.
 - **Home:** dicas do dia, posts em destaque, roteiros por vibe e os próximos 6 eventos de cada cidade. **Detalhe do lugar:** o lugar, os 2 do "Confira também" e os roteiros da cidade; os pins do mapa só quando ele chega perto da tela. **Guia:** só os pins da cidade (`/api/content?pins=`). **Detalhe de roteiro, post e evento:** a lista da seção (para "mais roteiros/posts/eventos"). **Área da conta:** tudo.
 - **Caixas de busca (topo e home):** o servidor sugere enquanto a pessoa digita (`/api/content?suggest=`), com "Buscando…".
+- **Sempre do banco:** a home (configuração, dicas, destaques e agenda) e a lista de eventos são buscadas de novo a cada abertura, sem cópia guardada no navegador nem na CDN (`cache-control: no-store`).
 - Enquanto a próxima tela carrega, a anterior continua à vista (na mesma rolagem), com uma barra no topo; a rolagem vai para o topo quando a tela nova aparece.
 - Sem servidor (modo local) ou com o banco todo na memória (painel), as listas e a busca rodam no navegador com a mesma lógica.
 - Conteúdo novo vindo do código (`updates.js`) aparece no site depois que um administrador abre o painel.
