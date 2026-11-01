@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { PLACES, CITIES, VIBE_ORDER, placeImg } from "../data.js";
+import { CITIES, VIBE_ORDER, placeImg } from "../data.js";
+import { useCityPins } from "../pins.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { PageHead, VibePill, Footer } from "../components/site.jsx";
@@ -13,8 +14,10 @@ export function Mapa({ id }) {
   const [aff, setAff] = useState(null);
   const [active, setActive] = useState(id || null);   // pin selecionado (abre o card)
 
-  const inCity = PLACES.filter(p => !cityId || p.city === cityId);
-  const list = aff ? inCity.filter(p => p.affs.includes(aff)) : inCity;
+  // só os pins da cidade (nome, tipo, bairro e posição), não os lugares completos
+  const pins = useCityPins(cityId);
+  const inCity = pins || [];
+  const list = aff ? inCity.filter(p => (p.affs || []).includes(aff)) : inCity;
   const cur = list.find(p => p.id === active);
 
   return (
@@ -23,7 +26,7 @@ export function Mapa({ id }) {
         <PageHead
           crumbs={[["Início", "home"], ["Guia da cidade"]]}
           title="Guia da cidade"
-          lede={`${list.length} lugares que passaram pelo crivo em ${city}. Escolha uma vibe e explore pelo mapa.`}
+          lede={pins ? `${list.length} lugares que passaram pelo crivo em ${city}. Escolha uma vibe e explore pelo mapa.` : `Carregando os lugares de ${city}…`}
         >
           <div className="hero2-vibes">
             {VIBE_ORDER.map(a => <VibePill key={a} aff={a} active={aff === a} onClick={() => setAff(aff === a ? null : a)} />)}

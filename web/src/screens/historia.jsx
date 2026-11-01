@@ -1,16 +1,15 @@
 // Radar (blog) — lista (/radar) e post (/radar/{slug}).
 // Posts de lista trazem lugares cadastrados como cards no meio do texto.
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { ALL_STORIES, PLACES, RADAR_CATEGORIES, VIBE_ORDER, placeImg } from "../data.js";
+import { ALL_STORIES, PLACES, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, FaveButton, affById } from "../components/site.jsx";
+import { PageHead, MiniPlaceCard, SectionHead, Footer, VibePill, FaveButton } from "../components/site.jsx";
 import { useNav, useCity } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
-import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips, fslug } from "../filters.jsx";
+import { usePagedFilters, useListing, listItems, labelOf, Pagination, FilterPanel, FilterBlock, SearchBlock, CheckList, ResultsBar, ActiveChips } from "../filters.jsx";
 import { href, storyPath, placePath, canGoBack } from "../router.js";
-import { slugify } from "../admin/store.js";
-import { sanitizeHtml, asHtml, htmlToText } from "../richtext.js";
+import { sanitizeHtml, asHtml } from "../richtext.js";
 import { resolveMedia, publishedDate } from "../admin/store.js";
 import { mountEmbeds } from "../embeds.js";
 import { NotFound } from "./notfound.jsx";
@@ -45,78 +44,39 @@ export function StoryCard({ s }) {
   );
 }
 
-// campos de cada post usados nos filtros: lugares citados (no texto e na lista), cidade, bairros e vibes deles
-const PERIODS = [["semana", "Últimos 7 dias", 7], ["mes", "Últimos 30 dias", 30], ["trimestre", "Últimos 3 meses", 90], ["ano", "Último ano", 365]];
-const FORMATS = [["lista", "Listas de lugares", (x) => x.places.length >= 2], ["novidade", "Novidades e notícias", (x) => x.places.length < 2]];
 const RADAR_SORTS = ["recentes", "az"];
-function storyFacts(s) {
-  const ids = [...new Set([...String(s.body || "").matchAll(/data-place="([\w-]+)"/g)].map(m => m[1]).concat(s.places || []))];
-  const places = ids.map(id => PLACES.find(p => p.id === id)).filter(Boolean);
-  const date = publishedDate(s) || "";
-  return { s, cat: s.tag || "", places, date, author: (s.author || "").trim(),
-    cities: [...new Set(places.map(p => p.city).filter(Boolean))],
-    bairros: [...new Set(places.map(p => p.bairro).filter(Boolean))],
-    vibes: [...new Set(places.flatMap(p => p.affs || []))],
-    text: fslug([s.title, s.desc, s.tag, s.author, htmlToText(s.body || ""), ...places.flatMap(p => [p.name, p.bairro])].join(" ")) };
-}
-const ageDays = (iso) => { const t = Date.parse(iso); return Number.isNaN(t) ? Infinity : (Date.now() - t) / 864e5; };
 
 export function Historias() {
   const { id: globalCity, name: city, set: setGlobalCity } = useCity();
-  const all = useMemo(() => ALL_STORIES.map(storyFacts), []);
-  // categorias com posts publicados, na ordem do painel (as que não estão no painel vêm no fim)
-  const cats = useMemo(() => {
-    const used = [...new Set(all.map(x => x.cat).filter(Boolean))];
-    const ordered = RADAR_CATEGORIES.filter(c => used.includes(c.label));
-    return [...ordered, ...used.filter(t => !ordered.some(c => c.label === t)).map(t => ({ label: t, tone: ALL_STORIES.find(s => s.tag === t)?.tone }))]
-      .map(c => ({ ...c, slug: slugify(c.label) }));
-  }, [all]);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const { f, set, toggle, reset } = useFilters({
+  const { f, set, toggle, reset, page: pageN, setPage } = usePagedFilters({
     categoria: ["categoria", "one"], busca: ["busca", "one"], publicado: ["publicado", "set"], formato: ["formato", "set"],
-    cidade: ["cidade", "one", globalCity && all.some(x => x.cities.includes(globalCity)) ? globalCity : "todas"],
+    cidade: ["cidade", "one", globalCity || "todas"],
     bairro: ["bairro", "set"], vibe: ["vibe", "set"], autor: ["autor", "set"], ordem: ["ordem", "one", "recentes"],
   });
-  const cat = cats.find(c => c.slug === f.categoria) || null;
   const query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade;
+  const { data, loading } = useListing("radar", f, { page: pageN });
+  const L = data?.list || { total: 0, page: 1, pages: 1, facets: {}, cityCounts: {}, extra: {} };
+  // a cidade do site não tem posts com lugares dela: mostra todas
+  useEffect(() => { if (data && cityF && L.extra.anyInCity && !L.extra.anyInCity[cityF]) set("cidade", "todas"); }, [data]); // eslint-disable-line
+  const cats = L.extra.cats || [];
+  const cat = cats.find(c => c.slug === f.categoria) || null;
   const pickCat = (c) => set("categoria", !c || c.slug === f.categoria ? "" : c.slug);
-
-  // busca + cidade valem para tudo; posts sem lugar citado não têm cidade e aparecem em qualquer uma
-  const anyCity = useMemo(() => all.filter(x => !query || x.text.includes(fslug(query))), [all, query]);
-  const cityCounts = useMemo(() => anyCity.reduce((m, x) => { x.cities.forEach(c => { m[c] = (m[c] || 0) + 1; }); return m; }, {}), [anyCity]);
-  const base = useMemo(() => anyCity.filter(x => !cityF || !x.cities.length || x.cities.includes(cityF)), [anyCity, cityF]);
+  const results = listItems(data, { stories: ALL_STORIES }).map(x => x.item);
+  const cityCounts = L.cityCounts;
   function changeCity(v) { set("cidade", v || "todas"); reset(["bairro"]); if (v) setGlobalCity(v); }
 
-  const tests = {
-    categoria: (x) => !cat || x.cat === cat.label,
-    publicado: (x) => !f.publicado.size || PERIODS.some(([k, , d]) => f.publicado.has(k) && ageDays(x.date) <= d),
-    formato: (x) => !f.formato.size || FORMATS.some(([k, , fn]) => f.formato.has(k) && fn(x)),
-    bairro: (x) => !f.bairro.size || x.bairros.some(b => f.bairro.has(fslug(b))),
-    vibe: (x) => !f.vibe.size || x.vibes.some(v => f.vibe.has(v)),
-    autor: (x) => !f.autor.size || f.autor.has(fslug(x.author)),
-  };
-  const pass = (x, skip) => Object.entries(tests).every(([k, t]) => k === skip || t(x));
-  const count = (key, fn) => base.filter(x => pass(x, key) && fn(x)).length;
-
-  let results = base.filter(x => pass(x));
-  results = f.ordem === "az" ? [...results].sort((a, b) => a.s.title.localeCompare(b.s.title, "pt-BR"))
-    : [...results].sort((a, b) => String(b.date).localeCompare(String(a.date)));
-
-  const BAIRROS = [...new Set(base.flatMap(x => x.bairros))].sort((a, b) => a.localeCompare(b, "pt-BR")).map(b => [fslug(b), b]);
-  const VIBES = VIBE_ORDER.filter(v => base.some(x => x.vibes.includes(v))).map(v => [v, affById(v)?.label || v]);
-  const AUTHORS = [...new Set(base.map(x => x.author).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR")).map(a => [fslug(a), a]);
-  const label = (list, v) => list.find(([k]) => k === v)?.[1] || v;
-  const chipsOf = (key, list) => [...f[key]].map(v => ({ key: key + v, label: label(list, v), onRemove: () => toggle(key, v) }));
+  const facet = (key) => L.facets[key] || [];
+  const chipsOf = (key) => [...f[key]].map(v => ({ key: key + v, label: labelOf(facet(key), v), onRemove: () => toggle(key, v) }));
   const chips = [
     ...(cat ? [{ key: "cat", label: cat.label, onRemove: () => set("categoria", "") }] : []),
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
-    ...chipsOf("publicado", PERIODS), ...chipsOf("formato", FORMATS), ...chipsOf("bairro", BAIRROS),
-    ...chipsOf("vibe", VIBES), ...chipsOf("autor", AUTHORS),
+    ...chipsOf("publicado"), ...chipsOf("formato"), ...chipsOf("bairro"), ...chipsOf("vibe"), ...chipsOf("autor"),
   ];
   const filterCount = chips.length - (cat ? 1 : 0);
   function clearAll() { reset(["busca", "publicado", "formato", "bairro", "vibe", "autor"]); }
   const noun = (n) => (n === 1 ? "post" : "posts");
-  const total = count("categoria", () => true);
+  const total = L.extra.all ?? 0;
 
   return (
     <main className="home2">
@@ -129,7 +89,7 @@ export function Historias() {
                 Todos <span className="radar-chip-n">{total}</span>
               </button>
               {cats.map(c => {
-                const n = count("categoria", x => x.cat === c.label), on = cat?.slug === c.slug;
+                const n = c.count, on = cat?.slug === c.slug;
                 return (
                   <button key={c.slug} type="button" className={"radar-chip tone-" + (c.tone || "purple") + (on ? " on" : "") + (!n && !on ? " is-empty" : "")} aria-pressed={on} onClick={() => pickCat(c)}>
                     {c.label} <span className="radar-chip-n">{n}</span>
@@ -142,37 +102,37 @@ export function Historias() {
       </div>
 
       <div className="shell listing-layout radar-layout">
-        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={results.length} noun={noun(results.length)}>
+        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun={noun(L.total)}>
           <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Assunto, lugar ou bairro" />
           <FilterBlock title="Publicado">
-            <CheckList options={PERIODS.map(([value, l, d]) => ({ value, label: l, count: count("publicado", x => ageDays(x.date) <= d) }))} selected={f.publicado} onToggle={(v) => toggle("publicado", v)} />
+            <CheckList options={facet("publicado")} selected={f.publicado} onToggle={(v) => toggle("publicado", v)} />
           </FilterBlock>
           <FilterBlock title="Formato">
-            <CheckList options={FORMATS.map(([value, l, fn]) => ({ value, label: l, count: count("formato", fn) }))} selected={f.formato} onToggle={(v) => toggle("formato", v)} />
+            <CheckList options={facet("formato")} selected={f.formato} onToggle={(v) => toggle("formato", v)} />
           </FilterBlock>
           <FilterBlock title="Cidade" note="(dos lugares citados)"><CityField value={cityF} onChange={changeCity} counts={cityCounts} /></FilterBlock>
-          {BAIRROS.length > 0 && (
+          {facet("bairro").length > 0 && (
             <FilterBlock title="Bairro / Região">
-              <CheckList options={BAIRROS.map(([value, l]) => ({ value, label: l, count: count("bairro", x => x.bairros.some(b => fslug(b) === value)) }))} selected={f.bairro} onToggle={(v) => toggle("bairro", v)} searchLabel="Buscar bairro" />
+              <CheckList options={facet("bairro")} selected={f.bairro} onToggle={(v) => toggle("bairro", v)} searchLabel="Buscar bairro" />
             </FilterBlock>
           )}
-          {VIBES.length > 0 && (
+          {facet("vibe").length > 0 && (
             <FilterBlock title="Vibe dos lugares">
-              <CheckList options={VIBES.map(([value, l]) => ({ value, label: l, count: count("vibe", x => x.vibes.includes(value)) }))} selected={f.vibe} onToggle={(v) => toggle("vibe", v)} />
+              <CheckList options={facet("vibe")} selected={f.vibe} onToggle={(v) => toggle("vibe", v)} />
             </FilterBlock>
           )}
-          {AUTHORS.length > 1 && (
+          {facet("autor").length > 1 && (
             <FilterBlock title="Autor">
-              <CheckList options={AUTHORS.map(([value, l]) => ({ value, label: l, count: count("autor", x => fslug(x.author) === value) }))} selected={f.autor} onToggle={(v) => toggle("autor", v)} />
+              <CheckList options={facet("autor")} selected={f.autor} onToggle={(v) => toggle("autor", v)} />
             </FilterBlock>
           )}
         </FilterPanel>
 
-        <section className="results" id="resultados">
-          <ResultsBar title={`${results.length} ${noun(results.length)}${cat ? ` em ${cat.label}` : ""}`}
+        <section className={"results" + (loading ? " is-loading" : "")} id="resultados" aria-busy={loading}>
+          <ResultsBar title={`${L.total} ${noun(L.total)}${cat ? ` em ${cat.label}` : ""}`}
             active={filterCount} onOpenFilters={() => setFiltersOpen(true)} sort={f.ordem} sorts={RADAR_SORTS} onSort={(v) => set("ordem", v)} />
           <ActiveChips chips={chips} onClear={() => { clearAll(); set("categoria", ""); }} />
-          {results.length === 0 ? (
+          {!data ? <div className="listing-grid radar-grid">{Array.from({ length: 4 }, (_, i) => <div key={i} className="card-skeleton" />)}</div> : L.total === 0 ? (
             <div className="empty-state">
               <h3>Nenhum post com esses filtros.</h3>
               <p>Tente outra categoria ou afrouxe um filtro.</p>
@@ -182,7 +142,10 @@ export function Historias() {
               </div>
             </div>
           ) : (
-            <div className="listing-grid radar-grid">{results.map(x => <StoryCard key={x.s.id} s={x.s} />)}</div>
+            <>
+              <div className="listing-grid radar-grid">{results.map(s => <StoryCard key={s.id} s={s} />)}</div>
+              <Pagination page={L.page} pages={L.pages} onPage={setPage} loading={loading} />
+            </>
           )}
         </section>
       </div>

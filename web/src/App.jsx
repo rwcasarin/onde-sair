@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect, useRef, useContext } from "react";
+import { useState, useCallback, useEffect, useLayoutEffect, useRef, useContext } from "react";
 import { NOTIFICATIONS, PLACES, ROTEIROS, AFFINITIES, ALL_STORIES, PAGES, TYPES, VIBE_PAGE, EVENTS, cityName } from "./data.js";
 import { SITE, staffSession, viewLoaded, loadView } from "./admin/store.js";
 import { LoaderScreen } from "./components/loader.jsx";
 import { NavContext, CityContext, FavContext, AccountContext } from "./nav.js";
-import { usePath, go, toPath, fromPath, currentPath } from "./router.js";
+import { usePath, go, goTop, toPath, fromPath, currentPath, scrollAfterNav, takeScroll } from "./router.js";
 import { TopNav } from "./components/ui.jsx";
 import { Onboarding } from "./screens/onboarding.jsx";
 import { Home } from "./screens/home.jsx";
@@ -106,6 +106,12 @@ export default function App() {
     return () => { alive = false; };
   }, [url]);
   const loading = path !== url;
+  // a tela nova apareceu: agora sim vai ao topo (ou à âncora)
+  useLayoutEffect(() => {
+    const t = takeScroll();
+    if (t === "top") window.scrollTo(0, 0);
+    else if (t) setTimeout(() => document.getElementById(t)?.scrollIntoView({ behavior: "smooth" }), 30);
+  }, [path]);
   const { screen, params } = fromPath(path);
 
   const [city, setCity] = useState(SITE.defaultCity);
@@ -137,9 +143,11 @@ export default function App() {
 
   // nav("lista", { aff: "dates" }) → /vibes/para-dates · nav("home", { anchor: "vibes" })
   const nav = useCallback((s, p = {}) => {
-    go(toPath(s, p));
-    if (!p.anchor) { window.scrollTo(0, 0); return; }
-    setTimeout(() => document.getElementById(p.anchor)?.scrollIntoView({ behavior: "smooth" }), 30);
+    const to = toPath(s, p);
+    // mesma página: rola agora; outra: rola quando ela aparecer (ver takeScroll)
+    if (to === currentPath()) { if (p.anchor) document.getElementById(p.anchor)?.scrollIntoView({ behavior: "smooth" }); else window.scrollTo(0, 0); return; }
+    scrollAfterNav(p.anchor || "top");
+    go(to);
   }, []);
 
   // links internos com href real: clique normal navega sem recarregar
@@ -148,7 +156,7 @@ export default function App() {
       const a = e.target.closest?.("a[data-route]");
       if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
-      go(a.dataset.route); window.scrollTo(0, 0);
+      goTop(a.dataset.route);
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
@@ -195,7 +203,7 @@ export default function App() {
     }
     if (i?.type === "enviarEvento") return nav("enviarEvento");
     if (i?.type === "copiar") return nav("meuRoteiroEditar", { id: "novo", copiar: i.id });
-    if (i?.back && !/^\/(entrar|cadastro|boas-vindas)/.test(i.back)) { go(i.back); window.scrollTo(0, 0); return; }
+    if (i?.back && !/^\/(entrar|cadastro|boas-vindas)/.test(i.back)) { goTop(i.back); return; }
     nav(isNew ? "home" : "perfil");
   }
   // endereço antigo do blog (/historias/…) passa a ser /radar/…

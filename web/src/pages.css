@@ -1595,3 +1595,25 @@ body.search-lock { overflow: hidden; }
 .route-progress::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--primary); animation: route-progress 1s ease-in-out infinite; }
 @keyframes route-progress { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 @media (prefers-reduced-motion: reduce) { .route-progress::after { animation: none; width: 100%; opacity: .6; } }
+
+/* listagens paginadas */
+.results.is-loading .listing-grid, .results.is-loading .search-pages, .results.is-loading .radar-grid { opacity: .55; transition: opacity .15s; pointer-events: none; }
+.pager { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin: 28px 0 8px; }
+.pager-item { display: inline-flex; align-items: center; gap: 6px; }
+.pager-btn { min-width: 40px; height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--primary-border); background: var(--paper); color: var(--heading); font: inherit; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.pager-btn:hover:not(:disabled) { background: var(--primary-soft); }
+.pager-btn.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.pager-btn:disabled { opacity: .4; cursor: default; }
+.pager-btn:first-child svg { transform: rotate(90deg); }
+.pager-btn:last-child svg { transform: rotate(-90deg); }
+.pager-gap { color: var(--muted, #8a83a3); padding: 0 2px; }
+.pager.is-loading { opacity: .6; }
+.card-skeleton { aspect-ratio: 3 / 4; border-radius: 20px; background: linear-gradient(90deg, var(--primary-soft), #f1eef9, var(--primary-soft)); background-size: 200% 100%; animation: card-skel 1.2s ease-in-out infinite; }
+@keyframes card-skel { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .card-skeleton { animation: none; } }
+
+/* caixa de busca: buscando enquanto a pessoa digita */
+.sb-loading { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 14px; color: var(--muted, #6f6890); font-size: 14px; }
+.sb-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--primary-border); border-top-color: var(--primary); animation: sb-spin .7s linear infinite; }
+@keyframes sb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sb-spin { animation: none; } }

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
-import { href, go } from "../router.js";
+import { href, go, goTop } from "../router.js";
 import { slideImg, slideWhen, isExternal, normLink } from "../carousel.js";
 
 const reducedMotion = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -24,7 +24,7 @@ function SlideLink({ s, className, children, tabIndex }) {
   if (isExternal(url)) return <a className={className} href={url} target="_blank" rel="noopener noreferrer" tabIndex={tabIndex}>{children}</a>;
   return (
     <a className={className} href={href(url)} tabIndex={tabIndex}
-      onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); go(url); window.scrollTo(0, 0); }}>
+      onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); goTop(url); }}>
       {children}
     </a>
   );

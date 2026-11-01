@@ -37,6 +37,16 @@ export function go(path, { replace = false } = {}) {
   emit();
 }
 
+// Rolagem depois de navegar: só quando a próxima tela aparece (a atual fica onde está enquanto a outra carrega)
+let pendingScroll = null;                      // "top" ou o id de uma âncora
+export const scrollAfterNav = (target = "top") => { pendingScroll = target; };
+export const takeScroll = () => { const t = pendingScroll; pendingScroll = null; return t; };
+// navega e vai ao topo da página nova
+export function goTop(path) {
+  if (path === currentPath()) { window.scrollTo(0, 0); return; }
+  scrollAfterNav("top"); go(path);
+}
+
 export const onPathChange = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
 
 export const href = (path) => (HASH_MODE ? "#" + path : path);

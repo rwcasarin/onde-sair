@@ -168,12 +168,14 @@ Ao escolher um endereço, o painel preenche rua e número, CEP, coordenadas, **c
 
 ## Como o site carrega o conteúdo
 
-Cada tela busca só o que usa, na primeira vez que é aberta (`loadView` em `src/admin/store.js`; a escolha de cada tela fica em `shared/pageview.js`):
+Cada tela busca só o que precisa para ser montada, como num site WordPress. As funções da Vercel rodam em São Paulo (`gru1`, em `vercel.json`), ao lado do banco.
 
-- **Primeiro acesso:** o básico (configurações, menus, cidades, vibes, páginas, notificações e o índice de mídia) + o que a tela aberta usa.
-- **Home:** dicas do dia, posts em destaque, roteiros por vibe e a agenda. **Lugares, Guia, Vibes:** todos os lugares. **Detalhe:** o lugar, os 2 do "Confira também", os roteiros da cidade e os outros lugares da cidade só como pins do mapa. **Roteiros, Radar, Eventos:** a lista da seção e os lugares citados. **Busca e área da conta:** tudo. **Páginas, login, cidade, notificações:** só o básico (não pedem nada).
-- O que chega fica guardado até recarregar; listas que vieram inteiras não são pedidas de novo. A caixa de busca do topo traz o conteúdo completo quando é aberta.
-- Enquanto a próxima tela carrega, a anterior continua à vista, com uma barra no topo.
+- **Primeiro acesso:** o básico (configurações, menus, cidades, vibes, páginas, notificações e o índice de mídia) + o que a tela aberta usa (`/api/content?view=`, regras em `shared/pageview.js`).
+- **Listas (Lugares, Vibes, Roteiros, Radar, Eventos e Busca):** o servidor filtra, conta e ordena, e devolve só a página atual (12 itens) com as contagens de cada filtro (`/api/content?list=`, lógica em `src/listings.js`). A página vai no link (`?pagina=2`); mudar um filtro volta para a 1. O texto digitado nos filtros espera a pessoa parar de digitar.
+- **Home:** dicas do dia, posts em destaque, roteiros por vibe e os próximos 6 eventos de cada cidade. **Detalhe do lugar:** o lugar, os 2 do "Confira também" e os roteiros da cidade; os pins do mapa só quando ele chega perto da tela. **Guia:** só os pins da cidade (`/api/content?pins=`). **Detalhe de roteiro, post e evento:** a lista da seção (para "mais roteiros/posts/eventos"). **Área da conta:** tudo.
+- **Caixas de busca (topo e home):** o servidor sugere enquanto a pessoa digita (`/api/content?suggest=`), com "Buscando…".
+- Enquanto a próxima tela carrega, a anterior continua à vista (na mesma rolagem), com uma barra no topo; a rolagem vai para o topo quando a tela nova aparece.
+- Sem servidor (modo local) ou com o banco todo na memória (painel), as listas e a busca rodam no navegador com a mesma lógica.
 - Conteúdo novo vindo do código (`updates.js`) aparece no site depois que um administrador abre o painel.
 
 ## Como o painel conversa com o site
@@ -196,6 +198,8 @@ web/api/                # funções do Vercel (backend)
 └── admin/ db · media · team
 web/shared/roles.js     # perfis/permissões usados pelo front e pela API
 web/shared/pageview.js  # o que cada tela do site recebe de /api/content?view=
+web/src/listings.js     # listas paginadas, contagens dos filtros e sugestões da busca (roda no servidor)
+web/src/pins.js         # pins do mapa sob demanda
 web/src/admin/
 ├── AdminApp.jsx        # rotas /admin/*, login obrigatório, menu lateral por permissão, busca rápida (Ctrl K)
 ├── store.js            # dados, persistência, sincronização com o site, papéis/permissões, autenticação, atividade

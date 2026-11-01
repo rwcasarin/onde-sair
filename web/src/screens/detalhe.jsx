@@ -1,6 +1,7 @@
 import { RichText, hasText } from "../components/richblock.jsx";
 import { placeHours, hoursStatus, hoursGroups } from "../hours.js";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useCityPins, useNearScreen } from "../pins.js";
 import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
@@ -9,7 +10,7 @@ import {
 } from "../components/site.jsx";
 import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
-import { SITE, mapPlaces } from "../admin/store.js";
+import { SITE } from "../admin/store.js";
 import { PlaceMap } from "../components/placemap.jsx";
 import { instaProfile } from "../insta.js";
 import { roteiroVibes } from "../vibes.js";
@@ -84,6 +85,9 @@ function DetalheView({ p }) {
   const [tab, setTab] = useState("visao");
   const [shared, setShared] = useState(false);
   const [mapSel, setMapSel] = useState(null);       // pin selecionado no mapa "Onde fica"
+  // os outros lugares da cidade só vêm quando o mapa chega perto da tela
+  const mapRef = useRef(null);
+  const pins = useCityPins(p?.city, useNearScreen(mapRef)) || [];
   const saved = faves.has(p.id);
   const insta = instaProfile(p.insta);
   const whats = whatsappLink(p.whatsapp);
@@ -236,8 +240,10 @@ function DetalheView({ p }) {
               <h2>Onde fica</h2>
               <a href={googleMapsUrl(p)} className="h2-link" target="_blank" rel="noreferrer">Ver no Google Maps <Icon name="arrow" size={16} /></a>
             </div>
-            <PlaceMap className="where-map where-map-lg" mainId={p.id} activeId={mapSel} onSelect={setMapSel}
-              items={[{ id: p.id, place: p }, ...mapPlaces(p.city).filter(x => x.id !== p.id).map(x => ({ id: x.id, place: x }))]} />
+            <div ref={mapRef}>
+              <PlaceMap className="where-map where-map-lg" mainId={p.id} activeId={mapSel} onSelect={setMapSel}
+                items={[{ id: p.id, place: p }, ...pins.filter(x => x.id !== p.id).map(x => ({ id: x.id, place: x }))]} />
+            </div>
             <p className="where-address"><Icon name="pin" size={16} /> {fullAddress(p)}
               <a className="where-route" href={directions(p)} target="_blank" rel="noreferrer">Como chegar <Icon name="arrow" size={14} /></a></p>
           </div>
