@@ -1647,3 +1647,43 @@ body.search-lock { overflow: hidden; }
   :is(.listing-grid, .tips-grid.tips-4) .event-date em:nth-child(3) { padding: 0 6px 4px; }
   :is(.listing-grid, .tips-grid.tips-4) .event-date b { padding: 3px 6px; font-size: 10px; }
 }
+
+/* ordenação: no celular fica dentro do painel de filtros (primeira opção); na barra de resultados some */
+.filters-sort { display: none; }
+.radio-row input { accent-color: var(--heading); }
+@media (max-width: 900px) {
+  .filters-sort { display: block; }
+  .results-bar .sort { display: none; }
+}
+
+/* abas das páginas de detalhe: ícones só no celular */
+.page-tab-icon { display: none; }
+
+@media (max-width: 640px) {
+  /* menu de vibes menor */
+  .hero2-vibes { gap: 6px; }
+  .hero2-vibes .vibe-pill { height: 34px; padding: 0 12px 0 10px; gap: 6px; font-size: 12.5px; }
+  .hero2-vibes .vibe-pill svg { width: 15px; height: 15px; }
+  /* lista ou mapa: só os ícones */
+  .view-toggle .vt-label { display: none; }
+  .view-toggle button { width: 44px; padding: 0; justify-content: center; }
+}
+
+/* celular: menu da página de detalhe fixo embaixo, com ícones */
+@media (max-width: 760px) {
+  .page-tabs {
+    position: fixed; top: auto; bottom: 0; left: 0; right: 0; z-index: 90;
+    background: rgba(251, 250, 247, .97); backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line); border-bottom: 0; padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -8px 24px -18px rgba(30, 21, 80, .45);
+  }
+  .page-tabs .shell { justify-content: space-around; gap: 0; padding: 0 4px; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+  .page-tabs button {
+    flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 8px 2px 7px; font-size: 10.5px; line-height: 1.15; text-align: center; white-space: normal;
+    color: var(--ink-3); border-bottom: 0; border-top: 2px solid transparent; margin-top: -1px;
+  }
+  .page-tabs button.on { color: var(--heading); font-weight: 700; border-top-color: var(--heading); }
+  .page-tab-icon { display: block; flex-shrink: 0; }
+  body:has(.page-tabs) { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
+}

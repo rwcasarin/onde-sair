@@ -115,7 +115,7 @@ export function SearchBlock({ value, onChange, placeholder }) {
 }
 
 // painel: coluna no desktop; no celular, gaveta com "Ver X resultados" no rodapé
-export function FilterPanel({ open, onClose, active, onClear, total, noun, children }) {
+export function FilterPanel({ open, onClose, active, onClear, total, noun, sort, sorts, onSort, children }) {
   useEffect(() => {
     if (!open) return;
     const esc = (e) => e.key === "Escape" && onClose();
@@ -132,6 +132,20 @@ export function FilterPanel({ open, onClose, active, onClear, total, noun, child
           {active > 0 && <button type="button" className="link-btn" onClick={onClear}>Limpar tudo</button>}
           <button type="button" className="filters-close" onClick={onClose} aria-label="Fechar filtros"><Icon name="x" size={18} /></button>
         </div>
+        {/* no celular a ordenação mora aqui, como primeira opção (na barra de resultados ela some) */}
+        {sorts?.length > 1 && (
+          <div className="filter-block filters-sort">
+            <h3>Ordenar por</h3>
+            <div role="radiogroup" aria-label="Ordenar por">
+              {sorts.map(k => (
+                <label key={k} className="check-row radio-row">
+                  <input type="radio" name="ordem" checked={sort === k} onChange={() => onSort(k)} />
+                  <span>{SORT_LABELS[k]}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
         {children}
         <div className="filters-foot">
           <button type="button" className="btn-pill btn-block" onClick={() => { onClose(); document.getElementById("resultados")?.scrollIntoView({ behavior: "smooth" }); }}>

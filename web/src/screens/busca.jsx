@@ -186,7 +186,7 @@ export function Busca({ q: q0 = "", tab: tab0 = "" }) {
       {/* abas de um tipo: filtros + resultados */}
       {query && ready && totalAll > 0 && K && (
         <div className="shell listing-layout">
-          <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={chips.length} onClear={clearAll} total={L.total} noun={L.total === 1 ? K.one : K.many}>
+          <FilterPanel sort={(BUSCA_SORTS[tab] || []).includes(f.ordem) ? f.ordem : "relevancia"} sorts={BUSCA_SORTS[tab] || ["relevancia"]} onSort={(v) => set("ordem", v)} open={filtersOpen} onClose={() => setFiltersOpen(false)} active={chips.length} onClear={clearAll} total={L.total} noun={L.total === 1 ? K.one : K.many}>
             {KEYS.includes("quando") && (
               <FilterBlock title="Quando">
                 {facet("quando").map(({ value: k, label: l, count: n }) => <CheckRow key={k} checked={f.quando === k} onChange={() => set("quando", f.quando === k ? "" : k)} count={n}>{l}</CheckRow>)}

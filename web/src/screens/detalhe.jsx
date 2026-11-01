@@ -6,7 +6,7 @@ import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } fro
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, PageTabs
 } from "../components/site.jsx";
 import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
@@ -161,7 +161,6 @@ function DetalheView({ p }) {
                 <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
               </button>}
               <AddToRoteiro place={p} className="act-btn act-sm" iconSize={17} compact />
-              {slides.length > 0 && <button className="act-btn act-sm" onClick={() => openPhoto(0)} aria-label={`Ver fotos (${slides.length})`}><Icon name="camera" size={17} /><span className="act-label">Ver fotos ({slides.length})</span></button>}
               <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
             </div>
           </div>
@@ -169,13 +168,7 @@ function DetalheView({ p }) {
       </section>
 
       {/* ================= ABAS ================= */}
-      <nav className="page-tabs" aria-label="Seções">
-        <div className="shell">
-          {tabs.map(([id, label]) => (
-            <button key={id} className={tab === id ? "on" : ""} onClick={() => goTab(id)}>{label}</button>
-          ))}
-        </div>
-      </nav>
+      <PageTabs tabs={tabs} tab={tab} onTab={goTab} />
 
       <div className="shell place-body">
         {/* 1 · Sobre o lugar (60%) + depoimento da equipe (30%) */}

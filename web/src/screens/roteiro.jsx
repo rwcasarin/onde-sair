@@ -4,7 +4,7 @@ import { ROTEIROS, roteiroImg, placeImg } from "../data.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, TypePill, CardMore,
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, RoteiroCard, SectionHead, PageHead, FaveButton, Footer, placeById, TypePill, CardMore, PageTabs
 } from "../components/site.jsx";
 import { roteiroVibes, roteiroBairros } from "../vibes.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
@@ -130,11 +130,7 @@ function RoteiroView({ r, mine = false }) {
       </section>
 
       {/* ================= ABAS ================= */}
-      <nav className="page-tabs" aria-label="Seções">
-        <div className="shell">
-          {TABS.map(([t, label]) => <button key={t} className={tab === t ? "on" : ""} onClick={() => goTab(t)}>{label}</button>)}
-        </div>
-      </nav>
+      <PageTabs tabs={TABS} tab={tab} onTab={goTab} />
 
       <div className="shell place-body">
         {/* 1 · Sobre este roteiro (60%) + citação (30%) */}

@@ -58,7 +58,7 @@ export function RoteirosLista() {
       </section>
 
       <div className="shell listing-layout">
-        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun={L.total === 1 ? "roteiro" : "roteiros"}>
+        <FilterPanel sort={f.ordem} sorts={SORTS} onSort={(v) => set("ordem", v)} open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun={L.total === 1 ? "roteiro" : "roteiros"}>
           <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Nome, lugar ou bairro" />
           <FilterBlock title="Cidade"><CityField value={cityF} onChange={changeCity} counts={cityCounts} /></FilterBlock>
           <FilterBlock title="Bairro / Região">
