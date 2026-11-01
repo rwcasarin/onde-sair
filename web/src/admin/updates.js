@@ -387,6 +387,38 @@ function placeTagsCleanup(d) {
   return names.length ? [`${names.length} lugares`] : [];
 }
 
+// Toca Los Gatos: textos novos no tom da casa. Telefone, site, WhatsApp, horário, mapa e fotos continuam os do cadastro.
+// Pendências: confirmar horário (referência antiga: qui e sex 17h30–23h, sáb 13h–23h), site, telefone, Instagram e fotos.
+const TOCA = {
+  name: "Toca Los Gatos", sub: "Cervejaria artesanal", type: "Bares", bairro: "Jardim Leocádia", end: "Rua Diadema, 500", cep: "18085-330",
+  tagline: "Chope artesanal de casa, linguiça do Sr. Porco e pet na mesa.",
+  desc: "Bateu vontade de chope bom e mesa cheia de gente? Na Toca Los Gatos, a cerveja artesanal ganha jeito de casa. São 17 torneiras de chope de produção própria, com rótulos para quem curte IPA ou sour e opções sem álcool e sem glúten, então a mesa inteira brinda junto. Na cozinha, o Sr. Porco assina linguiças artesanais e pratos de carne suína, boas para dividir com o chope. O tema felino marca a identidade da casa, o clima é aconchegante e tem área ao ar livre para ficar sem pressa. Pet é bem-vindo, então dá para levar os amigos humanos e os de quatro patas. A casa ainda tem agenda própria, com tour pela fábrica, Oktoberfest com DJ, bandas, food trucks e área kids, além de festa de Halloween. Boa pedida para fim de tarde com amigos, happy hour de fim de semana ou um sábado longo de sol.",
+  dica: "A casa já fez tour pela fábrica, Oktoberfest e festa de Halloween. Vale conferir a agenda e os horários antes de ir.",
+  by: "Equipe Onde Sair", note: "Toca de gato, chope de gente",
+  reasons: [["wine", "17 torneiras de chope de produção própria"], ["leaf", "Tem área ao ar livre para ficar sem pressa"], ["smile", "Pet friendly: leve os de quatro patas"], ["music", "Agenda com Oktoberfest, DJ e bandas"]],
+  affs: ["amigos"], tags: ["amigos", "pets", "ao ar livre", "noite", "happy hour"],
+  seo: { title: "Toca Los Gatos · Cervejaria artesanal em Sorocaba", desc: "17 torneiras de chope de produção própria, linguiças do Sr. Porco, área ao ar livre e pet bem-vindo, no Jardim Leocádia." },
+};
+function tocaLosGatos(d, at) {
+  const BY = "Curadoria · Onde Sair";
+  const cur = d.places.find(p => p.id === "cerveja-los-gatos-toca-los-gatos" || p.slug === "cerveja-los-gatos-toca-los-gatos" || norm(p.name) === norm(TOCA.name));
+  if (cur) d.places = d.places.map(p => p === cur ? { ...p, ...clone(TOCA), updatedAt: at, updatedBy: BY } : p);
+  else {
+    const slug = d.places.some(p => p.id === "toca-los-gatos" || p.slug === "toca-los-gatos") ? "toca-los-gatos-" + at.slice(0, 10) : "toca-los-gatos";
+    d.places = [{ id: slug, slug, ...clone(TOCA), open: "", phone: "", whatsapp: "", site: "", insta: "", showGallery: false, photos: [], city: "sorocaba", geo: null, placeId: "",
+      map: { x: 50, y: 50, label: "TG" }, status: "publicado", createdAt: at, updatedAt: at, updatedBy: BY, publishedAt: at }, ...d.places];
+  }
+  // bairro com acento: troca o antigo na lista da cidade se ninguém mais usa
+  d.cities = d.cities.map(c => {
+    if (c.id !== "sorocaba") return c;
+    const used = (b) => d.places.some(p => p.city === c.id && p.bairro === b);
+    let bairros = c.bairros.filter(b => norm(b) !== norm(TOCA.bairro) || b === TOCA.bairro || used(b));
+    if (!bairros.includes(TOCA.bairro)) bairros = [...bairros, TOCA.bairro].sort((a, b) => a.localeCompare(b, "pt-BR"));
+    return { ...c, bairros };
+  });
+  return [TOCA.name];
+}
+
 const UPDATES = [
   { id: "2026-10-lugares-sorocaba", label: "lugares de Sorocaba (cidade principal)", apply: addSorocaba },
   { id: "2026-10-pagina-parceiros", label: "página Para parceiros (menus apontam para ela)", apply: partnersPage },
@@ -407,6 +439,7 @@ const UPDATES = [
     apply: importSorocaba },
   { id: "2026-10-nomes-lugares", label: "nomes de lugares padronizados", apply: placeNames },
   { id: "2026-10-tags-momento-ambiente", label: "momento e ambiente nas tags (sem tipo de cozinha)", apply: placeTagsCleanup },
+  { id: "2026-11-toca-los-gatos", label: "Toca Los Gatos com textos novos", after: "2026-10-cadastro-sorocaba", apply: tocaLosGatos },
 ];
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.
@@ -416,6 +449,7 @@ export function applyUpdates(d, at = new Date().toISOString()) {
   const applied = [];
   for (const u of UPDATES) {
     if (done.has(u.id) || u.async) continue;
+    if (u.after && !(d.updates || []).includes(u.after)) continue;   // espera a atualização de que depende
     const names = u.apply(d, at);
     d.updates = [...(d.updates || []), u.id];
     applied.push({ id: u.id, label: u.label, names });
