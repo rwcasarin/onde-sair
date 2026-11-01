@@ -240,21 +240,16 @@ async function fetchView(path, shell, have = []) {
 }
 const doneView = (k) => views.set(k, Object.assign(Promise.resolve(), { done: true }));
 const complete = new Set();         // listas que já vieram inteiras
-let pins = new Map();               // lugares só como pin do mapa (fora de PLACES)
 function mergeView(part) {
   ["places", "roteiros", "stories", "events"].forEach(key => { if (part[key]) db[key] = mergeList(db[key], part[key]); });
   (part.complete || []).forEach(key => complete.add(key));
-  (part.pins || []).forEach(p => pins.set(p.id, p));
 }
 
+// o site tem só parte do conteúdo? (com tudo na memória, as listagens rodam aqui mesmo)
+export const isPartial = () => partial;
 // a tela do caminho já tem o que precisa? (já pedida, ou tudo o que ela usa já veio inteiro)
 export const viewLoaded = (path) => !partial || !!views.get(viewKey(path))?.done || viewCovers(viewKey(path)).every(k => complete.has(k));
-// lugares da cidade para o mapa do detalhe: os completos e, dos outros, o pin
-export const mapPlaces = (city) => {
-  const full = PLACES.filter(p => p.city === city);
-  const have = new Set(full.map(p => p.id));
-  return [...full, ...[...pins.values()].filter(p => p.city === city && !have.has(p.id))];
-};
+
 // busca o que a tela do caminho usa (uma vez por caminho)
 export function loadView(path) {
   if (!partial) return Promise.resolve();
@@ -269,6 +264,19 @@ export function loadView(path) {
   return v;
 }
 
+// Servidor: carrega o conteúdo publicado nos arrays do site para rodar as listagens e a busca (src/listings.js)
+export function hydratePublic(data) {
+  partial = false;
+  db = { ...clone(SEED), members: [], team: [], activity: [], ...data };
+  syncPublic();
+}
+// Listagem/busca que veio do servidor: guarda os objetos para os cards (sem marcar listas como completas)
+export function mergeObjects(part) {
+  if (!part) return;
+  ["places", "roteiros", "stories", "events"].forEach(key => { if (part[key]?.length) db[key] = mergeList(db[key], part[key]); });
+  if (partial) { syncPublic(); notify(); }
+}
+
 // Carga inicial do site: o básico + o que a tela aberta usa; sem API, segue no modo local
 export async function boot(path = "/") {
   if (location.protocol === "file:") return;
@@ -278,9 +286,9 @@ export async function boot(path = "/") {
     REMOTE = true; partial = true;
     // sem as contas e a equipe de demonstração da semente; conteúdo novo do código (updates.js)
     // aparece no site depois que um administrador abre o painel (não dá para aplicar sobre parte do banco)
-    const { complete: c, pins: p, ...first } = data.db;
+    const { complete: c, ...first } = data.db;
     db = { ...clone(SEED), members: [], team: [], activity: [], ...first };
-    mergeView({ complete: c, pins: p });
+    mergeView({ complete: c });
     doneView(viewKey(path));
     syncPublic();
   } catch { /* offline ou sem API: modo local */ }

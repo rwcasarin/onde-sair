@@ -1,36 +1,18 @@
 // Filtros das listagens (Lugares, Vibes, Roteiros e Eventos): mesmo painel, mesmos nomes
 // e o estado salvo no link — voltar do detalhe ou compartilhar a página mantém os filtros.
 import { useEffect, useRef, useState } from "react";
+import { REMOTE, isPartial, mergeObjects } from "./admin/store.js";
+import { listQuery, runList } from "./listings.js";
 import { Icon } from "./components/icons.jsx";
 import { currentPath, HASH_MODE } from "./router.js";
-import { slugify } from "./admin/store.js";
-import { PRICE_BUCKETS } from "./data.js";
 import { WEEK as WEEK_NAMES, WEEK_ORDER as WHEN_DAY_ORDER, DAY_SLUGS as WHEN_DAY_SLUGS, PERIODS as WHEN_PERIODS } from "./hours.js";
 
 export function toggleIn(set, v) { const n = new Set(set); n.has(v) ? n.delete(v) : n.add(v); return n; }
-export const fslug = (s = "") => slugify(String(s));
-
-// Preço: a mesma escala em lugares, roteiros e eventos (por pessoa)
-export const PRICE_LEVELS = PRICE_BUCKETS.map(b => ({ value: String(b.level), label: b.level ? `${"$".repeat(b.level)} · ${b.label}` : b.label }));
-// evento: pelo valor "a partir de" (sem valor informado, fica fora do filtro de preço)
-export function eventPriceLevel(e) {
-  const p = e.price || {};
-  if (p.free) return 0;
-  const v = +p.from;
-  if (!v) return null;
-  return v <= 50 ? 1 : v <= 120 ? 2 : 3;
-}
+export { fslug, PRICE_LEVELS, eventPriceLevel, recentOf, sortBy } from "./listutil.js";
+import { fslug } from "./listutil.js";
 
 // Ordenação: as mesmas opções em todas as páginas, mais as próprias de cada uma
 export const SORT_LABELS = { relevancia: "Mais relevantes", data: "Data (mais próximos)", az: "A–Z", preco: "Menor preço", recentes: "Mais recentes", paradas: "Menos paradas" };
-export const recentOf = (x) => String(x.publishedAt || x.createdAt || x.updatedAt || "");
-export function sortBy(list, key, { name, price }) {
-  const out = [...list];
-  if (key === "az") return out.sort((a, b) => name(a).localeCompare(name(b), "pt-BR"));
-  if (key === "preco") return out.sort((a, b) => (price(a) ?? 9) - (price(b) ?? 9));
-  if (key === "recentes") return out.sort((a, b) => recentOf(b.r || b.p || b).localeCompare(recentOf(a.r || a.p || a)));
-  return out;
-}
 
 // ---------------------------------------------------------------------
 // Estado no link
@@ -218,6 +200,8 @@ export function WhenFilter({ value, onChange, count }) {
     </FilterBlock>
   );
 }
+// contagens do "Dia e horário" vindas do servidor → função que o WhenFilter usa
+export const whenCount = (w) => (patch) => !w ? null : patch.agora ? w.agora : patch.dia ? w.dia?.[patch.dia] : patch.periodo ? w.periodo?.[patch.periodo] : null;
 // rótulos das etiquetas de filtros ativos
 export function whenChips(value, onChange) {
   const out = [];
@@ -225,4 +209,79 @@ export function whenChips(value, onChange) {
   if (value.dia) out.push({ key: "w-dia", label: value.dia === "hoje" ? "Hoje" : WEEK_NAMES[WHEN_DAY_SLUGS.indexOf(value.dia)] || value.dia, onRemove: () => onChange("dia", "") });
   if (value.periodo) out.push({ key: "w-per", label: WHEN_PERIODS.find(p => p[0] === value.periodo)?.[1] || value.periodo, onRemove: () => onChange("periodo", "") });
   return out;
+}
+
+// ---------------------------------------------------------------------
+// Listagem paginada: o servidor filtra, conta e devolve só a página (src/listings.js)
+// ---------------------------------------------------------------------
+// filtros + página: mudar qualquer filtro volta para a página 1
+export function usePagedFilters(defs) {
+  const base = useFilters({ ...defs, pagina: ["pagina", "one"] });
+  const back = (k) => { if (k !== "pagina") base.set("pagina", ""); };
+  return {
+    f: base.f,
+    page: Math.max(1, parseInt(base.f.pagina, 10) || 1),
+    setPage: (n) => base.set("pagina", n > 1 ? String(n) : ""),
+    set: (k, v) => { base.set(k, v); back(k); },
+    toggle: (k, v) => { base.toggle(k, v); back(k); },
+    reset: (keys) => { base.reset(keys); if (!keys.includes("pagina")) base.set("pagina", ""); },
+  };
+}
+
+const listCache = new Map();          // pedido → resposta (até recarregar a página)
+async function fetchList(qs, signal) {
+  const r = await fetch("/api/content?" + qs, { signal, headers: { accept: "application/json" } });
+  if (!r.ok) throw new Error("lista " + r.status);
+  return r.json();
+}
+// { data, loading }: enquanto a próxima página chega, a anterior continua na tela
+export function useListing(kind, f, { page = 1, map = false } = {}) {
+  const qs = listQuery(kind, f, { page, map });
+  // sem servidor ou com o banco todo na memória (modo local, painel): roda aqui mesmo
+  const local = !REMOTE || !isPartial();
+  const first = useRef(true);
+  const [state, setState] = useState(() => local ? { data: runList(kind, new URLSearchParams(qs)), loading: false } : { data: listCache.get(qs) || null, loading: !listCache.has(qs) });
+  useEffect(() => {
+    if (local) { setState({ data: runList(kind, new URLSearchParams(qs)), loading: false }); return; }
+    if (listCache.has(qs)) { setState({ data: listCache.get(qs), loading: false }); first.current = false; return; }
+    setState(s => ({ ...s, loading: true }));
+    const ctrl = new AbortController();
+    // espera a digitação parar (busca no campo de texto) antes de pedir
+    const t = setTimeout(() => {
+      fetchList(qs, ctrl.signal).then(d => {
+        listCache.set(qs, d);
+        mergeObjects(d.db);
+        setState({ data: d, loading: false });
+      }).catch(e => { if (e.name !== "AbortError") setState(s => ({ ...s, loading: false, error: true })); });
+    }, first.current ? 0 : 250);
+    first.current = false;
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [qs, local]); // eslint-disable-line react-hooks/exhaustive-deps
+  return state;
+}
+// itens da página, já com os objetos guardados no site
+export function listItems(data, lists) {
+  const by = { place: lists.places, roteiro: lists.roteiros, story: lists.stories, event: lists.events };
+  const pages = new Map((data?.db?.pages || []).map(p => [p.id, p]));
+  return (data?.list?.refs || []).map(ref => ({ ...ref, item: ref.kind === "page" ? pages.get(ref.id) : by[ref.kind]?.find(x => x.id === ref.id) })).filter(x => x.item);
+}
+export const labelOf = (opts = [], v) => opts.find(o => o.value === v)?.label || v;
+
+// páginas: anterior, números (com reticências) e próxima
+export function Pagination({ page, pages, onPage, loading }) {
+  if (pages <= 1) return null;
+  const nums = [...new Set([1, page - 1, page, page + 1, pages].filter(n => n >= 1 && n <= pages))].sort((a, b) => a - b);
+  const go = (n) => { onPage(n); document.getElementById("resultados")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
+  return (
+    <nav className={"pager" + (loading ? " is-loading" : "")} aria-label="Páginas">
+      <button type="button" className="pager-btn" disabled={page <= 1} onClick={() => go(page - 1)} aria-label="Página anterior"><Icon name="chevron" size={16} /></button>
+      {nums.map((n, i) => (
+        <span key={n} className="pager-item">
+          {i > 0 && n - nums[i - 1] > 1 && <span className="pager-gap">…</span>}
+          <button type="button" className={"pager-btn" + (n === page ? " on" : "")} aria-current={n === page ? "page" : undefined} onClick={() => go(n)}>{n}</button>
+        </span>
+      ))}
+      <button type="button" className="pager-btn" disabled={page >= pages} onClick={() => go(page + 1)} aria-label="Próxima página"><Icon name="chevron" size={16} /></button>
+    </nav>
+  );
 }

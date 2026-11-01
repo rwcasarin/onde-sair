@@ -5,7 +5,7 @@ import { AFFINITIES, TYPES, priceLabel } from "../data.js";
 import { useNav, useCity } from "../nav.js";
 import { CitySelect, singleCity } from "./cityselect.jsx";
 import { SearchOverlay, useSearchHotkey } from "./searchbox.jsx";
-import { href, toPath, go, onPathChange } from "../router.js";
+import { href, toPath, go, onPathChange, goTop } from "../router.js";
 import { menuItems, isActive } from "../menus.js";
 import { SITE } from "../admin/store.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
@@ -61,7 +61,7 @@ export function MenuLink({ to, className, children, ...rest }) {
   if (to.internal && to.newTab) return <a className={className} href={href(to.path)} target="_blank" rel="noopener" {...rest}>{children}</a>;
   return (
     <a className={className} href={href(to.path)} {...rest}
-      onClick={(e) => { e.preventDefault(); if (to.screen) nav(to.screen, to.params || {}); else { go(to.path); window.scrollTo(0, 0); } }}>{children}</a>
+      onClick={(e) => { e.preventDefault(); if (to.screen) nav(to.screen, to.params || {}); else { goTop(to.path); } }}>{children}</a>
   );
 }
 

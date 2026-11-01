@@ -1,7 +1,7 @@
 // Eventos — agenda (/eventos) no modelo da lista de lugares, e página do evento (/eventos/{slug})
 import { htmlToText } from "../richtext.js";
 import { RichText } from "../components/richblock.jsx";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EVENTS, EVENT_CATEGORIES, VIBE_ORDER, CITIES, PLACES, eventImg, eventGallery } from "../data.js";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { Icon } from "../components/icons.jsx";
@@ -15,7 +15,7 @@ import { NotFound } from "./notfound.jsx";
 import { Lightbox } from "../components/lightbox.jsx";
 import { slugify, hasMedia } from "../admin/store.js";
 import { eventPath } from "../router.js";
-import { useFilters, FilterPanel, FilterBlock, SearchBlock, CheckList, CheckRow, ResultsBar, ActiveChips, PRICE_LEVELS, eventPriceLevel, sortBy, fslug } from "../filters.jsx";
+import { usePagedFilters, useListing, listItems, labelOf, Pagination, FilterPanel, FilterBlock, SearchBlock, CheckList, CheckRow, ResultsBar, ActiveChips } from "../filters.jsx";
 import { vibeFromSlug, vibeSlug } from "./roteiroslista.jsx";
 import {
   WHEN, inRange, isPast, isHappening, byDate, whenLabel, priceLabel,
@@ -46,47 +46,31 @@ export function EventosLista() {
   const nav = useNav();
   const { user, ask, paused, eventsPaused } = useAccount();
   const { id: globalCity, name: city, set: setGlobalCity } = useCity();
-  const all = EVENTS;
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const { f, set, toggle, reset } = useFilters({
+  const { f, set, toggle, reset, page: pageN, setPage } = usePagedFilters({
     vibe: ["vibe", "one"], busca: ["busca", "one"], quando: ["quando", "one"], categoria: ["categoria", "set"],
-    cidade: ["cidade", "one", globalCity && all.some(e => e.city === globalCity) ? globalCity : "todas"],
+    cidade: ["cidade", "one", globalCity || "todas"],
     bairro: ["bairro", "set"], preco: ["preco", "set"], encerrados: ["encerrados", "bool"], ordem: ["ordem", "one", "data"],
   });
   const vibe = vibeFromSlug(f.vibe), query = f.busca, cityF = f.cidade === "todas" ? "" : f.cidade, when = f.quando, showPast = f.encerrados;
   const pickVibe = (id) => set("vibe", id === vibe ? "" : vibeSlug(id));
-  const now = new Date();
-  const catSlug = (c) => c.slug || fslug(c.label);
 
-  const text = (e) => fslug([e.title, e.tagline, htmlToText(e.desc || ""), venueName(e), e.bairro, ...(e.tags || [])].join(" "));
-  const anyCity = useMemo(() => all.filter(e => (showPast || !isPast(e, now)) && (!vibe || (e.affs || []).includes(vibe)) && (!query || text(e).includes(fslug(query)))), [all, vibe, query, showPast]); // eslint-disable-line
-  const cityCounts = useMemo(() => anyCity.reduce((m, e) => (e.city ? { ...m, [e.city]: (m[e.city] || 0) + 1 } : m), {}), [anyCity]);
-  const base = useMemo(() => anyCity.filter(e => !cityF || e.city === cityF), [anyCity, cityF]);
+  const { data, loading } = useListing("eventos", f, { page: pageN });
+  const L = data?.list || { total: 0, page: 1, pages: 1, facets: {}, cityCounts: {}, extra: {} };
+  // a cidade do site não tem eventos: mostra todas
+  useEffect(() => { if (data && cityF && L.extra.anyInCity && !L.extra.anyInCity[cityF]) set("cidade", "todas"); }, [data]); // eslint-disable-line
+  const results = listItems(data, { events: EVENTS }).map(x => x.item);
+  const cityCounts = L.cityCounts;
   function changeCity(v) { set("cidade", v || "todas"); reset(["bairro"]); if (v) setGlobalCity(v); }
 
-  const catOf = (e) => EVENT_CATEGORIES.find(c => c.id === e.category);
-  const tests = {
-    quando: (e) => !when || inRange(e, (WHEN.find(w => w[0] === when) || WHEN[0])[2](now)),
-    categoria: (e) => !f.categoria.size || f.categoria.has(catOf(e) ? catSlug(catOf(e)) : ""),
-    bairro: (e) => !f.bairro.size || f.bairro.has(fslug(e.bairro)),
-    preco: (e) => !f.preco.size || f.preco.has(String(eventPriceLevel(e))),
-  };
-  const pass = (e, skip) => Object.entries(tests).every(([k, t]) => k === skip || t(e));
-  const count = (key, fn) => base.filter(e => pass(e, key) && fn(e)).length;
-
-  let results = base.filter(e => pass(e));
-  results = f.ordem === "data" ? [...results].sort(byDate) : sortBy(results, f.ordem, { name: (e) => e.title, price: eventPriceLevel });
-
   const a = vibe ? affById(vibe) : null;
-  const BAIRROS = [...new Set(base.map(e => e.bairro).filter(Boolean))].sort((x, y) => x.localeCompare(y, "pt-BR")).map(b => [fslug(b), b]);
-  const CATS = EVENT_CATEGORIES.map(c => [catSlug(c), c.label]);
-  const label = (list, v) => list.find(([k]) => k === v)?.[1] || v;
-  const chipsOf = (key, list) => [...f[key]].map(v => ({ key: key + v, label: label(list, v), onRemove: () => toggle(key, v) }));
+  const facet = (key) => L.facets[key] || [];
+  const chipsOf = (key) => [...f[key]].map(v => ({ key: key + v, label: labelOf(facet(key), v), onRemove: () => toggle(key, v) }));
   const chips = [
     ...(a ? [{ key: "vibe", label: a.label, onRemove: () => set("vibe", "") }] : []),
     ...(query ? [{ key: "q", label: `“${query}”`, onRemove: () => set("busca", "") }] : []),
     ...(when ? [{ key: "w", label: WHEN.find(w => w[0] === when)?.[1] || when, onRemove: () => set("quando", "") }] : []),
-    ...chipsOf("categoria", CATS), ...chipsOf("bairro", BAIRROS), ...chipsOf("preco", PRICE_LEVELS.map(o => [o.value, o.label])),
+    ...chipsOf("categoria"), ...chipsOf("bairro"), ...chipsOf("preco"),
     ...(showPast ? [{ key: "past", label: "Com encerrados", onRemove: () => set("encerrados", false) }] : []),
   ];
   const filterCount = chips.length - (a ? 1 : 0);
@@ -108,34 +92,34 @@ export function EventosLista() {
       </section>
 
       <div className="shell listing-layout">
-        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={results.length} noun={results.length === 1 ? "evento" : "eventos"}>
+        <FilterPanel open={filtersOpen} onClose={() => setFiltersOpen(false)} active={filterCount} onClear={clearAll} total={L.total} noun={L.total === 1 ? "evento" : "eventos"}>
           <SearchBlock value={query} onChange={(v) => set("busca", v)} placeholder="Evento, local ou assunto" />
           <FilterBlock title="Quando">
-            {WHEN.map(([k, l, fn]) => (
-              <CheckRow key={k} checked={when === k} onChange={() => set("quando", when === k ? "" : k)} count={count("quando", e => inRange(e, fn(now)))}>{l}</CheckRow>
+            {(facet("quando").length ? facet("quando") : WHEN.map(([value, label]) => ({ value, label, count: null }))).map(({ value: k, label: l, count: n }) => (
+              <CheckRow key={k} checked={when === k} onChange={() => set("quando", when === k ? "" : k)} count={n}>{l}</CheckRow>
             ))}
           </FilterBlock>
           <FilterBlock title="Cidade"><CityField value={cityF} onChange={changeCity} counts={cityCounts} /></FilterBlock>
           <FilterBlock title="Bairro / Região">
-            <CheckList options={BAIRROS.map(([value, l]) => ({ value, label: l, count: count("bairro", e => fslug(e.bairro) === value) }))} selected={f.bairro} onToggle={(v) => toggle("bairro", v)} searchLabel="Buscar bairro" />
+            <CheckList options={facet("bairro")} selected={f.bairro} onToggle={(v) => toggle("bairro", v)} searchLabel="Buscar bairro" />
           </FilterBlock>
           <FilterBlock title="Categoria">
-            <CheckList options={CATS.map(([value, l]) => ({ value, label: l, count: count("categoria", e => catOf(e) && catSlug(catOf(e)) === value) }))} selected={f.categoria} onToggle={(v) => toggle("categoria", v)} />
+            <CheckList options={facet("categoria")} selected={f.categoria} onToggle={(v) => toggle("categoria", v)} />
           </FilterBlock>
           <FilterBlock title="Preço" note="(a partir de, por pessoa)">
-            <CheckList boxed options={PRICE_LEVELS.map(o => ({ ...o, label: o.value === "0" ? "Gratuito" : o.label, count: count("preco", e => String(eventPriceLevel(e)) === o.value) }))} selected={f.preco} onToggle={(v) => toggle("preco", v)} />
+            <CheckList boxed options={facet("preco")} selected={f.preco} onToggle={(v) => toggle("preco", v)} />
           </FilterBlock>
           <FilterBlock title="Encerrados">
             <CheckRow checked={showPast} onChange={() => set("encerrados", !showPast)}>Mostrar eventos encerrados</CheckRow>
           </FilterBlock>
         </FilterPanel>
 
-        <section className="results" id="resultados">
-          <ResultsBar title={`${results.length} ${results.length === 1 ? "evento" : "eventos"} ${cityF ? `em ${CITIES.find(c => c.id === cityF)?.name || city}` : "em todas as cidades"}`}
+        <section className={"results" + (loading ? " is-loading" : "")} id="resultados" aria-busy={loading}>
+          <ResultsBar title={`${L.total} ${L.total === 1 ? "evento" : "eventos"} ${cityF ? `em ${CITIES.find(c => c.id === cityF)?.name || city}` : "em todas as cidades"}`}
             active={filterCount} onOpenFilters={() => setFiltersOpen(true)} sort={f.ordem} sorts={SORTS} onSort={(v) => set("ordem", v)} />
           <ActiveChips chips={chips} onClear={() => { clearAll(); set("vibe", ""); }} />
 
-          {results.length === 0 ? (
+          {!data ? <div className="listing-grid">{Array.from({ length: 6 }, (_, i) => <div key={i} className="card-skeleton" />)}</div> : L.total === 0 ? (
             <div className="empty-state">
               <h3>Nenhum evento com esses filtros.</h3>
               <p>Tente outra data ou afrouxe um filtro — a agenda muda toda semana.</p>
@@ -145,7 +129,10 @@ export function EventosLista() {
               </div>
             </div>
           ) : (
-            <div className="listing-grid">{results.map(e => <EventCard key={e.id} e={e} />)}</div>
+            <>
+              <div className="listing-grid">{results.map(e => <EventCard key={e.id} e={e} />)}</div>
+              <Pagination page={L.page} pages={L.pages} onPage={setPage} loading={loading} />
+            </>
           )}
           {!paused && !eventsPaused && (
             <div className="ev-submit-cta">

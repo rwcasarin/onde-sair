@@ -5,12 +5,13 @@ import { createPortal } from "react-dom";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
 import { placeImg, eventImg, roteiroImg, AFFINITIES, VIBE_ORDER } from "../data.js";
-import { go, href, vibePath } from "../router.js";
-import { search, shortcuts, didYouMean, highlightParts, kindInfo, kindsOn, recentSearches, saveRecent, removeRecent, clearRecent } from "../search.js";
-import { viewLoaded, loadView } from "../admin/store.js";
+import { go, href, vibePath, goTop } from "../router.js";
+import { highlightParts, kindInfo, recentSearches, saveRecent, removeRecent, clearRecent } from "../search.js";
+import { REMOTE, isPartial } from "../admin/store.js";
+import { suggest } from "../listings.js";
 
 export const searchPath = (q, tab) => "/busca" + (q || tab ? "?" + new URLSearchParams({ ...(q ? { q } : {}), ...(tab && tab !== "tudo" ? { tipo: tab } : {}) }).toString() : "");
-export const thumbOf = (d) => d.kind === "place" ? placeImg(d.id) : d.kind === "event" ? eventImg(d.id) : d.kind === "roteiro" ? roteiroImg(d.id) : d.kind === "story" ? d.item.img : "";
+export const thumbOf = (d) => d.kind === "place" ? placeImg(d.id) : d.kind === "event" ? eventImg(d.id) : d.kind === "roteiro" ? roteiroImg(d.id) : d.kind === "story" ? d.item?.img || d.img : "";
 
 export function Hl({ text, toks }) {
   return <>{highlightParts(text, toks).map((p, i) => typeof p === "string" ? <Fragment key={i}>{p}</Fragment> : <mark key={i}>{p.mark}</mark>)}</>;
@@ -19,28 +20,39 @@ export function Hl({ text, toks }) {
 function openPath(path, e) {
   if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return false;
   e?.preventDefault();
-  go(path); window.scrollTo(0, 0);
+  goTop(path);
   return true;
 }
 
-// lista de opções (a mesma ordem do teclado)
-function useOptions(q) {
+// lista de opções (a mesma ordem do teclado). Com texto, o servidor busca enquanto a pessoa digita
+// (GET /api/content?suggest=…, com uma pausa curta entre as teclas); a sugestão anterior fica até chegar a nova.
+const sugCache = new Map();
+function useOptions(q, open = true) {
+  const t = q.trim();
+  const local = !REMOTE || !isPartial();       // sem servidor ou com o banco todo aqui: busca aqui mesmo
+  const [remote, setRemote] = useState({ q: "", data: null, loading: false });
+  useEffect(() => {
+    if (!t || local || !open) return;
+    if (sugCache.has(t)) { setRemote({ q: t, data: sugCache.get(t), loading: false }); return; }
+    setRemote(r => ({ ...r, loading: true }));
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/content?suggest=${encodeURIComponent(t)}`, { signal: ctrl.signal, headers: { accept: "application/json" } })
+        .then(r => r.json()).then(d => { sugCache.set(t, d); setRemote({ q: t, data: d, loading: false }); })
+        .catch(e => { if (e.name !== "AbortError") setRemote(r => ({ ...r, loading: false })); });
+    }, 180);
+    return () => { clearTimeout(timer); ctrl.abort(); };
+  }, [t, local, open]);
   return useMemo(() => {
-    const t = q.trim();
     if (!t) {
       const recent = recentSearches().map(r => ({ type: "recent", label: r, path: searchPath(r) }));
       const vibes = VIBE_ORDER.slice(0, 6).map(id => AFFINITIES.find(a => a.id === id)).filter(Boolean).map(a => ({ type: "vibe", label: a.label, path: vibePath(a.id), aff: a.id }));
-      return { groups: [["Buscas recentes", recent], ["Explore por vibe", vibes]].filter(([, l]) => l.length), total: 0, toks: [] };
+      return { groups: [["Buscas recentes", recent], ["Explore por vibe", vibes]].filter(([, l]) => l.length), total: 0, toks: [], dym: "", loading: false };
     }
-    const { results, tokens: toks } = search(t);
-    const sc = shortcuts(t, 4).map(s => ({ type: "shortcut", ...s }));
-    const groups = [["Atalhos", sc]];
-    kindsOn().forEach(k => {
-      const list = results.filter(r => r.kind === k.kind).slice(0, k.kind === "place" ? 4 : 3).map(d => ({ type: "doc", d, label: d.title, path: d.path }));
-      if (list.length) groups.push([k.label, list]);
-    });
-    return { groups: groups.filter(([, l]) => l.length), total: results.length, toks };
-  }, [q]);
+    if (local) return { ...suggest(t), loading: false };
+    const d = remote.data;
+    return { groups: d?.groups || [], total: d?.total || 0, toks: d?.toks || [], dym: d?.dym || "", loading: remote.loading || remote.q !== t };
+  }, [t, local, remote]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 export function SearchBox({ value = "", onSubmit, autoFocus, variant = "hero", placeholder = "Busque por lugares, eventos, roteiros, bairros…", children, onNavigate, label = "Buscar no site" }) {
@@ -51,10 +63,7 @@ export function SearchBox({ value = "", onSubmit, autoFocus, variant = "hero", p
   const box = useRef(null), input = useRef(null), list = useRef(null);
   const id = useId();
   useEffect(() => setQ(value), [value]);
-  // as sugestões buscam em todo o site: o conteúdo completo vem quando a pessoa começa a buscar
-  const loadAll = () => { if (!viewLoaded("/busca")) loadView("/busca").then(() => bump(n => n + 1), () => {}); };
-  useEffect(() => { if (autoFocus) loadAll(); }, []); // eslint-disable-line
-  const { groups, total, toks } = useOptions(q);
+  const { groups, total, toks, dym, loading } = useOptions(q, open);
   const flat = groups.flatMap(([, l]) => l);
   const hasMore = q.trim() && total > 0;
   const count = flat.length + (hasMore ? 1 : 0);
@@ -72,7 +81,7 @@ export function SearchBox({ value = "", onSubmit, autoFocus, variant = "hero", p
     setOpen(false);
     if (v) saveRecent(v);
     onNavigate?.();
-    if (onSubmit) onSubmit(v); else { go(searchPath(v)); window.scrollTo(0, 0); }
+    if (onSubmit) onSubmit(v); else { goTop(searchPath(v)); }
   }
   function pick(o, e) {
     if (o.type === "recent") { setQ(o.label); return submit(o.label); }
@@ -100,7 +109,7 @@ export function SearchBox({ value = "", onSubmit, autoFocus, variant = "hero", p
         <Icon name="search" size={variant === "hero" ? 22 : 20} />
         <input ref={input} type="search" value={q} autoFocus={autoFocus} placeholder={placeholder} aria-label={label}
           role="combobox" aria-expanded={!!show} aria-controls={id} aria-autocomplete="list" aria-activedescendant={active >= 0 ? optId(active) : undefined}
-          onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => { setOpen(true); loadAll(); }} onKeyDown={onKey} autoComplete="off" enterKeyHint="search" />
+          onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onKeyDown={onKey} autoComplete="off" enterKeyHint="search" />
         {q && <button type="button" className="sb-clear" aria-label="Limpar busca" onClick={() => { setQ(""); input.current?.focus(); setOpen(true); }}><Icon name="x" size={16} /></button>}
         {children}
         <button type="submit" className="btn-pill">Buscar</button>
@@ -144,7 +153,8 @@ export function SearchBox({ value = "", onSubmit, autoFocus, variant = "hero", p
               </div>
             </div>
           ))}
-          {q.trim() && !total && !groups.length && (() => { const dym = didYouMean(q); return (
+          {loading && <p className="sb-loading" role="status"><span className="sb-spin" aria-hidden="true" /> Buscando…</p>}
+          {q.trim() && !loading && !total && !groups.length && (() => { return (
             <p className="sb-empty">Nada encontrado para “{q.trim()}”.{" "}
               {dym ? <>Você quis dizer <button type="button" className="link-btn strong" onMouseDown={(e) => e.preventDefault()} onClick={() => { setQ(dym); input.current?.focus(); }}>{dym}</button>?</>
                 : <>Tente outra palavra ou veja <a href={href("/lugares")} onClick={(e) => { setOpen(false); onNavigate?.(); openPath("/lugares", e); }}>todos os lugares</a>.</>}

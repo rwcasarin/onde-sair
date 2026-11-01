@@ -5,7 +5,7 @@ import { isPast, venueName, cardWhen } from "../events.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
-import { href, go, toPath } from "../router.js";
+import { href, go, toPath, goTop } from "../router.js";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { SITE } from "../admin/store.js";
 import { MenuLink } from "./ui.jsx";
@@ -78,7 +78,7 @@ export function SectionHead({ title, sub, link, onLink, to }) {
       <h2>{title}</h2>
       {sub && <p>{sub}</p>}
       {link && (
-        <a href={to ? href(to) : "#"} className="h2-link" onClick={(e) => { e.preventDefault(); to ? (go(to), window.scrollTo(0, 0)) : onLink?.(); }}>
+        <a href={to ? href(to) : "#"} className="h2-link" onClick={(e) => { e.preventDefault(); to ? goTop(to) : onLink?.(); }}>
           {link} <Icon name="arrow" size={16} />
         </a>
       )}
@@ -109,7 +109,7 @@ export function HeroMedia({ img, note, words = ["Mais cultura", "Mais encontros"
             <polygon points="0,0 80,0 80,80" fill="var(--primary)" />
             <polygon points="0,0 40,40 0,80" fill="#fff" />
           </svg>
-          <ul className="hero2-geo-words">{words.map(w => <li key={w}>{w}</li>)}</ul>
+          <ul className="hero2-geo-words">{words.map((w, i) => <li key={i}>{w}</li>)}</ul>
           <span className="hero2-geo-mark"><OSIcon /></span>
         </div>
       </div>

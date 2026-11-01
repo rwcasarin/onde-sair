@@ -1,8 +1,10 @@
 // Conteúdo por página: o site pede só o que a tela do endereço precisa (GET /api/content?view=/caminho).
 // Recebe o recorte público (publicView) e devolve um pedaço dele com o mesmo formato.
 // Toda resposta traz listas (places, roteiros, stories, events), mesmo vazias, e `complete` (as que vieram
-// inteiras); o detalhe de um lugar traz também `pins` (os outros da cidade, só para o mapa). Com `shell`,
+// inteiras). Com `shell`,
 // também o que todas as telas usam (configurações, menus, cidades, vibes, páginas, notificações).
+
+import { upcoming } from "../src/events.js";
 
 const slugify = (s = "") => s.toString().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/['’]/g, "")
   .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -28,22 +30,18 @@ function cityRoteiros(pv, p) {
   const byId = new Map(pv.places.map(x => [x.id, x]));
   return pv.roteiros.filter(r => roteiroPlaces(r).includes(p.id) || byId.get(roteiroPlaces(r).find(id => byId.has(id)))?.city === p.city);
 }
-// pin do mapa: só o que o mapa e o card dele mostram
-const PIN = ["id", "slug", "name", "sub", "type", "city", "bairro", "end", "cep", "geo", "map", "affs"];
-const pin = (p) => Object.fromEntries(PIN.filter(k => p[k] !== undefined).map(k => [k, p[k]]));
 
 // Listas que a tela usa por inteiro: com elas já completas na memória, o site abre a tela sem pedir nada
 export function viewCovers(path) {
   const [a, b] = String(path || "/").split("?")[0].split("/").filter(Boolean);
   switch (a) {
-    case undefined: case "busca": case "perfil": case "favoritos": return ["places", "roteiros", "stories", "events"];
-    case "lugares": return b ? ["places", "roteiros"] : ["places"];
-    case "vibes": return ["places", "roteiros"];
-    case "guia": return ["places"];
-    case "roteiros": return ["roteiros", "places"];
-    case "radar": case "historias": return ["stories", "places"];
-    case "eventos": return ["events", "places"];
-    default: return [];                              // só o básico
+    case undefined: case "perfil": case "favoritos": return ["places", "roteiros", "stories", "events"];
+    case "lugares": return b ? ["places", "roteiros"] : [];
+    case "guia": return b ? ["places"] : [];          // /guia/{lugar}: o endereço precisa achar o lugar
+    case "roteiros": return b ? ["roteiros", "places"] : [];
+    case "radar": case "historias": return b ? ["stories", "places"] : [];
+    case "eventos": return b ? ["events", "places"] : [];
+    default: return [];                              // listas (pedem a própria página), Guia, busca e páginas: só o básico
   }
 }
 
@@ -54,21 +52,24 @@ function need(pv, path) {
   switch (a) {
     case undefined: {                               // home: dicas do dia, posts em destaque e agenda
       const home = pv.home || {};
-      return { placeIds: (home.tips || []).map(t => t.place), storyIds: home.storyIds || [], roteiroIds: (home.vibeRoteiros || []).map(v => v.roteiro), events: true };
+      // agenda: os próximos 6 de cada cidade (a home mostra os da cidade escolhida)
+      const cities = [...new Set((pv.events || []).map(e => e.city))];
+      const eventIds = cities.flatMap(c => upcoming((pv.events || []).filter(e => e.city === c)).slice(0, 6).map(e => e.id));
+      return { placeIds: (home.tips || []).map(t => t.place), storyIds: home.storyIds || [], roteiroIds: (home.vibeRoteiros || []).map(v => v.roteiro), eventIds };
     }
     case "lugares": {
-      if (!b) return { places: true };
+      if (!b) return {};                            // a lista pede a própria página (src/listings.js)
       const p = bySlug(pv.places, b);
       if (!p) return {};
-      // detalhe: o lugar, os 2 do "Confira também", os roteiros da cidade e os outros da cidade só como pins do mapa
-      return { placeIds: [p.id, ...similarTo(pv.places, p).map(x => x.id)], roteiroIds: cityRoteiros(pv, p).map(r => r.id), pinsCity: p.city, pinsBut: p.id };
+      // detalhe: o lugar, os 2 do "Confira também" e os roteiros da cidade (os pins do mapa vêm quando ele aparece)
+      return { placeIds: [p.id, ...similarTo(pv.places, p).map(x => x.id)], roteiroIds: cityRoteiros(pv, p).map(r => r.id) };
     }
-    case "vibes": return { places: true, roteiros: true };
-    case "guia": return { places: true };
-    case "roteiros": return { roteiros: true };
-    case "radar": case "historias": return { stories: true };
-    case "eventos": return { events: true };
-    case "busca": case "perfil": case "favoritos": return all;   // busca em tudo; área da conta (favoritos, roteiros, eventos)
+    case "guia": { const p = b && bySlug(pv.places, b); return p ? { placeIds: [p.id] } : {}; }
+    // listas, Guia e busca pedem os próprios dados; os detalhes usam os vizinhos ("mais roteiros/posts/eventos")
+    case "roteiros": return b ? { roteiros: true } : {};
+    case "radar": case "historias": return b ? { stories: true } : {};
+    case "eventos": return b ? { events: true } : {};
+    case "perfil": case "favoritos": return all;     // área da conta (favoritos, roteiros, eventos)
     default: return {};                              // páginas, login, cidade, notificações: só o básico
   }
 }
@@ -81,7 +82,8 @@ export function pageView(pv, path, { shell = true, have = [] } = {}) {
   const roteiros = n.roteiros ? pv.roteiros : pv.roteiros.filter(r => roteiroIds.has(r.id) || (n.roteiroWith && roteiroPlaces(r).includes(n.roteiroWith)));
   const storyIds = new Set(n.storyIds || []);
   const stories = n.stories ? pv.stories : pv.stories.filter(s => storyIds.has(s.id));
-  const events = n.events ? (pv.events || []) : [];
+  const eventIds = new Set(n.eventIds || []);
+  const events = n.events ? (pv.events || []) : (pv.events || []).filter(e => eventIds.has(e.id));
   // lugares citados no que vai junto (para nomes, fotos e cidade)
   roteiros.forEach(r => roteiroPlaces(r).forEach(id => places.add(id)));
   stories.forEach(s => storyPlaces(s).forEach(id => places.add(id)));
@@ -92,7 +94,6 @@ export function pageView(pv, path, { shell = true, have = [] } = {}) {
     // listas que foram inteiras
     complete: [n.places && "places", n.roteiros && "roteiros", n.stories && "stories", n.events && "events"].filter(Boolean),
   };
-  if (n.pinsCity && !have.includes("places")) out.pins = pv.places.filter(p => p.city === n.pinsCity && p.id !== n.pinsBut && !places.has(p.id)).map(pin);
   for (const k of have) if (out[k]) { out[k] = []; out.complete = out.complete.filter(c => c !== k); }
   if (shell) {
     for (const k of SHELL_KEYS) if (pv[k] !== undefined) out[k] = pv[k];

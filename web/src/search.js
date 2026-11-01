@@ -116,6 +116,8 @@ function docsOf() {
 }
 
 let cache = { sig: "", docs: [] };
+// o servidor troca o conteúdo nos mesmos arrays: zera o índice
+export function resetSearchCache() { cache = { sig: null, docs: [] }; }
 export function searchDocs() {
   const sig = [PLACES, ROTEIROS, ALL_STORIES, EVENTS, PAGES].map(l => l.length + (l[0]?.id || "") + (l[0]?.updatedAt || "")).join("|") + SITE.eventsHidden + SITE.roteirosHidden + SITE.eventsPaused + SITE.roteirosPaused;
   if (sig !== cache.sig) cache = { sig, docs: docsOf() };
