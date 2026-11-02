@@ -52,9 +52,9 @@ function need(pv, path) {
   switch (a) {
     case undefined: {                               // home: dicas do dia, posts em destaque e agenda
       const home = pv.home || {};
-      // agenda: os próximos 6 de cada cidade (a home mostra os da cidade escolhida)
+      // agenda: os próximos 8 de cada cidade (a home mostra os da cidade escolhida, de 4 em 4)
       const cities = [...new Set((pv.events || []).map(e => e.city))];
-      const eventIds = cities.flatMap(c => upcoming((pv.events || []).filter(e => e.city === c)).slice(0, 6).map(e => e.id));
+      const eventIds = cities.flatMap(c => upcoming((pv.events || []).filter(e => e.city === c)).slice(0, 8).map(e => e.id));
       return { home: true, placeIds: (home.tips || []).map(t => t.place), storyIds: home.storyIds || [], roteiroIds: (home.vibeRoteiros || []).map(v => v.roteiro), eventIds };
     }
     case "lugares": {

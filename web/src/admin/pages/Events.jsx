@@ -326,7 +326,7 @@ function EventForm({ initial, isNew }) {
       side={<>
         <PublishPanel coll="events" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
         {draft.submittedBy && (
-          <Card title="Enviado pelo site">
+          <Card title="Enviado pelo site" collapsible>
             <dl className="a-meta">
               <div><dt>Quem enviou</dt><dd>{draft.submittedBy.name}</dd></div>
               {draft.submittedBy.email && <div><dt>E-mail da conta</dt><dd><a href={`mailto:${draft.submittedBy.email}`}>{draft.submittedBy.email}</a></dd></div>}
@@ -336,7 +336,7 @@ function EventForm({ initial, isNew }) {
             <p className="a-hint">{draft.status === "revisao" ? "Revise os dados (e a foto, se veio) e publique para aprovar. Para recusar, arquive: a pessoa vê “Não aprovado” em Meus eventos." : "Quem enviou acompanha a situação em Meus eventos."}</p>
           </Card>
         )}
-        <Card title="Prévia do card">
+        <Card title="Prévia do card" collapsible>
           <div className="a-preview" aria-hidden="true">
             <EventCard e={{ ...draft, id: previewId, title: draft.title || "Nome do evento", tagline: draft.tagline || "Frase de destaque do evento.", venueName: venue?.name || draft.venueName }} />
           </div>

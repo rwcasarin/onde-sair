@@ -82,7 +82,7 @@ function PageForm({ initial, isNew }) {
       </>}
       side={<>
         <PublishPanel coll="pages" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
-        <Card title="Menus">
+        <Card title="Menus" collapsible>
           {inMenus.length ? <p className="a-hint">Aparece em: <strong>{inMenus.join(", ")}</strong>.</p>
             : <p className="a-hint">Ainda não está em nenhum menu. A página fica acessível pelo endereço.</p>}
           <Btn kind="ghost" size="sm" icon="menu" onClick={() => go("menus")}>Gerenciar menus</Btn>

@@ -174,7 +174,7 @@ export function ActivityPage() {
     <>
       <PageHeader title="Atividade" subtitle="Registro de tudo o que a equipe fez no painel." crumbs={[["Painel", "/"], ["Atividade"]]} />
       <Card pad={false}>
-        <div className="a-card-pad"><Toolbar search={q} onSearch={setQ} placeholder="Buscar por pessoa ou conteúdo…"><FilterSelect label="Tipo" value={type} onChange={setType} options={types} /></Toolbar></div>
+        <div className="a-card-pad"><Toolbar search={q} onSearch={setQ} placeholder="Buscar por pessoa ou conteúdo…" active={type ? 1 : 0}><FilterSelect label="Tipo" value={type} onChange={setType} options={types} /></Toolbar></div>
         <div className="a-card-pad"><ActivityList items={items} /></div>
       </Card>
     </>

@@ -42,6 +42,7 @@ const EXTRA = {
   alert:     <><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4M12 17h.01" /></>,
   info:      <><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></>,
   menu:      <path d="M4 6h16M4 12h16M4 18h16" />,
+  more:      <><circle cx="5" cy="12" r="1.2" fill="currentColor" /><circle cx="12" cy="12" r="1.2" fill="currentColor" /><circle cx="19" cy="12" r="1.2" fill="currentColor" /></>,
   filter:    <path d="M22 3H2l8 9.46V19l4 2v-8.54Z" />,
   send2:     <><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></>,
   ban:       <><circle cx="12" cy="12" r="10" /><path d="m4.9 4.9 14.2 14.2" /></>,
@@ -100,16 +101,41 @@ export function PageHeader({ title, subtitle, crumbs, actions, children, nav }) 
   );
 }
 
-export function Card({ title, subtitle, actions, children, className = "", pad = true }) {
+// Celular (até 720px): o painel troca tabelas por cards, recolhe filtros e seções e usa botões flutuantes
+const MOBILE_Q = "(max-width: 720px)";
+export function useMobile() {
+  const get = () => typeof window !== "undefined" && !!window.matchMedia?.(MOBILE_Q).matches;
+  const [m, setM] = useState(get);
+  useEffect(() => {
+    const mq = window.matchMedia?.(MOBILE_Q);
+    if (!mq) return;
+    const on = () => setM(mq.matches);
+    on(); mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
+  return m;
+}
+
+// collapsible: no celular a seção vira uma sanfona (aberta só se defaultOpen); no computador fica sempre aberta
+export function Card({ title, subtitle, actions, children, className = "", pad = true, collapsible, defaultOpen = false }) {
+  const mobile = useMobile();
+  const [open, setOpen] = useState(defaultOpen);
+  const fold = collapsible && mobile && (title || subtitle);
+  const shut = fold && !open;
   return (
-    <section className={"a-card" + (pad ? "" : " no-pad") + (className ? " " + className : "")}>
-      {(title || actions) && (
+    <section className={"a-card" + (pad ? "" : " no-pad") + (fold ? " a-fold" + (shut ? " shut" : "") : "") + (className ? " " + className : "")}>
+      {(title || actions || fold) && (
         <header className="a-card-head">
-          <div>{title && <h2>{title}</h2>}{subtitle && <p>{subtitle}</p>}</div>
-          {actions && <div className="a-card-actions">{actions}</div>}
+          {fold
+            ? <button type="button" className="a-fold-btn" aria-expanded={!shut} onClick={() => setOpen(!open)}>
+                <div>{title && <h2>{title}</h2>}{subtitle && <p>{subtitle}</p>}</div>
+                <AIcon name="chevron" size={16} />
+              </button>
+            : <div>{title && <h2>{title}</h2>}{subtitle && <p>{subtitle}</p>}</div>}
+          {actions && !shut && <div className="a-card-actions">{actions}</div>}
         </header>
       )}
-      {children}
+      {!shut && children}
     </section>
   );
 }
@@ -497,7 +523,7 @@ export function DataTable({ columns, rows, getId = (r) => r.id, onRowClick, bulk
               return (
                 <tr key={id} className={(sel.has(id) ? "sel " : "") + (onRowClick ? "click" : "")} onClick={onRowClick ? (e) => { if (!e.target.closest("button,a,input,label")) onRowClick(r); } : undefined}>
                   {bulkActions && <td className="a-col-check"><Check checked={sel.has(id)} onChange={(v) => { const n = new Set(sel); v ? n.add(id) : n.delete(id); setSel(n); }} aria-label="Selecionar linha" /></td>}
-                  {columns.map(c => <td key={c.key} className={c.align ? "a-" + c.align : ""}>{c.render ? c.render(r) : r[c.key]}</td>)}
+                  {columns.map((c, i) => <td key={c.key} data-label={typeof c.label === "string" && i > 0 ? c.label : undefined} className={(c.align ? "a-" + c.align : "") + (i === 0 ? " a-col-main" : "") + (c.key === "_a" ? " a-col-actions" : "")}>{c.render ? c.render(r) : r[c.key]}</td>)}
                 </tr>
               );
             })}
@@ -518,15 +544,25 @@ export function DataTable({ columns, rows, getId = (r) => r.id, onRowClick, bulk
 }
 
 // Barra de busca + filtros acima das tabelas
-export function Toolbar({ search, onSearch, placeholder = "Buscar…", children, right }) {
+// active: quantos filtros estão em uso (no celular os filtros ficam atrás do botão "Filtros")
+export function Toolbar({ search, onSearch, placeholder = "Buscar…", children, right, active = 0 }) {
+  const mobile = useMobile();
+  const [open, setOpen] = useState(false);
+  const has = [].concat(children).filter(Boolean).length > 0;
+  const fold = mobile && has;
   return (
-    <div className="a-toolbar">
+    <div className={"a-toolbar" + (fold ? " a-toolbar-fold" : "")}>
       <label className="a-search">
         <AIcon name="search" size={16} />
         <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder={placeholder} aria-label="Buscar" />
         {search && <button type="button" aria-label="Limpar busca" onClick={() => onSearch("")}><AIcon name="x" size={14} /></button>}
       </label>
-      {children}
+      {fold && (
+        <button type="button" className={"a-filters-btn" + (open || active ? " on" : "")} aria-expanded={open} onClick={() => setOpen(!open)}>
+          <AIcon name="filter" size={16} /> Filtros{active > 0 && <span className="a-tab-badge">{active}</span>}
+        </button>
+      )}
+      {(!fold || open) && has && <div className="a-toolbar-filters">{children}</div>}
       {right && <div className="a-toolbar-right">{right}</div>}
     </div>
   );

@@ -1238,9 +1238,9 @@ a.btn-pill { text-decoration: none; }
 .event-hours-list li.is-today { background: #FFF4C7; }
 .event-hours-list li.is-today span { color: var(--heading); font-weight: 700; }
 /* Home: eventos em uma única linha (rola de lado quando a tela é estreita) */
-.events-row { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 6px; scrollbar-width: thin; }
-.events-row > .rot-index-card { flex: 1 0 190px; min-width: 190px; scroll-snap-align: start; }
-@media (max-width: 900px) { .events-row > .rot-index-card { flex-basis: 250px; min-width: 250px; } }
+/* agenda da home: de 4 em 4 (no celular, de 2 em 2) */
+.events-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 900px) { .events-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Enviar evento (usuário) */
 .ev-side { position: sticky; top: 96px; display: grid; gap: 12px; }
@@ -1626,8 +1626,7 @@ body.search-lock { overflow: hidden; }
 @media (max-width: 640px) {
   .listing-grid, .tips-grid.tips-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   /* agenda da home: de dois em dois, sem rolagem para o lado */
-  .events-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; overflow: visible; padding-bottom: 0; }
-  .events-row > .rot-index-card { min-width: 0; }
+  .events-row { gap: 10px; }
 }
 /* cards de dois em dois: mais compactos */
 @media (max-width: 640px) {
