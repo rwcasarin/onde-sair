@@ -175,7 +175,7 @@ export default function AdminApp() {
               );
             })}
           </nav>
-          <a className="a-side-site" href="#" onClick={(e) => { e.preventDefault(); goPath("/"); }}>
+          <a className="a-side-site" href={href("/")} target="_blank" rel="noopener" onClick={() => setMenuOpen(false)}>
             <AIcon name="ext" size={16} /> Ver o site
           </a>
         </aside>
@@ -204,7 +204,7 @@ export default function AdminApp() {
                   title="Login, cadastro e interações dos usuários estão pausados"><i /> <span className="a-sync-label">Contas pausadas</span></a>
               )}
               <SyncPill />
-              <a className="a-btn a-btn-ghost a-btn-sm a-hide-sm" href="#" onClick={(e) => { e.preventDefault(); goPath("/"); }}><AIcon name="ext" size={15} /> Ver site</a>
+              <a className="a-btn a-btn-ghost a-btn-sm a-hide-sm" href={href("/")} target="_blank" rel="noopener"><AIcon name="ext" size={15} /> Ver site</a>
               <div className="a-user">
                 <button type="button" className="a-user-btn" aria-haspopup="menu" aria-expanded={userMenu} onClick={() => setUserMenu(!userMenu)}>
                   <span className="a-avatar">{user.name.split(" ").map(s => s[0]).slice(0, 2).join("")}</span>
@@ -216,7 +216,7 @@ export default function AdminApp() {
                     <div className="a-user-menu-head"><strong>{user.name}</strong><span>{user.email}</span></div>
                     {can(user, "team.manage") && <button role="menuitem" type="button" onClick={() => { setUserMenu(false); go("equipe"); }}><AIcon name="shield" size={16} /> Equipe e permissões</button>}
                     <button role="menuitem" type="button" onClick={() => { setUserMenu(false); setPwOpen(true); }}><AIcon name="lock" size={16} /> Alterar senha</button>
-                    <button role="menuitem" type="button" onClick={() => { setUserMenu(false); goPath("/"); }}><AIcon name="ext" size={16} /> Ver o site</button>
+                    <a role="menuitem" href={href("/")} target="_blank" rel="noopener" onClick={() => setUserMenu(false)}><AIcon name="ext" size={16} /> Ver o site</a>
                     <button role="menuitem" type="button" onClick={doLogout}><AIcon name="logout" size={16} /> Sair</button>
                   </div>
                 )}

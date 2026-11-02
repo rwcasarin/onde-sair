@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AIcon, Btn, Card, DataTable, PageHeader, StatusBadge, Tabs, Toolbar, FilterSelect, Select, useAdmin, Modal, useMobile,
 } from "../kit.jsx";
-import { go as goPath, toPath } from "../../router.js";
+import { toPath, href } from "../../router.js";
 import { STATUS, can, relTime, fmtDate, setStatus, removeItems, duplicateItem, saveItem, isLive, adoptNewMedia } from "../store.js";
 
 export const COLL = {
@@ -14,10 +14,9 @@ export const COLL = {
   pages:    { one: "página", many: "páginas", path: "paginas", title: (x) => x.title, siteScreen: "pagina" },
 };
 
-// Abre o site público já na página do conteúdo (URL pelo slug)
+// Abre o site público numa nova aba, já na página do conteúdo (URL pelo slug); o painel continua aberto
 export function openOnSite(screen, params = {}) {
-  goPath(toPath(screen, params));
-  window.scrollTo(0, 0);
+  window.open(href(toPath(screen, params)), "_blank", "noopener");
 }
 
 // ---------------------------------------------------------------------
