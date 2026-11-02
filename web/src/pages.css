@@ -1694,3 +1694,13 @@ body.search-lock { overflow: hidden; }
 .act-btn.act-round .act-label { display: none; }
 .act-btn.act-round.on { border-color: var(--c-magenta); }
 @media (max-width: 400px) { .act-icons { gap: 8px; } .act-icons .act-btn.act-round { width: 46px; height: 46px; } }
+
+/* celular: lista/mapa à direita */
+@media (max-width: 640px) { .results-bar .view-toggle { margin-left: auto; } }
+
+/* Guia da cidade: pins na cor e com o ícone do tipo do lugar */
+.gpin-type .gpin-head { width: 32px; height: 32px; background: var(--vibe-ink); color: #fff; border: 2px solid #fff; box-shadow: 0 4px 10px -3px rgba(30,21,80,.45); }
+.gpin-type:hover .gpin-head { border-color: #fff; transform: rotate(-45deg) scale(1.12); }
+.gpin-type.on .gpin-head { width: 42px; height: 42px; background: var(--vibe-ink); border: 3px solid #fff; }
+.gpin-type .gpin-head svg { width: 58%; height: 58%; }
+.guide-type { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 7px; border-radius: 999px; background: var(--vibe-ink); color: #fff; vertical-align: -5px; flex-shrink: 0; }

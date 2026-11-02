@@ -150,8 +150,20 @@ export function PageHead({ crumbs, back, eyebrow, title, lede, children }) {
 // ---------- Cards ----------
 // Card de lugar da listagem (3 por linha)
 // Etiqueta do tipo de lugar (mesmo estilo das vibes nos cards de roteiro)
+// tipo de lugar pelo nome guardado no cadastro. Tolera nomes renomeados no painel
+// ("Cafés e padarias" → "Cafés, doces e padarias"): compara sem acentos e conectivos, e também pelo id
+const typeKey = (s = "") => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-").split("-").filter(w => w && !["e", "de", "do", "da", "dos", "das"].includes(w));
+export function findType(label) {
+  if (!label) return null;
+  const k = typeKey(label), same = (a, b) => a.join("-") === b.join("-");
+  return TYPES.find(t => t.label === label) || TYPES.find(t => same(typeKey(t.label), k) || same(typeKey(t.id), k))
+    || TYPES.find(t => { const tk = typeKey(t.label); return k.length > 1 && k.every(w => tk.includes(w)); }) || null;
+}
+export const typeOf = (place) => findType(place?.type);
+
 export function TypePill({ type }) {
-  const t = TYPES.find(x => x.label === type);
+  const t = findType(type);
   if (!type) return null;
   return <span className={"vibe-pill vibe-pill-sm " + (t?.cls || "vibe-lavender")}><span className="vibe-pill-icon"><Icon name={t?.icon || "pin"} size={12} /></span>{type}</span>;
 }
@@ -296,7 +308,7 @@ export function MapArt({ pins = [], route = false, park = true, className = "", 
       {pins.map((p, i) => (
         <button
           key={i}
-          className={"map-art-pin" + (p.active ? " active" : "") + (p.num ? " numbered" : "")}
+          className={"map-art-pin" + (p.active ? " active" : "") + (p.num ? " numbered" : "") + (p.cls ? " " + p.cls : "")}
           style={{ left: p.x + "%", top: p.y + "%", "--pin": p.color || "var(--primary)" }}
           onClick={p.onClick} tabIndex={p.onClick ? 0 : -1} aria-label={p.title || p.label}
         >

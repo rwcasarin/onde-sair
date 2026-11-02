@@ -37,7 +37,8 @@ export function priceLabel(e) {
   return "Consulte valores";
 }
 
-export const isPast = (e, now = new Date()) => { const f = parseLocal(e.endAt) || parseLocal(e.startAt); return !!f && f < now; };
+// "Sempre ativo" (ligado no painel): o evento nunca encerra e vale para qualquer dia e horário
+export const isPast = (e, now = new Date()) => { if (e.alwaysOn) return false; const f = parseLocal(e.endAt) || parseLocal(e.startAt); return !!f && f < now; };
 export const isHappening = (e, now = new Date()) => { const s = parseLocal(e.startAt), f = parseLocal(e.endAt); return !!s && !!f && s <= now && now <= f; };
 export const byDate = (a, b) => (parseLocal(a.startAt) || 0) - (parseLocal(b.startAt) || 0);
 export const upcoming = (list, now = new Date()) => list.filter(e => !isPast(e, now)).sort(byDate);
@@ -60,6 +61,7 @@ export const WHEN = [
 ];
 // o evento acontece (ao menos em parte) dentro do intervalo
 export function inRange(e, [from, to]) {
+  if (e.alwaysOn) return true;
   const s = parseLocal(e.startAt), f = parseLocal(e.endAt) || s;
   return !!s && s < to && f >= from;
 }
