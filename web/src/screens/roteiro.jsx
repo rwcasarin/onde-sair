@@ -68,7 +68,7 @@ function RoteiroView({ r, mine = false }) {
 
   const tags = (r.tags || []).map(t => Array.isArray(t) ? t[0] : t).filter(Boolean);
   const hasTips = tips.dica || tips.horario || tips.epoca || tips.comoChegar || tips.lembrete;
-  const TABS = [["visao", "Visão geral"], ["paradas", "Paradas"], ["mapa", "Mapa"], ...(hasTips ? [["dicas", "Dicas"]] : []), ["confira", "Confira também"]];
+  const TABS = [["visao", "Visão geral"], ["paradas", "Paradas"], ["mapa", "Mapa"], ["info", "Informações úteis", "Informações"], ...(hasTips ? [["dicas", "Dicas"]] : []), ["confira", "Confira também"]];
   function goTab(t) { setTab(t); document.getElementById("sec-" + t)?.scrollIntoView({ behavior: "smooth", block: "start" }); }
   async function share() {
     try {
@@ -207,7 +207,7 @@ function RoteiroView({ r, mine = false }) {
             </div>
             <PlaceMap className="where-map where-map-lg rot-map" route activeId={mapSel} onSelect={setMapSel} items={mapItems} />
           </div>
-          <div className="info-box">
+          <div className="info-box" id="sec-info">
             <h2 className="h2t">Informações úteis</h2>
             <dl>
               {r.stats.tempo && <div><Icon name="clock" size={20} /><dt>Tempo total</dt><dd>{r.stats.tempo}</dd></div>}

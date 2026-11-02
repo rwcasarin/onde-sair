@@ -1712,3 +1712,7 @@ body.search-lock { overflow: hidden; }
 .insta-btn:hover, .insta-btn:focus-visible { background: radial-gradient(circle at 30% 107%, #FDF497 0%, #FDF497 5%, #FD5949 45%, #D6249F 60%, #285AEB 90%); border-color: transparent; color: #fff; }
 .insta-btn:focus-visible { outline: 3px solid var(--c-teal); outline-offset: 2px; }
 .insta-btn + .place-tags { margin-top: 12px; }
+
+/* aba com nome curto no celular ("Informações úteis" → "Informações") */
+.page-tab-short { display: none; }
+@media (max-width: 760px) { .page-tabs .page-tab-long { display: none; } .page-tabs .page-tab-short { display: inline; } }
