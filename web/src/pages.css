@@ -261,7 +261,11 @@
   flex-shrink: 0; padding: 14px 24px 12px; border: 0; border-bottom: 3px solid transparent; background: none;
   font-size: 13.5px; color: var(--ink-2);
 }
-.page-tabs button.on { color: var(--heading); font-weight: 700; border-bottom-color: var(--heading); }
+.page-tabs button { transition: color .15s, border-color .15s, background .15s; }
+.page-tabs button:hover { color: var(--primary); }
+.page-tabs button { font-weight: 500; }
+.page-tabs button.on { color: var(--primary); font-weight: 700; border-bottom-color: var(--primary); background: var(--primary-soft); border-radius: 10px 10px 0 0; }
+.page-tabs button.on .page-tab-icon { color: var(--primary); }
 .place-body { padding-top: 28px; }
 [id^="sec-"] { scroll-margin-top: 150px; }
 .place-row { display: grid; gap: 28px; margin-bottom: 34px; align-items: start; }
@@ -1685,7 +1689,7 @@ body.search-lock { overflow: hidden; }
     padding: 8px 2px 7px; font-size: 10.5px; line-height: 1.15; text-align: center; white-space: normal;
     color: var(--ink-3); border-bottom: 0; border-top: 2px solid transparent; margin-top: -1px;
   }
-  .page-tabs button.on { color: var(--heading); font-weight: 700; border-top-color: var(--heading); }
+  .page-tabs button.on { color: var(--primary); font-weight: 700; border-top: 3px solid var(--primary); margin-top: -2px; background: var(--primary-soft); border-radius: 0 0 12px 12px; }
   .page-tab-icon { display: block; flex-shrink: 0; }
   body:has(.page-tabs) { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
 }
@@ -1717,3 +1721,10 @@ body.search-lock { overflow: hidden; }
 @media (max-width: 760px) { .page-tabs .page-tab-long { display: none; } .page-tabs .page-tab-short { display: inline; } }
 /* topo do evento: selo (Agora / Encerrado) no lugar do ícone, como nos cards */
 .place-meta .event-meta-when .event-status { margin-left: 0; }
+
+/* Guia da cidade: com um lugar selecionado, os outros pinos e ícones ficam esmaecidos */
+.guide-map:has(.gpin.on) .gpin:not(.on), .guide-map:has(.map-art-pin.active) .map-art-pin:not(.active) { opacity: .38; transition: opacity .2s; }
+.guide-map .gpin:not(.on):hover, .guide-map .map-art-pin:not(.active):hover { opacity: 1; }
+.guide-map .gpin.on, .guide-map .map-art-pin.active { z-index: 5; }
+.guide-list:has(.guide-item.on) .guide-item:not(.on) .guide-type { opacity: .38; transition: opacity .2s; }
+.guide-list .guide-item:not(.on):hover .guide-type { opacity: 1; }
