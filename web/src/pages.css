@@ -1715,3 +1715,5 @@ body.search-lock { overflow: hidden; }
 /* aba com nome curto no celular ("Informações úteis" → "Informações") */
 .page-tab-short { display: none; }
 @media (max-width: 760px) { .page-tabs .page-tab-long { display: none; } .page-tabs .page-tab-short { display: inline; } }
+/* topo do evento: selo (Agora / Encerrado) no lugar do ícone, como nos cards */
+.place-meta .event-meta-when .event-status { margin-left: 0; }

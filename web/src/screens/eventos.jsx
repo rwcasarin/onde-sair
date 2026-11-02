@@ -18,7 +18,7 @@ import { eventPath } from "../router.js";
 import { usePagedFilters, useListing, listItems, labelOf, Pagination, FilterPanel, FilterBlock, SearchBlock, CheckList, CheckRow, ResultsBar, ActiveChips } from "../filters.jsx";
 import { vibeFromSlug, vibeSlug } from "./roteiroslista.jsx";
 import {
-  WHEN, inRange, isPast, isHappening, byDate, whenLabel, priceLabel,
+  WHEN, inRange, isPast, byDate, whenLabel, priceLabel, cardWhen,
   eventVenue, venueName, googleCalendarUrl, googleCoversAll, icsHref, eventDays, periodLines, dayLabel, hoursLabel, defaultDay, todayYmd, sameHoursAllDays,
 } from "../events.js";
 
@@ -166,7 +166,10 @@ export function Evento({ id }) {
   const venue = eventVenue(e);
   const where = venueName(e);
   const address = fullAddress(e);
-  const past = isPast(e), live = isHappening(e);
+  const past = isPast(e);
+  // data e situação iguais às do selo dos cards (AGORA / HOJE / dia / encerrado)
+  const tag = cardWhen(e);
+  const live = tag?.kind === "live";
   const saved = faves.has(e.id);
   const insta = instaProfile(e.insta);
   const whats = whatsappLink(e.whatsapp);
@@ -184,6 +187,7 @@ export function Evento({ id }) {
   const pageUrl = typeof location !== "undefined" ? location.origin + eventPath(e) : "";
   const gcalUrl = googleCalendarUrl(e, calWhere, pageUrl);
   // selo de situação (mesmas cores do bloco de data dos cards): acontecendo agora ou encerrado
+  const whenText = !tag ? "Data a confirmar" : live ? tag.text.replace(/^Acontecendo /, "") : tag.text;
   const status = live ? <span className="event-status is-live"><i aria-hidden="true" />Agora</span>
     : past ? <span className="event-status is-past">Encerrado</span> : null;
 
@@ -216,7 +220,7 @@ export function Evento({ id }) {
           <h1 className="page-title">{e.title}</h1>
           {e.tagline && <p className="hero2-lede">{e.tagline}</p>}
           <ul className="place-meta">
-            <li><Icon name="calendar" size={18} /> {whenLabel(e)}{status}</li>
+            <li className="event-meta-when">{status || <Icon name="calendar" size={18} />} {whenText}</li>
             {where && <li><Icon name="pin" size={18} fill /> {where}{e.bairro ? ` · ${e.bairro}` : ""}</li>}
           </ul>
           <div className="place-actions">
