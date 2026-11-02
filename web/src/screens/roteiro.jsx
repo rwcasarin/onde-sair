@@ -105,24 +105,24 @@ function RoteiroView({ r, mine = false }) {
                 <button className="act-cta" onClick={() => nav("meuRoteiroEditar", { id: r.id })}><Icon name="list" size={18} /> Editar roteiro</button>
               </div>
               <div className="act-row act-sub">
-                <button className="act-btn act-sm" onClick={() => nav("meuRoteiroEditar", { id: "novo", copiar: r.id })} aria-label="Duplicar"><Icon name="copy" size={17} /><span className="act-label">Duplicar</span></button>
-                <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+                <button className="act-btn act-round" onClick={() => nav("meuRoteiroEditar", { id: "novo", copiar: r.id })} aria-label="Duplicar" title="Duplicar"><Icon name="copy" size={19} /></button>
+                <button className={"act-btn act-round" + (shared ? " on" : "")} onClick={share} aria-label={shared ? "Link copiado" : "Compartilhar"} title={shared ? "Link copiado" : "Compartilhar"}><Icon name={shared ? "check" : "share"} size={19} /></button>
                 {confirmDel
                   ? <span className="inline-confirm">Excluir este roteiro?
                       <button className="btn-danger" onClick={async () => { await deleteMyRoteiro(r.id); nav("perfil", { tab: "meus" }); }}>Excluir</button>
                       <button className="btn-outline" onClick={() => setConfirmDel(false)}>Cancelar</button></span>
-                  : <button className="act-btn act-sm" onClick={() => setConfirmDel(true)} aria-label="Excluir"><Icon name="x" size={17} /><span className="act-label">Excluir</span></button>}
+                  : <button className="act-btn act-round" onClick={() => setConfirmDel(true)} aria-label="Excluir" title="Excluir"><Icon name="x" size={19} /></button>}
               </div>
             </> : (
-              // favoritar, copiar e adaptar, compartilhar: mesmo estilo (só ícone, texto no hover)
+              // favoritar, copiar e adaptar, compartilhar: mesmo tamanho, só ícone (o nome aparece ao passar o mouse)
               <div className="act-row act-sub">
                 {!paused && <>
-                  <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
-                    <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
+                  <button className={"act-btn act-round" + (saved ? " on" : "")} onClick={() => toggle(r.id)} aria-pressed={saved} aria-label={saved ? "Favoritado" : "Favoritar"} title={saved ? "Favoritado" : "Favoritar"}>
+                    <Icon name="heart" size={19} fill={saved} />
                   </button>
-                  {!roteirosPaused && <button className="act-btn act-sm" onClick={copy} aria-label="Copiar e adaptar"><Icon name="copy" size={17} /><span className="act-label">Copiar e adaptar</span></button>}
+                  {!roteirosPaused && <button className="act-btn act-round" onClick={copy} aria-label="Copiar e adaptar" title="Copiar e adaptar"><Icon name="copy" size={19} /></button>}
                 </>}
-                <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+                <button className={"act-btn act-round" + (shared ? " on" : "")} onClick={share} aria-label={shared ? "Link copiado" : "Compartilhar"} title={shared ? "Link copiado" : "Compartilhar"}><Icon name={shared ? "check" : "share"} size={19} /></button>
               </div>
             )}
           </div>

@@ -1314,9 +1314,10 @@ body.lb-lock { overflow: hidden; }
 .lb-btn:hover { background: rgba(255,255,255,.16); }
 .lb-stage { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; min-height: 0; padding: 0 8px; }
 .lb-figure { grid-column: 2; min-width: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; height: 100%; min-height: 0; padding-bottom: 8px; }
-.lb-frame { min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 6px; cursor: zoom-in; }
+.lb-frame { position: relative; min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 6px; cursor: zoom-in; }
 .lb-frame.is-zoom { cursor: zoom-out; }
-.lb-frame img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; transition: transform .25s ease; animation: lb-in .25s ease; }
+/* a foto cabe inteira na área, na proporção original (sem cortar nem esticar) */
+.lb-frame img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; transition: transform .25s ease; animation: lb-in .25s ease; }
 @keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
 .lb-caption { max-width: 760px; justify-self: center; text-align: center; display: grid; gap: 6px; }
 .lb-caption p { margin: 0; font-size: 15px; line-height: 1.45; }
@@ -1591,8 +1592,8 @@ body.search-lock { overflow: hidden; }
 .when-range { margin-left: 4px; font-size: 11.5px; color: var(--ink-3); }
 
 /* carregando a próxima tela (a anterior continua à vista) */
-.route-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1000; overflow: hidden; background: var(--primary-soft); }
-.route-progress::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--primary); animation: route-progress 1s ease-in-out infinite; }
+.route-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1000; overflow: hidden; background: var(--cta-soft); }
+.route-progress::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--c-magenta); animation: route-progress 1s ease-in-out infinite; }
 @keyframes route-progress { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 @media (prefers-reduced-motion: reduce) { .route-progress::after { animation: none; width: 100%; opacity: .6; } }
 
@@ -1687,3 +1688,9 @@ body.search-lock { overflow: hidden; }
   .page-tab-icon { display: block; flex-shrink: 0; }
   body:has(.page-tabs) { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
 }
+
+/* botões de ação das páginas de detalhe: todos do mesmo tamanho, só ícone */
+.act-icons { flex-wrap: wrap; gap: 10px; }
+.act-btn.act-round .act-label { display: none; }
+.act-btn.act-round.on { border-color: var(--c-magenta); }
+@media (max-width: 400px) { .act-icons { gap: 8px; } .act-icons .act-btn.act-round { width: 46px; height: 46px; } }

@@ -149,19 +149,17 @@ function DetalheView({ p }) {
             {status && <li className={"place-meta-status" + (status.open ? " is-open" : "")}><Icon name="clock" size={18} /> {status.text}</li>}
           </ul>
 
-          {/* ações: 1ª linha — chegar e falar com o lugar; 2ª linha — ações do visitante (só ícone, texto no hover) */}
+          {/* ações: todas do mesmo tamanho, só com ícone (o nome aparece ao passar o mouse e para leitores de tela) */}
           <div className="place-actions">
-            <div className="act-row act-main">
-              <button className="act-cta" onClick={() => goTab("chegar")}><Icon name="send" size={18} /> Como chegar</button>
+            <div className="act-row act-icons">
               {insta && <a className="act-btn act-round act-insta" href={insta} target="_blank" rel="noreferrer" aria-label={"Instagram " + p.insta} title={"Instagram " + p.insta}><Icon name="instagram" size={19} /></a>}
               {whats && <a className="act-btn act-round act-whats" href={whats} target="_blank" rel="noreferrer" aria-label="Conversar no WhatsApp" title="WhatsApp"><Icon name="whatsapp" size={19} /></a>}
-            </div>
-            <div className="act-row act-sub">
-              {!paused && <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
-                <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
+              {!paused && <button className={"act-btn act-round" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Favoritado" : "Favoritar"} title={saved ? "Favoritado" : "Favoritar"}>
+                <Icon name="heart" size={19} fill={saved} />
               </button>}
-              <AddToRoteiro place={p} className="act-btn act-sm" iconSize={17} compact />
-              <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+              <button className="act-btn act-round" onClick={() => goTab("chegar")} aria-label="Como chegar" title="Como chegar"><Icon name="send" size={19} /></button>
+              <button className={"act-btn act-round" + (shared ? " on" : "")} onClick={share} aria-label={shared ? "Link copiado" : "Compartilhar"} title={shared ? "Link copiado" : "Compartilhar"}><Icon name={shared ? "check" : "share"} size={19} /></button>
+              <AddToRoteiro place={p} className="act-btn act-round" iconSize={19} compact />
             </div>
           </div>
         </div>
