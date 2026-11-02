@@ -411,16 +411,16 @@
 .geo-strip { width: 240px; height: 80px; flex-shrink: 0; }
 
 /* Guia da cidade */
-.guide { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; height: 620px; margin-bottom: 40px; }
+.guide { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 16px; height: 620px; margin-bottom: 40px; }
 .guide-list { list-style: none; margin: 0; padding: 6px; overflow-y: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
 .guide-item {
-  width: 100%; display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center;
+  width: 100%; display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 14px; align-items: center;
   padding: 8px; border: 0; border-radius: 8px; background: none; text-align: left; font: inherit;
 }
 .guide-item:hover, .guide-item.on { background: var(--primary-soft); }
-.guide-thumb { width: 48px; height: 48px; border-radius: 6px; }
-.guide-item-text strong { display: block; font-size: 14px; color: var(--heading); }
-.guide-item-text span { display: block; font-size: 11.5px; color: var(--ink-3); }
+.guide-thumb { width: 76px; height: 76px; border-radius: 8px; }
+.guide-item-text strong { display: block; font-size: 14.5px; line-height: 1.25; color: var(--heading); }
+.guide-item-text span { display: block; margin-top: 3px; font-size: 12px; color: var(--ink-3); }
 .guide-map { height: 100%; }
 
 /* Abas sublinhadas */
@@ -508,7 +508,7 @@
   body.filters-lock { overflow: hidden; }
   .filters-toggle { display: inline-flex; }
   .guide { grid-template-columns: 1fr; height: auto; }
-  .guide-list { max-height: 280px; }
+  .guide-list { max-height: 380px; }
   .guide-map { height: 420px; }
     .page-head { flex-direction: column; align-items: flex-start; }
   .geo-strip { display: none; }
@@ -1704,7 +1704,7 @@ body.search-lock { overflow: hidden; }
 .gpin-type:hover .gpin-head { border-color: #fff; transform: rotate(-45deg) scale(1.12); }
 .gpin-type.on .gpin-head { width: 42px; height: 42px; background: var(--vibe-ink); border: 3px solid #fff; }
 .gpin-type .gpin-head svg { width: 58%; height: 58%; }
-.guide-type { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 7px; border-radius: 999px; background: var(--vibe-ink); color: #fff; vertical-align: -5px; flex-shrink: 0; }
+.guide-type { display: grid; place-items: center; width: 30px; height: 30px; margin-right: 4px; border-radius: 999px; background: var(--vibe-ink); color: #fff; flex-shrink: 0; }
 
 /* página do lugar: Instagram no fim da descrição, antes das tags */
 .insta-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; margin: 16px 0 4px; padding: 0 16px 0 12px; border: 1.5px solid var(--heading); border-radius: 999px; background: var(--paper); color: var(--heading); font-size: 14px; font-weight: 600; text-decoration: none; transition: background .25s ease, color .25s ease, border-color .25s ease; }
