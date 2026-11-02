@@ -264,8 +264,11 @@
 .page-tabs button { transition: color .15s, border-color .15s, background .15s; }
 .page-tabs button:hover { color: var(--primary); }
 .page-tabs button { font-weight: 500; }
-.page-tabs button.on { color: var(--primary); font-weight: 700; border-bottom-color: var(--primary); background: var(--primary-soft); border-radius: 10px 10px 0 0; }
-.page-tabs button.on .page-tab-icon { color: var(--primary); }
+.page-tabs .shell { align-items: center; padding-top: 6px; padding-bottom: 6px; }
+.page-tabs button { border-bottom: 0; border-radius: 14px; padding: 10px 22px; }
+.page-tabs button.on { color: #fff; font-weight: 700; background: var(--primary); }
+.page-tabs button.on .page-tab-icon { color: #fff; }
+.page-tabs button.on:hover { color: #fff; }
 .place-body { padding-top: 28px; }
 [id^="sec-"] { scroll-margin-top: 150px; }
 .place-row { display: grid; gap: 28px; margin-bottom: 34px; align-items: start; }
@@ -1523,8 +1526,8 @@ body.search-lock { overflow: hidden; }
   /* abas fixas logo abaixo do menu, rolando de lado */
   .page-tabs { top: 68px; }
   .page-tabs .shell { justify-content: flex-start; gap: 0; padding: 0 var(--gutter); scroll-padding: 0 var(--gutter); scroll-snap-type: x proximity; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
-  .page-tabs button { flex-shrink: 0; padding: 14px 14px 12px; font-size: 14px; scroll-snap-align: start; }
-  .page-tabs button:first-child { padding-left: 0; }
+  .page-tabs .shell { padding-top: 6px; padding-bottom: 6px; gap: 4px; }
+  .page-tabs button { flex-shrink: 0; padding: 10px 16px; font-size: 14px; scroll-snap-align: start; }
 
   /* seções */
   .place-body { padding-top: 22px; }
@@ -1701,7 +1704,9 @@ body.search-lock { overflow: hidden; }
     padding: 8px 2px 7px; font-size: 10.5px; line-height: 1.15; text-align: center; white-space: normal;
     color: var(--ink-3); border-bottom: 0; border-top: 2px solid transparent; margin-top: -1px;
   }
-  .page-tabs button.on { color: var(--primary); font-weight: 700; border-top: 3px solid var(--primary); margin-top: -2px; background: var(--primary-soft); border-radius: 0 0 12px 12px; }
+  .page-tabs .shell { padding: 6px; gap: 4px; }
+  .page-tabs button { border-top: 0; margin-top: 0; border-radius: 16px; padding: 8px 2px; }
+  .page-tabs button.on { color: #fff; font-weight: 700; background: var(--primary); }
   .page-tab-icon { display: block; flex-shrink: 0; }
   body:has(.page-tabs) { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
 }
@@ -1741,8 +1746,6 @@ body.search-lock { overflow: hidden; }
 .guide-map .gpin.on { z-index: 5; }
 .guide-map .map-art-pin[class*="vibe-"] { color: var(--vibe-soft); filter: none; }
 .guide-map .map-art-pin[class*="vibe-"].active { color: var(--vibe-ink); }
-.guide-list .guide-type { background: color-mix(in srgb, var(--vibe-soft) 55%, #fff); color: color-mix(in srgb, var(--vibe) 80%, #fff); transition: background .15s, color .15s; }
-.guide-list .guide-item.on .guide-type { background: var(--vibe-ink); color: #fff; }
 /* post do Radar: mesmo espaço acima e abaixo do "Voltar" */
 .story-article .page-head-eyebrow { margin-top: 10px; }
 @media (max-width: 760px) { .story-article .page-head-eyebrow { margin-top: 8px; } }
