@@ -1735,13 +1735,13 @@ body.search-lock { overflow: hidden; }
 .place-meta .event-meta-when .event-status { margin-left: 0; }
 
 /* Guia da cidade: todos os pinos e ícones nas mesmas cores em tons claros; só o selecionado na cor cheia */
-.guide-map .gpin-type .gpin-head { background: var(--vibe-soft); color: var(--vibe-ink); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--vibe), 0 4px 10px -4px rgba(30,21,80,.35); }
-.guide-map .gpin-type:hover .gpin-head { background: var(--vibe); }
+.guide-map .gpin-type .gpin-head { background: color-mix(in srgb, var(--vibe-soft) 55%, #fff); color: color-mix(in srgb, var(--vibe) 80%, #fff); border: 0; box-shadow: 0 2px 6px -3px rgba(30,21,80,.25); }
+.guide-map .gpin-type:hover .gpin-head { background: var(--vibe-soft); color: var(--vibe); }
 .guide-map .gpin-type.on .gpin-head { background: var(--vibe-ink); color: #fff; border: 3px solid #fff; box-shadow: 0 8px 18px -6px rgba(30,21,80,.6); }
 .guide-map .gpin.on { z-index: 5; }
-.guide-map .map-art-pin[class*="vibe-"] { color: var(--vibe); }
+.guide-map .map-art-pin[class*="vibe-"] { color: var(--vibe-soft); filter: none; }
 .guide-map .map-art-pin[class*="vibe-"].active { color: var(--vibe-ink); }
-.guide-list .guide-type { background: var(--vibe-soft); color: var(--vibe-ink); transition: background .15s, color .15s; }
+.guide-list .guide-type { background: color-mix(in srgb, var(--vibe-soft) 55%, #fff); color: color-mix(in srgb, var(--vibe) 80%, #fff); transition: background .15s, color .15s; }
 .guide-list .guide-item.on .guide-type { background: var(--vibe-ink); color: #fff; }
 /* post do Radar: mesmo espaço acima e abaixo do "Voltar" */
 .story-article .page-head-eyebrow { margin-top: 10px; }
