@@ -1728,3 +1728,6 @@ body.search-lock { overflow: hidden; }
 .guide-map .gpin.on, .guide-map .map-art-pin.active { z-index: 5; }
 .guide-list:has(.guide-item.on) .guide-item:not(.on) .guide-type { opacity: .38; transition: opacity .2s; }
 .guide-list .guide-item:not(.on):hover .guide-type { opacity: 1; }
+/* post do Radar: mesmo espaço acima e abaixo do "Voltar" */
+.story-article .page-head-eyebrow { margin-top: 10px; }
+@media (max-width: 760px) { .story-article .page-head-eyebrow { margin-top: 8px; } }
