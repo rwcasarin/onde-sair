@@ -6,7 +6,7 @@ import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } fro
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, PageTabs
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, PageTabs, TypePill
 } from "../components/site.jsx";
 import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
@@ -126,7 +126,6 @@ function DetalheView({ p }) {
   const hours = placeHours(p);
   const today = new Date().getDay();
   const status = hours ? hoursStatus(hours) : null;
-  const typeInfo = TYPES.find(t => t.label === p.type);
   const tagList = [...new Set((p.tags || []).map(t => String(t).trim()).filter(Boolean))];
 
   return (
@@ -136,17 +135,18 @@ function DetalheView({ p }) {
         <HeroMedia img={placeImg(p.id)} note={p.note} shape="diagonal" hint="Foto do lugar · ~1400×800" />
         <div className="hero2-copy">
           <Crumbs items={[["Início", "home"], ["Lugares", "lista"], [p.bairro, "lista", { q: p.bairro }], [p.name]]} />
-          {/* vibes (pequenas) → nome → descrição → informações → ações */}
+          {/* tipo e vibes (pequenas) → nome → descrição → informações → ações */}
           <div className="place-vibes place-vibes-sm">
+            {p.type && <TypePill type={p.type} />}
             {p.affs.map(a => <VibePill key={a} aff={a} size="sm" />)}
           </div>
           <h1 className="page-title">{p.name}</h1>
           <p className="hero2-lede">{p.tagline}</p>
 
+          {/* horário → bairro (lado a lado; se não couber, quebra a linha) */}
           <ul className="place-meta">
-            <li><Icon name="pin" size={18} fill /> {p.bairro}</li>
-            {p.type && <li className="place-meta-type"><Icon name={typeInfo?.icon || "pin"} size={18} /> {p.type}</li>}
             {status && <li className={"place-meta-status" + (status.open ? " is-open" : "")}><Icon name="clock" size={18} /> {status.text}</li>}
+            {p.bairro && <li><Icon name="pin" size={18} fill /> {p.bairro}</li>}
           </ul>
 
           {/* ações: todas do mesmo tamanho, só com ícone (o nome aparece ao passar o mouse e para leitores de tela) */}

@@ -1478,7 +1478,7 @@ body.search-lock { overflow: hidden; }
   .hero2-place .page-title, .hero2-roteiro .page-title.page-title-sm, .hero2-roteiro .page-title.page-title-md, .story-article .page-head h1 {
     font-size: clamp(32px, 9vw, 40px); line-height: 1.02; letter-spacing: -0.04em; }
   .hero2-place .hero2-lede, .story-article .page-head-lede { margin: 10px 0 0; font-size: 16px; line-height: 1.45; color: var(--ink-2); }
-  .hero2-place .place-meta { display: grid; gap: 8px; margin: 16px 0 0; }
+  .hero2-place .place-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 16px 0 0; }
   .hero2-place .place-meta li { padding: 0; border: 0; font-size: 14px; }
   .hero2-place .place-meta li svg { flex-shrink: 0; color: var(--primary); }
 
