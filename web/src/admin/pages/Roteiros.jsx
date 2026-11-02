@@ -23,7 +23,7 @@ export function RoteirosList() {
   const rp = db.settings.roteirosPause;
   const bairrosOf = (r) => roteiroBairros(r, (id) => db.places.find(p => p.id === id));
   return (
-    <ContentList
+    <ContentList publishToggle
       notice={rp?.paused && (
         <div className="a-alert tone-warn" role="status">
           <AIcon name="alert" size={16} />

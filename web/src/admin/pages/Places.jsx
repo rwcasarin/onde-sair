@@ -31,7 +31,7 @@ export function PlacesList() {
   const vibes = db.vibes;
   const bairros = [...new Set(db.places.map(p => p.bairro))].sort();
   return (
-    <ContentList
+    <ContentList publishToggle
       coll="places" title="Lugares" newLabel="Novo lugar" nav={placesNav(db)}
       subtitle="Todos os endereços da curadoria. Só os publicados aparecem no site."
       searchText={(p) => `${p.name} ${p.bairro} ${p.type} ${p.sub} ${(p.tags || []).join(" ")}`}

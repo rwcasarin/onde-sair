@@ -22,7 +22,7 @@ export function openOnSite(screen, params = {}) {
 // ---------------------------------------------------------------------
 // Lista com abas de status, busca, filtros e ações em lote
 // ---------------------------------------------------------------------
-export function ContentList({ coll, title, subtitle, columns, filters = [], searchText, newLabel, actions, nav, notice }) {
+export function ContentList({ coll, title, subtitle, columns, filters = [], searchText, newLabel, actions, nav, notice, publishToggle }) {
   const { db, user, go, toast, saved, confirm } = useAdmin();
   const meta = COLL[coll];
   const [tab, setTab] = useState("todos");
@@ -58,6 +58,24 @@ export function ContentList({ coll, title, subtitle, columns, filters = [], sear
       </div>
     ),
   };
+  // chave "No site": publica ou despublica o item direto da lista (quem não publica vê a chave travada)
+  const togglePublish = (x, on) => {
+    setStatus(coll, [x.id], on ? "publicado" : "rascunho", user);
+    saved(on ? `“${meta.title(x)}” publicado.` : `“${meta.title(x)}” despublicado (rascunho).`);
+  };
+  const publishCol = {
+    key: "_pub", label: "No site", width: 90, sortValue: (x) => (x.status === "publicado" ? 1 : 0), render: (x) => {
+      const on = x.status === "publicado";
+      return (
+        <label className={"a-toggle a-toggle-cell" + (canPub ? "" : " disabled")} onClick={(ev) => ev.stopPropagation()}
+          title={canPub ? (on ? "Publicado: clique para despublicar" : "Fora do site: clique para publicar") : "Seu perfil não pode publicar"}>
+          <input type="checkbox" checked={on} disabled={!canPub} onChange={(ev) => togglePublish(x, ev.target.checked)}
+            aria-label={`${on ? "Despublicar" : "Publicar"} “${meta.title(x)}”`} />
+          <span className="a-toggle-track"><span /></span>
+        </label>
+      );
+    },
+  };
   const statusCol = { key: "status", label: "Status", width: 130, render: (x) => <StatusBadge status={x.status} publishAt={x.publishAt} />, sortValue: (x) => Object.keys(STATUS).indexOf(x.status) };
   const updatedCol = { key: "updatedAt", label: "Atualizado", width: 160, render: (x) => <span className="a-muted-cell" title={fmtDate(x.updatedAt)}>{relTime(x.updatedAt)}<em>{x.updatedBy}</em></span> };
 
@@ -82,7 +100,7 @@ export function ContentList({ coll, title, subtitle, columns, filters = [], sear
         </div>
         <DataTable
           key={tab}
-          columns={[...columns, statusCol, updatedCol, actionsCol]}
+          columns={[...columns, ...(publishToggle ? [publishCol] : []), statusCol, updatedCol, actionsCol]}
           rows={rows}
           onRowClick={(x) => go(`${meta.path}/${x.id}`)}
           bulkActions={bulk}

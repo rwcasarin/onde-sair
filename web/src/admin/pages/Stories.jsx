@@ -22,7 +22,7 @@ export const radarNav = (db) => [
 export function StoriesList() {
   const { db } = useAdmin();
   return (
-    <ContentList
+    <ContentList publishToggle
       coll="stories" title="Radar" newLabel="Novo post"
       subtitle="O blog do Onde Sair: novidades, atualizações e listas de lugares (seção “Radar” da home e /radar)."
       searchText={(s) => `${s.title} ${s.tag} ${s.author}`}
