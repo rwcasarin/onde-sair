@@ -1634,7 +1634,7 @@ body.search-lock { overflow: hidden; }
   :is(.listing-grid, .tips-grid.tips-4) .rot-index-vibes .vibe-pill { font-size: 11px; gap: 6px; max-width: 100%; }
   :is(.listing-grid, .tips-grid.tips-4) .rot-index-body h3 { font-size: 16px; line-height: 1.15; letter-spacing: -0.02em; }
   :is(.listing-grid, .tips-grid.tips-4) .rot-index-meta { font-size: 11px; gap: 4px 10px; }
-  :is(.listing-grid, .tips-grid.tips-4) .rot-index-card .rot-index-body p { margin: 6px 0 8px; font-size: 12px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  :is(.listing-grid, .tips-grid.tips-4) .rot-index-card .rot-index-body p { margin: 6px 0 8px; font-size: 12px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   :is(.listing-grid, .tips-grid.tips-4) .rot-index-card .card-more { font-size: 12px; }
   :is(.listing-grid, .tips-grid.tips-4) .fave-float { width: 32px; height: 32px; top: 8px; right: 8px; }
   :is(.listing-grid, .tips-grid.tips-4) .rot-index-badge { top: 8px; left: 8px; font-size: 10px; padding: 3px 8px; }
