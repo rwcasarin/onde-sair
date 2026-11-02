@@ -434,6 +434,10 @@
 .guide-item-text strong { display: block; font-size: 14.5px; line-height: 1.25; color: var(--heading); }
 .guide-item-text span { display: block; margin-top: 3px; font-size: 12px; color: var(--ink-3); }
 .guide-map { height: 100%; }
+.guide-map-wrap { position: relative; min-width: 0; min-height: 0; height: 100%; }
+.guide-map.is-focus .gpin:not(.on), .guide-map.is-focus .map-art-pin:not(.active) { display: none; }
+.guide-showall { position: absolute; top: 10px; left: 10px; z-index: 6; display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--heading); color: #fff; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 20px -8px rgba(30,21,80,.6); }
+.guide-showall:hover { background: var(--primary); }
 
 /* Abas sublinhadas */
 .underline-tabs { display: flex; gap: 28px; margin: 8px 0 22px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }

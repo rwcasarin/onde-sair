@@ -106,8 +106,12 @@ export function Mapa({ id }) {
           </ul>
           </div>
 
-          <PlaceMap className="guide-map" typed city={CITIES.find(c => c.id === cityId)} activeId={cur?.id} onSelect={setActive}
-            items={list.map(p => ({ id: p.id, place: p }))} />
+          {/* com um lugar escolhido, o mapa mostra só o pino dele e o botão "Mostrar todos" */}
+          <div className="guide-map-wrap">
+            <PlaceMap className={"guide-map" + (cur ? " is-focus" : "")} typed city={CITIES.find(c => c.id === cityId)} activeId={cur?.id} onSelect={setActive}
+              items={list.map(p => ({ id: p.id, place: p }))} />
+            {cur && <button type="button" className="guide-showall" onClick={() => setActive(null)}><Icon name="map" size={16} /> Mostrar todos</button>}
+          </div>
         </section>
       </div>
       <Footer />
