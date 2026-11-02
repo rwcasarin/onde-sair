@@ -416,7 +416,15 @@
 
 /* Guia da cidade */
 .guide { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 16px; height: 620px; margin-bottom: 40px; }
-.guide-list { list-style: none; margin: 0; padding: 6px; overflow-y: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+.guide-side { display: flex; flex-direction: column; min-height: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.guide-filter { flex-shrink: 0; padding: 8px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.guide-select { position: relative; display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--heading); }
+.guide-select:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.guide-select select { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: inherit; appearance: none; cursor: pointer; }
+.guide-select > svg { flex-shrink: 0; pointer-events: none; color: var(--ink-3); }
+.guide-select .guide-type { width: 24px; height: 24px; margin: 0; }
+.guide-list { flex: 1; min-height: 0; list-style: none; margin: 0; padding: 6px; overflow-y: auto; }
+.guide-more, .guide-empty { padding: 14px; text-align: center; font-size: 12.5px; color: var(--ink-3); }
 .guide-item {
   width: 100%; display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 14px; align-items: center;
   padding: 8px; border: 0; border-radius: 8px; background: none; text-align: left; font: inherit;
@@ -512,7 +520,7 @@
   body.filters-lock { overflow: hidden; }
   .filters-toggle { display: inline-flex; }
   .guide { grid-template-columns: 1fr; height: auto; }
-  .guide-list { max-height: 380px; }
+  .guide-side { max-height: 440px; }
   .guide-map { height: 420px; }
     .page-head { flex-direction: column; align-items: flex-start; }
   .geo-strip { display: none; }
