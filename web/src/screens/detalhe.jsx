@@ -34,7 +34,8 @@ const directions = (p) => p.geo
 // O lugar no Google Maps (busca pelo nome + endereço; com placeId abre a ficha exata)
 const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.name}, ${fullAddress(p).replaceAll(" · ", ", ")}`)}${p.placeId ? "&query_place_id=" + p.placeId : ""}`;
 
-const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["confira", "Confira também"]];
+// [id, nome, nome curto no celular]
+const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["info", "Informações úteis", "Informações"], ["confira", "Confira também"]];
 
 // WhatsApp do lugar (campo próprio no painel): número com DDD, celular ou fixo (WhatsApp Business)
 export function whatsappLink(phone = "") {
@@ -242,7 +243,7 @@ function DetalheView({ p }) {
             <p className="where-address"><Icon name="pin" size={16} /> {fullAddress(p)}
               <a className="where-route" href={directions(p)} target="_blank" rel="noreferrer">Como chegar <Icon name="arrow" size={14} /></a></p>
           </div>
-          <div className="info-box">
+          <div className="info-box" id="sec-info">
             <h2 className="h2t">Informações úteis</h2>
             <dl>
               {hours ? (

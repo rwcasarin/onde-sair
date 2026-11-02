@@ -241,15 +241,16 @@ export const MiniPlaceCard = ({ p }) => <PlaceCard p={p} />;
 
 // Abas das páginas de detalhe (lugar, roteiro, evento). No celular viram um menu fixo embaixo, com ícones.
 // "Confira também" não entra no menu (a seção continua na página).
-const TAB_ICONS = { visao: "eye", porque: "star", fotos: "image", chegar: "pin", paradas: "list", mapa: "map", dicas: "bulb" };
+const TAB_ICONS = { visao: "eye", porque: "star", fotos: "image", chegar: "pin", info: "info", paradas: "list", mapa: "map", dicas: "bulb" };
 const OFF_MENU = new Set(["confira"]);
 export function PageTabs({ tabs, tab, onTab }) {
   return (
     <nav className="page-tabs" aria-label="Seções">
       <div className="shell">
-        {tabs.filter(([id]) => !OFF_MENU.has(id)).map(([id, label]) => (
-          <button key={id} type="button" className={tab === id ? "on" : ""} aria-current={tab === id ? "true" : undefined} onClick={() => onTab(id)}>
-            <Icon name={TAB_ICONS[id] || "list"} size={20} className="page-tab-icon" /><span>{label}</span>
+        {tabs.filter(([id]) => !OFF_MENU.has(id)).map(([id, label, short]) => (
+          <button key={id} type="button" className={tab === id ? "on" : ""} aria-current={tab === id ? "true" : undefined} aria-label={short ? label : undefined} onClick={() => onTab(id)}>
+            <Icon name={TAB_ICONS[id] || "list"} size={20} className="page-tab-icon" />
+            {short ? <><span className="page-tab-long">{label}</span><span className="page-tab-short" aria-hidden="true">{short}</span></> : <span>{label}</span>}
           </button>
         ))}
       </div>
