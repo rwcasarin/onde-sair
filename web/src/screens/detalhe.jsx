@@ -175,8 +175,8 @@ function DetalheView({ p }) {
             <h2 className="h2t">Sobre o lugar</h2>
             {hasText(p.desc) && <RichText value={p.desc} />}
             {/* Instagram: no fim da descrição, antes das tags */}
-            {insta && <a className="insta-btn" href={insta} target="_blank" rel="noreferrer" aria-label={`Instagram de ${p.name}: @${instaHandle(p.insta)}`}>
-              <Icon name="instagram" size={18} /> @{instaHandle(p.insta)}
+            {insta && <a className="insta-btn" href={insta} target="_blank" rel="noreferrer" aria-label={`Instagram de ${p.name}: /${instaHandle(p.insta)}`}>
+              <Icon name="instagram" size={18} /> /{instaHandle(p.insta)}
             </a>}
             {tagList.length > 0 && (
               <ul className="place-tags" aria-label="Tags">
