@@ -89,8 +89,8 @@
 .a-user-menu-head { padding: 8px 10px 10px; border-bottom: 1px solid var(--a-border); margin-bottom: 4px; }
 .a-user-menu-head strong { display: block; font-size: 13px; }
 .a-user-menu-head span { font-size: 12px; color: var(--a-text-3); }
-.a-user-menu button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 0; border-radius: 8px; background: none; font: inherit; color: var(--a-text); cursor: pointer; text-align: left; }
-.a-user-menu button:hover { background: var(--primary-soft); }
+.a-user-menu button, .a-user-menu a { box-sizing: border-box; text-decoration: none; width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 0; border-radius: 8px; background: none; font: inherit; color: var(--a-text); cursor: pointer; text-align: left; }
+.a-user-menu button:hover, .a-user-menu a:hover { background: var(--primary-soft); }
 
 .a-main { padding: 26px 28px 60px; max-width: 1360px; outline: none; }
 

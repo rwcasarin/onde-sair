@@ -35,7 +35,7 @@ const directions = (p) => p.geo
 const googleMapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.name}, ${fullAddress(p).replaceAll(" · ", ", ")}`)}${p.placeId ? "&query_place_id=" + p.placeId : ""}`;
 
 // [id, nome, nome curto no celular]
-const TABS = [["visao", "Visão geral"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["info", "Informações úteis", "Informações"], ["confira", "Confira também"]];
+const TABS = [["visao", "Sobre"], ["porque", "Por que ir"], ["fotos", "Fotos"], ["chegar", "Onde fica"], ["info", "Informações úteis", "Informações"], ["confira", "Confira também"]];
 
 // WhatsApp do lugar (campo próprio no painel): número com DDD, celular ou fixo (WhatsApp Business)
 export function whatsappLink(phone = "") {

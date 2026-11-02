@@ -40,9 +40,11 @@ export function Mapa({ id }) {
                 <button className={"guide-item" + (cur?.id === p.id ? " on" : "")} onClick={() => setActive(p.id)} onDoubleClick={() => nav("detalhe", { id: p.id })}>
                   <ImageSlot className="guide-thumb" src={placeImg(p.id)} compact />
                   <span className="guide-item-text">
-                    <strong>{typeOf(p) && <span className={"guide-type " + typeOf(p).cls} title={p.type}><Icon name={typeOf(p).icon} size={13} /></span>}{p.name}</strong>
+                    <strong>{p.name}</strong>
                     <span>{p.sub} • {p.bairro}</span>
                   </span>
+                  {/* tipo do lugar: mesmo ícone do pino no mapa, à direita */}
+                  {typeOf(p) && <span className={"guide-type " + typeOf(p).cls} title={p.type} aria-label={p.type}><Icon name={typeOf(p).icon} size={15} /></span>}
                 </button>
               </li>
             ))}
