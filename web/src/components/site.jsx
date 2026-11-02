@@ -240,12 +240,14 @@ export const ListingCard = ({ p }) => <PlaceCard p={p} />;
 export const MiniPlaceCard = ({ p }) => <PlaceCard p={p} />;
 
 // Abas das páginas de detalhe (lugar, roteiro, evento). No celular viram um menu fixo embaixo, com ícones.
-const TAB_ICONS = { visao: "eye", porque: "star", fotos: "image", chegar: "pin", confira: "sparkle", paradas: "list", mapa: "map", dicas: "bulb" };
+// "Confira também" não entra no menu (a seção continua na página).
+const TAB_ICONS = { visao: "eye", porque: "star", fotos: "image", chegar: "pin", paradas: "list", mapa: "map", dicas: "bulb" };
+const OFF_MENU = new Set(["confira"]);
 export function PageTabs({ tabs, tab, onTab }) {
   return (
     <nav className="page-tabs" aria-label="Seções">
       <div className="shell">
-        {tabs.map(([id, label]) => (
+        {tabs.filter(([id]) => !OFF_MENU.has(id)).map(([id, label]) => (
           <button key={id} type="button" className={tab === id ? "on" : ""} aria-current={tab === id ? "true" : undefined} onClick={() => onTab(id)}>
             <Icon name={TAB_ICONS[id] || "list"} size={20} className="page-tab-icon" /><span>{label}</span>
           </button>
@@ -344,7 +346,6 @@ export function Footer() {
           <span>© {new Date().getFullYear()} Onde Sair. Todos os direitos reservados.</span>
           <span className="site-footer-legal">
             {menuItems("legal").map(({ it, to }) => <MenuLink key={it.id} to={to}>{it.label}</MenuLink>)}
-            <a href={href("/admin")} className="site-footer-admin">Área administrativa</a>
           </span>
         </div>
       </div>

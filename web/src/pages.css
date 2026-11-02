@@ -626,7 +626,6 @@ button.vibe-pill.active:hover { box-shadow: inset 0 0 0 2px var(--vibe-ring), 0 
 }
 .maintenance h1 { margin: 0; font-family: var(--serif); font-weight: 700; font-size: clamp(44px, 7vw, 80px); letter-spacing: -0.04em; }
 .maintenance p { color: var(--ink-2); }
-.site-footer-legal .site-footer-admin { color: var(--ink-3); }
 
 /* =====================================================================
    Contas — entrar · criar conta · boas-vindas · dados do perfil
