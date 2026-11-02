@@ -2,7 +2,7 @@
 import { RichEditor } from "../richeditor.jsx";
 import { htmlToText, asHtml } from "../../richtext.js";
 import { useState } from "react";
-import { SEED_EVENT_CATEGORIES, AGE_RATINGS, eventImg, eventGallery } from "../../data.js";
+import { SEED_EVENT_CATEGORIES, AGE_RATINGS, eventImg, eventGallery, SEED_TYPES } from "../../data.js";
 import { EventCard } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
@@ -283,6 +283,9 @@ function EventForm({ initial, isNew }) {
               options={db.places.filter(p => p.status !== "arquivado").map(p => [p.id, `${p.name} · ${p.bairro}`])}
               hint={venue ? "A página do evento mostra o card deste lugar na seção Onde fica." : "Sem lugar do catálogo, informe o nome do local e o endereço abaixo."} />
             {!venue && <Input label="Nome do local" value={draft.venueName} onChange={(venueName) => set({ venueName })} placeholder="Ex.: Praça Coronel Fernando Prestes" />}
+            {!venue && <Select label="Tipo do local" value={draft.venueType || ""} onChange={(venueType) => set({ venueType })} placeholder="Escolha o tipo"
+              options={[...new Set([...(db.types?.length ? db.types : SEED_TYPES).map(t => t.label), draft.venueType].filter(Boolean))]}
+              hint="Aparece como a primeira etiqueta acima do título do evento. Com um lugar do catálogo, vale o tipo do lugar." />}
             <Input label="WhatsApp" type="tel" value={draft.whatsapp || ""} onChange={(whatsapp) => set({ whatsapp })} placeholder="(15) 99999-9999" error={errors.whatsapp}
               hint={venue ? `Preenchido com o WhatsApp de ${venue.name}${venue.whatsapp ? "" : " (o lugar não tem WhatsApp cadastrado)"}. Edite se o contato do evento for outro.` : "Número com DDD (celular ou fixo do WhatsApp Business). Vira o botão de WhatsApp na página do evento."} />
             {changedAddress && (

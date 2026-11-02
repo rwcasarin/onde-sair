@@ -62,6 +62,8 @@ export const upcoming = (list, now = new Date()) => list.filter(e => !isPast(e, 
 export const eventCategory = (id) => EVENT_CATEGORIES.find(c => c.id === id);
 export const eventVenue = (e) => (e.venue && PLACES.find(p => p.id === e.venue)) || null;
 export const venueName = (e) => eventVenue(e)?.name || e.venueName || "";
+// tipo do local: o do lugar do catálogo; em outro local, o escolhido no painel (lista de tipos de lugares)
+export const venueType = (e) => (e.venue ? eventVenue(e)?.type : e.venueType) || "";
 
 // filtros de "Quando" (a semana começa no domingo; fim de semana = sex 18h a dom)
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());

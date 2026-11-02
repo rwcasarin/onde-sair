@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { EVENTS, EVENT_CATEGORIES, VIBE_ORDER, CITIES, PLACES, eventImg, eventGallery } from "../data.js";
 import { ImageSlot } from "../components/image-slot.jsx";
 import { Icon } from "../components/icons.jsx";
-import { HeroMedia, Crumbs, VibePill, EventCard, PlaceCard, CategoryPill, FaveButton, Footer, affById, PageTabs } from "../components/site.jsx";
+import { HeroMedia, Crumbs, VibePill, EventCard, PlaceCard, CategoryPill, TypePill, FaveButton, Footer, affById, PageTabs } from "../components/site.jsx";
 import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { CityField } from "../components/cityselect.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
@@ -18,7 +18,7 @@ import { eventPath } from "../router.js";
 import { usePagedFilters, useListing, listItems, labelOf, Pagination, FilterPanel, FilterBlock, SearchBlock, CheckList, CheckRow, ResultsBar, ActiveChips } from "../filters.jsx";
 import { vibeFromSlug, vibeSlug } from "./roteiroslista.jsx";
 import {
-  WHEN, inRange, isPast, byDate, whenLabel, priceLabel, cardWhen,
+  WHEN, inRange, isPast, byDate, whenLabel, priceLabel, cardWhen, venueType,
   eventVenue, venueName, googleCalendarUrl, googleCoversAll, icsHref, eventDays, periodLines, dayLabel, hoursLabel, defaultDay, todayYmd, sameHoursAllDays,
 } from "../events.js";
 
@@ -156,6 +156,7 @@ export function Evento({ id }) {
   const { paused } = useAccount();
   const e = EVENTS.find(x => x.id === id);
   const [tab, setTab] = useState("visao");
+  const mobile = useMobileTabs();
   const [shared, setShared] = useState(false);
   const [lb, setLb] = useState(null);           // galeria em tela cheia
   if (!e) return <NotFound />;
@@ -182,7 +183,8 @@ export function Evento({ id }) {
   const showFotos = e.showGallery !== false && gallery.length > 0;
   const slides = gallery.map(path => ({ path }));   // a imagem principal não entra na galeria
   const coverOffset = 0;
-  const tabs = [["visao", "Sobre"], ...(reasons.length ? [["porque", "Por que ir"]] : []), ...(showFotos ? [["fotos", "Fotos"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
+  // celular (menu fixo embaixo): só Sobre, Informações (caixa branca de data, valor e ingressos) e Onde fica
+  const tabs = mobile ? [["visao", "Sobre"], ["info", "Informações"], ["chegar", "Onde fica"]] : [["visao", "Sobre"], ...(reasons.length ? [["porque", "Por que ir"]] : []), ...(showFotos ? [["fotos", "Fotos"]] : []), ["chegar", "Onde fica"], ["confira", "Confira também"]];
   const calWhere = [where, address].filter(Boolean).join(", ");
   const pageUrl = typeof location !== "undefined" ? location.origin + eventPath(e) : "";
   const gcalUrl = googleCalendarUrl(e, calWhere, pageUrl);
@@ -214,6 +216,7 @@ export function Evento({ id }) {
         <div className="hero2-copy">
           <Crumbs items={[["Início", "home"], ["Eventos", "eventos"], [e.title]]} />
           <div className="place-vibes place-vibes-sm">
+            {venueType(e) && <TypePill type={venueType(e)} />}
             {e.category && <CategoryPill id={e.category} />}
             {(e.affs || []).map(a => <VibePill key={a} aff={a} size="sm" />)}
           </div>
@@ -251,7 +254,7 @@ export function Evento({ id }) {
             <RichText value={e.desc} />
             {e.tags?.length > 0 && <ul className="place-tags" aria-label="Assuntos">{e.tags.map(t => <li key={t}>{t}</li>)}</ul>}
           </div>
-          <aside className="event-box" aria-label="Data, valor e ingressos">
+          <aside className="event-box" id="sec-info" aria-label="Data, valor e ingressos">
             <div className="event-box-row">
               <Icon name="calendar" size={20} />
               <div>
@@ -380,4 +383,18 @@ export function Evento({ id }) {
       <Footer />
     </main>
   );
+}
+
+// menu da página no celular (mesma largura do menu fixo embaixo, em pages.css)
+function useMobileTabs() {
+  const q = "(max-width: 760px)";
+  const [m, setM] = useState(() => typeof window !== "undefined" && !!window.matchMedia?.(q).matches);
+  useEffect(() => {
+    const mq = window.matchMedia?.(q);
+    if (!mq) return;
+    const on = () => setM(mq.matches);
+    on(); mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
+  return m;
 }
