@@ -41,18 +41,22 @@ export function priceLabel(e) {
 export const isPast = (e, now = new Date()) => { if (e.alwaysOn) return false; const f = parseLocal(e.endAt) || parseLocal(e.startAt); return !!f && f < now; };
 export const isHappening = (e, now = new Date()) => { const s = parseLocal(e.startAt), f = parseLocal(e.endAt); return !!s && !!f && s <= now && now <= f; };
 export const byDate = (a, b) => (parseLocal(a.startAt) || 0) - (parseLocal(b.startAt) || 0);
-// Ordem da agenda: acontecendo agora → acontece hoje → vai acontecer → já aconteceu.
-// Em cada grupo, pela data (o mais próximo primeiro; nos que já aconteceram, o mais recente primeiro).
-// "Sempre ativo" conta como acontecendo agora.
-export function agendaRank(e, now = new Date()) {
-  if (e.alwaysOn || isHappening(e, now)) return 0;
-  if (isPast(e, now)) return 3;
-  const s = parseLocal(e.startAt);
-  return s && s.toDateString() === now.toDateString() ? 1 : 2;
+// Ordem da agenda: acontecendo agora → sempre ativo → acontece hoje → vai acontecer → já aconteceu.
+// Usa os mesmos horários do selo do card (AGORA / HOJE / dia da semana). Em cada grupo, pelo horário
+// (o mais próximo primeiro; nos que já aconteceram, o mais recente primeiro).
+function agendaInfo(e, now) {
+  const list = sessions(e);
+  const live = list.find(s => s.start <= now && now < s.end);
+  if (live) return { rank: 0, at: live.start };
+  if (e.alwaysOn) return { rank: 1, at: list[0]?.start || 0 };
+  const next = list.find(s => s.start > now);
+  if (next) return { rank: next.date === ymd(now) ? 2 : 3, at: next.start };
+  return { rank: 4, at: list[list.length - 1]?.start || 0 };
 }
+export const agendaRank = (e, now = new Date()) => agendaInfo(e, now).rank;
 export const byAgenda = (now = new Date()) => (a, b) => {
-  const ra = agendaRank(a, now), rb = agendaRank(b, now);
-  return ra - rb || (ra === 3 ? byDate(b, a) : byDate(a, b));
+  const x = agendaInfo(a, now), y = agendaInfo(b, now);
+  return x.rank - y.rank || (x.rank === 4 ? y.at - x.at : x.at - y.at);
 };
 export const upcoming = (list, now = new Date()) => list.filter(e => !isPast(e, now)).sort(byAgenda(now));
 export const eventCategory = (id) => EVENT_CATEGORIES.find(c => c.id === id);
