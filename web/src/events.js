@@ -41,7 +41,20 @@ export function priceLabel(e) {
 export const isPast = (e, now = new Date()) => { if (e.alwaysOn) return false; const f = parseLocal(e.endAt) || parseLocal(e.startAt); return !!f && f < now; };
 export const isHappening = (e, now = new Date()) => { const s = parseLocal(e.startAt), f = parseLocal(e.endAt); return !!s && !!f && s <= now && now <= f; };
 export const byDate = (a, b) => (parseLocal(a.startAt) || 0) - (parseLocal(b.startAt) || 0);
-export const upcoming = (list, now = new Date()) => list.filter(e => !isPast(e, now)).sort(byDate);
+// Ordem da agenda: acontecendo agora → acontece hoje → vai acontecer → já aconteceu.
+// Em cada grupo, pela data (o mais próximo primeiro; nos que já aconteceram, o mais recente primeiro).
+// "Sempre ativo" conta como acontecendo agora.
+export function agendaRank(e, now = new Date()) {
+  if (e.alwaysOn || isHappening(e, now)) return 0;
+  if (isPast(e, now)) return 3;
+  const s = parseLocal(e.startAt);
+  return s && s.toDateString() === now.toDateString() ? 1 : 2;
+}
+export const byAgenda = (now = new Date()) => (a, b) => {
+  const ra = agendaRank(a, now), rb = agendaRank(b, now);
+  return ra - rb || (ra === 3 ? byDate(b, a) : byDate(a, b));
+};
+export const upcoming = (list, now = new Date()) => list.filter(e => !isPast(e, now)).sort(byAgenda(now));
 export const eventCategory = (id) => EVENT_CATEGORIES.find(c => c.id === id);
 export const eventVenue = (e) => (e.venue && PLACES.find(p => p.id === e.venue)) || null;
 export const venueName = (e) => eventVenue(e)?.name || e.venueName || "";

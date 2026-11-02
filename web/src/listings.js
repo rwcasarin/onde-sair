@@ -4,7 +4,7 @@
 import { PLACES, ROTEIROS, ALL_STORIES, EVENTS, TYPES, EVENT_CATEGORIES, RADAR_CATEGORIES, VIBE_ORDER, AFFINITIES, CITIES } from "./data.js";
 import { htmlToText } from "./richtext.js";
 import { matchesWhen, WEEK_ORDER, DAY_SLUGS, PERIODS as WHEN_PERIODS } from "./hours.js";
-import { WHEN, inRange, isPast, byDate, venueName } from "./events.js";
+import { WHEN, inRange, isPast, byAgenda, venueName } from "./events.js";
 import { roteiroVibes, roteiroBairros } from "./vibes.js";
 import { SITE, publishedDate, slugify } from "./admin/store.js";
 import { search, shortcuts, didYouMean, kindsOn } from "./search.js";
@@ -241,7 +241,7 @@ function eventos(f) {
     bairro: (e) => !f.bairro.size || f.bairro.has(fslug(e.bairro)),
     preco: (e) => !f.preco.size || f.preco.has(String(eventPriceLevel(e))),
   });
-  const results = !f.ordem || f.ordem === "data" ? [...en.results].sort(byDate) : sortBy(en.results, f.ordem, { name: (e) => e.title, price: eventPriceLevel });
+  const results = !f.ordem || f.ordem === "data" ? [...en.results].sort(byAgenda(now)) : sortBy(en.results, f.ordem, { name: (e) => e.title, price: eventPriceLevel });
   return {
     results: results.map(e => ({ ref: { kind: "event", id: e.id } })),
     cityCounts: cityTally(anyCity, e => [e.city]),
@@ -295,7 +295,7 @@ function busca(f) {
   const base = byKind(K.kind);
   const e = engine(base, Object.fromEntries(KEYS.map(k => [k, tests[k]])));
   let results = e.results;
-  if (f.ordem === "data") results = [...results].sort((a, b) => byDate(a.item, b.item));
+  if (f.ordem === "data") { const agenda = byAgenda(now); results = [...results].sort((a, b) => agenda(a.item, b.item)); }
   else if (f.ordem === "paradas") results = [...results].sort((a, b) => (a.item.steps?.length || 0) - (b.item.steps?.length || 0));
   else if (f.ordem === "recentes") results = [...results].sort((a, b) => recentOf(b.item).localeCompare(recentOf(a.item)));
   else if (f.ordem && f.ordem !== "relevancia") results = sortBy(results, f.ordem, { name: (d) => d.title });
