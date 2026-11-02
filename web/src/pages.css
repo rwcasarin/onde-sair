@@ -264,8 +264,11 @@
 .page-tabs button { transition: color .15s, border-color .15s, background .15s; }
 .page-tabs button:hover { color: var(--primary); }
 .page-tabs button { font-weight: 500; }
-.page-tabs button.on { color: var(--primary); font-weight: 700; border-bottom-color: var(--primary); background: var(--primary-soft); border-radius: 10px 10px 0 0; }
-.page-tabs button.on .page-tab-icon { color: var(--primary); }
+.page-tabs .shell { align-items: center; padding-top: 6px; padding-bottom: 6px; }
+.page-tabs button { border-bottom: 0; border-radius: 14px; padding: 10px 22px; }
+.page-tabs button.on { color: #fff; font-weight: 700; background: var(--primary); }
+.page-tabs button.on .page-tab-icon { color: #fff; }
+.page-tabs button.on:hover { color: #fff; }
 .place-body { padding-top: 28px; }
 [id^="sec-"] { scroll-margin-top: 150px; }
 .place-row { display: grid; gap: 28px; margin-bottom: 34px; align-items: start; }
@@ -434,6 +437,10 @@
 .guide-item-text strong { display: block; font-size: 14.5px; line-height: 1.25; color: var(--heading); }
 .guide-item-text span { display: block; margin-top: 3px; font-size: 12px; color: var(--ink-3); }
 .guide-map { height: 100%; }
+.guide-map-wrap { position: relative; min-width: 0; min-height: 0; height: 100%; }
+.guide-map.is-focus .gpin:not(.on), .guide-map.is-focus .map-art-pin:not(.active) { display: none; }
+.guide-showall { position: absolute; top: 10px; left: 10px; z-index: 6; display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--heading); color: #fff; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 20px -8px rgba(30,21,80,.6); }
+.guide-showall:hover { background: var(--primary); }
 
 /* Abas sublinhadas */
 .underline-tabs { display: flex; gap: 28px; margin: 8px 0 22px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
@@ -1519,8 +1526,8 @@ body.search-lock { overflow: hidden; }
   /* abas fixas logo abaixo do menu, rolando de lado */
   .page-tabs { top: 68px; }
   .page-tabs .shell { justify-content: flex-start; gap: 0; padding: 0 var(--gutter); scroll-padding: 0 var(--gutter); scroll-snap-type: x proximity; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
-  .page-tabs button { flex-shrink: 0; padding: 14px 14px 12px; font-size: 14px; scroll-snap-align: start; }
-  .page-tabs button:first-child { padding-left: 0; }
+  .page-tabs .shell { padding-top: 6px; padding-bottom: 6px; gap: 4px; }
+  .page-tabs button { flex-shrink: 0; padding: 10px 16px; font-size: 14px; scroll-snap-align: start; }
 
   /* seções */
   .place-body { padding-top: 22px; }
@@ -1697,7 +1704,9 @@ body.search-lock { overflow: hidden; }
     padding: 8px 2px 7px; font-size: 10.5px; line-height: 1.15; text-align: center; white-space: normal;
     color: var(--ink-3); border-bottom: 0; border-top: 2px solid transparent; margin-top: -1px;
   }
-  .page-tabs button.on { color: var(--primary); font-weight: 700; border-top: 3px solid var(--primary); margin-top: -2px; background: var(--primary-soft); border-radius: 0 0 12px 12px; }
+  .page-tabs .shell { padding: 6px; gap: 4px; }
+  .page-tabs button { border-top: 0; margin-top: 0; border-radius: 16px; padding: 8px 2px; }
+  .page-tabs button.on { color: #fff; font-weight: 700; background: var(--primary); }
   .page-tab-icon { display: block; flex-shrink: 0; }
   body:has(.page-tabs) { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
 }
@@ -1730,12 +1739,13 @@ body.search-lock { overflow: hidden; }
 /* topo do evento: selo (Agora / Encerrado) no lugar do ícone, como nos cards */
 .place-meta .event-meta-when .event-status { margin-left: 0; }
 
-/* Guia da cidade: com um lugar selecionado, os outros pinos e ícones ficam esmaecidos */
-.guide-map:has(.gpin.on) .gpin:not(.on), .guide-map:has(.map-art-pin.active) .map-art-pin:not(.active) { opacity: .38; transition: opacity .2s; }
-.guide-map .gpin:not(.on):hover, .guide-map .map-art-pin:not(.active):hover { opacity: 1; }
-.guide-map .gpin.on, .guide-map .map-art-pin.active { z-index: 5; }
-.guide-list:has(.guide-item.on) .guide-item:not(.on) .guide-type { opacity: .38; transition: opacity .2s; }
-.guide-list .guide-item:not(.on):hover .guide-type { opacity: 1; }
+/* Guia da cidade: todos os pinos e ícones nas mesmas cores em tons claros; só o selecionado na cor cheia */
+.guide-map .gpin-type .gpin-head { background: color-mix(in srgb, var(--vibe-soft) 55%, #fff); color: color-mix(in srgb, var(--vibe) 80%, #fff); border: 0; box-shadow: 0 2px 6px -3px rgba(30,21,80,.25); }
+.guide-map .gpin-type:hover .gpin-head { background: var(--vibe-soft); color: var(--vibe); }
+.guide-map .gpin-type.on .gpin-head { background: var(--vibe-ink); color: #fff; border: 3px solid #fff; box-shadow: 0 8px 18px -6px rgba(30,21,80,.6); }
+.guide-map .gpin.on { z-index: 5; }
+.guide-map .map-art-pin[class*="vibe-"] { color: var(--vibe-soft); filter: none; }
+.guide-map .map-art-pin[class*="vibe-"].active { color: var(--vibe-ink); }
 /* post do Radar: mesmo espaço acima e abaixo do "Voltar" */
 .story-article .page-head-eyebrow { margin-top: 10px; }
 @media (max-width: 760px) { .story-article .page-head-eyebrow { margin-top: 8px; } }
