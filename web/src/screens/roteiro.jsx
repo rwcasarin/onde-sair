@@ -68,7 +68,7 @@ function RoteiroView({ r, mine = false }) {
 
   const tags = (r.tags || []).map(t => Array.isArray(t) ? t[0] : t).filter(Boolean);
   const hasTips = tips.dica || tips.horario || tips.epoca || tips.comoChegar || tips.lembrete;
-  const TABS = [["visao", "Visão geral"], ["paradas", "Paradas"], ["mapa", "Mapa"], ["info", "Informações úteis", "Informações"], ...(hasTips ? [["dicas", "Dicas"]] : []), ["confira", "Confira também"]];
+  const TABS = [["visao", "Sobre"], ["paradas", "Paradas"], ["mapa", "Mapa"], ["info", "Informações úteis", "Informações"], ...(hasTips ? [["dicas", "Dicas"]] : []), ["confira", "Confira também"]];
   function goTab(t) { setTab(t); document.getElementById("sec-" + t)?.scrollIntoView({ behavior: "smooth", block: "start" }); }
   async function share() {
     try {
