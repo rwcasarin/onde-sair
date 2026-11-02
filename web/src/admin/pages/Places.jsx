@@ -212,14 +212,14 @@ function PlaceForm({ initial, isNew }) {
       </>}
       side={<>
         <PublishPanel coll="places" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
-        <Card title="Prévia do card">
+        <Card title="Prévia do card" collapsible>
           <div className="a-preview" aria-hidden="true">
             <ListingCard p={{ ...draft, id: previewId, name: draft.name || "Nome do lugar", sub: draft.sub || "Subtítulo", desc: draft.desc || "Descrição.", tags: draft.tags, reviews: draft.reviews || 0 }} />
           </div>
         </Card>
         <Checklist items={checklist} />
         {!isNew && (
-          <Card title="Na comunidade">
+          <Card title="Na comunidade" collapsible>
             <dl className="a-meta">
             </dl>
           </Card>

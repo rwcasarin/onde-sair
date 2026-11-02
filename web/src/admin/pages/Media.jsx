@@ -51,7 +51,7 @@ export function MediaPage() {
       </div>
       <Card pad={false}>
         <div className="a-card-pad a-card-pad-tight">
-          <Toolbar search={q} onSearch={setQ} placeholder="Buscar por nome ou caminho…">
+          <Toolbar search={q} onSearch={setQ} placeholder="Buscar por nome ou caminho…" active={[group, st].filter(Boolean).length}>
             <FilterSelect label="Seção" value={group} onChange={setGroup} options={[...new Set(all.map(i => i.group))]} />
             <FilterSelect label="Situação" value={st} onChange={setSt} options={Object.entries(STATE).map(([k, v]) => [k, v[1]])} />
           </Toolbar>

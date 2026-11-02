@@ -1,7 +1,7 @@
 // Peças compartilhadas pelas coleções editoriais (lugares, roteiros, histórias)
 import { useEffect, useMemo, useState } from "react";
 import {
-  AIcon, Btn, Card, DataTable, PageHeader, StatusBadge, Tabs, Toolbar, FilterSelect, Select, useAdmin, Modal,
+  AIcon, Btn, Card, DataTable, PageHeader, StatusBadge, Tabs, Toolbar, FilterSelect, Select, useAdmin, Modal, useMobile,
 } from "../kit.jsx";
 import { go as goPath, toPath } from "../../router.js";
 import { STATUS, can, relTime, fmtDate, setStatus, removeItems, duplicateItem, saveItem, isLive, adoptNewMedia } from "../store.js";
@@ -77,7 +77,7 @@ export function ContentList({ coll, title, subtitle, columns, filters = [], sear
             ["agendado", "Agendados", counts.agendado],
             ["arquivado", "Arquivados", counts.arquivado],
           ]} />
-          <Toolbar search={q} onSearch={setQ} placeholder={`Buscar ${meta.many}…`}>
+          <Toolbar search={q} onSearch={setQ} placeholder={`Buscar ${meta.many}…`} active={Object.values(fv).filter(Boolean).length}>
             {filters.map(f => <FilterSelect key={f.key} label={f.label} value={fv[f.key] || ""} onChange={(v) => setFv({ ...fv, [f.key]: v })} options={f.options} />)}
           </Toolbar>
         </div>
@@ -103,6 +103,16 @@ export function PublishPanel({ coll, draft, set, dirty, isNew, onSave, validate 
   const [scheduling, setScheduling] = useState(false);
   const [when, setWhen] = useState(() => toLocalInput(draft.publishAt || new Date(Date.now() + 864e5).toISOString()));
   const canPub = can(user, "content.publish"), canDel = can(user, "content.delete");
+  // celular: o painel vira uma barra fixa no rodapé; "Mais opções" abre o painel inteiro por cima
+  const mobile = useMobile();
+  const [sheet, setSheet] = useState(false);
+  useEffect(() => { if (!mobile) setSheet(false); }, [mobile]);
+  useEffect(() => {
+    if (!sheet) return;
+    const on = (e) => { if (e.key === "Escape") setSheet(false); };
+    window.addEventListener("keydown", on);
+    return () => window.removeEventListener("keydown", on);
+  }, [sheet]);
 
   async function del() {
     const ok = await confirm({ title: `Excluir “${meta.title(draft)}”?`, text: "Essa ação não pode ser desfeita.", ok: "Excluir", danger: true });
@@ -113,11 +123,28 @@ export function PublishPanel({ coll, draft, set, dirty, isNew, onSave, validate 
       const errs = validate(true);
       if (errs) return toast("Corrija os campos destacados antes de " + (status === "revisao" ? "enviar." : "publicar."), "error");
     }
+    setSheet(false);
     onSave(status, extra);
   }
 
-  return (
-    <Card title="Publicação" className="a-publish">
+  const bar = mobile && (
+    <div className="a-pubbar" role="region" aria-label="Publicação">
+      <div className="a-pubbar-state">
+        <StatusBadge status={draft.status || "rascunho"} publishAt={draft.publishAt} />
+        {dirty && <em><i /> Não salvo</em>}
+      </div>
+      <Btn kind="ghost" icon="more" aria-label="Mais opções de publicação" aria-expanded={sheet} onClick={() => setSheet(!sheet)} />
+      {canPub
+        ? <Btn kind="primary" icon="check" onClick={() => publish("publicado")}>{draft.status === "publicado" ? "Salvar" : "Publicar"}</Btn>
+        : <Btn kind="primary" icon="send2" onClick={() => publish("revisao")} disabled={draft.status === "publicado" && !dirty}>Enviar</Btn>}
+    </div>
+  );
+
+  return (<>
+    {bar}
+    {sheet && <div className="a-sheet-scrim" onClick={() => setSheet(false)} />}
+    <Card title="Publicação" className={"a-publish" + (mobile ? " a-sheet" + (sheet ? " open" : "") : "")}
+      actions={mobile && <Btn kind="ghost" size="sm" icon="x" aria-label="Fechar" onClick={() => setSheet(false)} />}>
       <dl className="a-meta">
         <div><dt>Status</dt><dd><StatusBadge status={draft.status || "rascunho"} publishAt={draft.publishAt} /></dd></div>
         {draft.status === "agendado" && draft.publishAt && <div><dt>Vai ao ar</dt><dd>{fmtDate(draft.publishAt)}</dd></div>}
@@ -166,7 +193,7 @@ export function PublishPanel({ coll, draft, set, dirty, isNew, onSave, validate 
         </Modal>
       )}
     </Card>
-  );
+  </>);
 }
 const toLocalInput = (iso) => { const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
 
@@ -210,7 +237,7 @@ export function useEditorSave({ coll, draft, commit, dirty, rules }) {
 export function Checklist({ items }) {
   const done = items.filter(i => i[1]).length;
   return (
-    <Card title="Qualidade" subtitle={`${done} de ${items.length} itens`} >
+    <Card title="Qualidade" subtitle={`${done} de ${items.length} itens`} collapsible>
       <div className="a-progress"><i style={{ width: (done / items.length) * 100 + "%" }} /></div>
       <ul className="a-checklist">
         {items.map(([label, ok]) => <li key={label} className={ok ? "ok" : ""}><AIcon name={ok ? "check" : "x"} size={14} />{label}</li>)}

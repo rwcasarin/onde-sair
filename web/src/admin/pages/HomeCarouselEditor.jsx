@@ -144,7 +144,7 @@ export function CarouselEditor({ car, onChange, errors }) {
 
   return (
     <>
-      <Card title="Carrossel" subtitle="Como os destaques passam no topo da home.">
+      <Card title="Carrossel" subtitle="Como os destaques passam no topo da home." collapsible>
         <div className="a-car-opts">
           <div className="a-car-optcol">
             <Toggle label="Troca automática" hint="Pausa enquanto o mouse está sobre o carrossel e retoma ao sair." checked={car.autoplay !== false} onChange={(autoplay) => onChange({ ...car, autoplay })} />
@@ -157,7 +157,7 @@ export function CarouselEditor({ car, onChange, errors }) {
 
       <Card title={`Destaques (${slides.length}/${MAX_SLIDES})`}
         subtitle={live ? `${live} no ar agora, na ordem abaixo.` : "Nenhum destaque no ar: o site mostra o topo fixo até haver um."}
-        actions={slides.length < MAX_SLIDES && <Btn size="sm" icon="plus" onClick={add}>Novo destaque</Btn>}>
+        actions={slides.length < MAX_SLIDES && <Btn size="sm" icon="plus" onClick={add}>Novo destaque</Btn>} collapsible defaultOpen>
         {!slides.length && <p className="a-muted">Cadastre o primeiro destaque: imagem, título, descrição, data e link.</p>}
         <div className="a-car-list">
           {slides.map((s, i) => (

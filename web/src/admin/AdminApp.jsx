@@ -189,19 +189,19 @@ export default function AdminApp() {
             <div className="a-top-right">
               {db.settings.maintenance && (
                 <a className="a-sync tone-red a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
-                  title="O site está fora do ar (modo manutenção)"><i /> Site em manutenção</a>
+                  title="O site está fora do ar (modo manutenção)"><i /> <span className="a-sync-label">Site em manutenção</span></a>
               )}
               {db.settings.eventsPause?.paused && (
                 <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
-                  title="Eventos pausados no site"><i /> Eventos pausados</a>
+                  title="Eventos pausados no site"><i /> <span className="a-sync-label">Eventos pausados</span></a>
               )}
               {db.settings.roteirosPause?.paused && (
                 <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
-                  title="Roteiros dos usuários pausados no site"><i /> Roteiros pausados</a>
+                  title="Roteiros dos usuários pausados no site"><i /> <span className="a-sync-label">Roteiros pausados</span></a>
               )}
               {db.settings.accounts?.paused && (
                 <a className="a-sync tone-amber a-paused-pill" href={href("/admin/configuracoes/pausas")} onClick={(e) => { e.preventDefault(); go("configuracoes/pausas"); }}
-                  title="Login, cadastro e interações dos usuários estão pausados"><i /> Contas pausadas</a>
+                  title="Login, cadastro e interações dos usuários estão pausados"><i /> <span className="a-sync-label">Contas pausadas</span></a>
               )}
               <SyncPill />
               <a className="a-btn a-btn-ghost a-btn-sm a-hide-sm" href="#" onClick={(e) => { e.preventDefault(); goPath("/"); }}><AIcon name="ext" size={15} /> Ver site</a>
@@ -254,7 +254,7 @@ function SyncPill() {
   if (!REMOTE) return <span className="a-sync tone-gray a-hide-sm" title="Versão offline: dados salvos neste navegador"><i /> Offline</span>;
   const map = { idle: ["green", "Na nuvem"], saved: ["green", "Salvo"], saving: ["amber", "Salvando…"], error: ["red", "Erro ao salvar"], conflict: ["red", "Conflito"] };
   const [tone, label] = map[sync.status] || map.idle;
-  return <span className={"a-sync tone-" + tone} role="status" title={sync.at ? "Última gravação " + relTime(sync.at) : "Conectado ao banco no Vercel"}>{sync.status === "saving" ? <Loader size={12} tone="mono" delay={false} label="" /> : <i />} {label}</span>;
+  return <span className={"a-sync tone-" + tone} role="status" title={sync.at ? "Última gravação " + relTime(sync.at) : "Conectado ao banco no Vercel"}>{sync.status === "saving" ? <Loader size={12} tone="mono" delay={false} label="" /> : <i />} <span className="a-sync-label">{label}</span></span>;
 }
 
 function PasswordModal({ user, onClose, toast }) {
@@ -297,21 +297,28 @@ function QuickSearch({ db, go }) {
     ...db.stories.map(s => ({ t: s.title, s: "Post do Radar", path: "radar/" + s.id })),
     ...db.members.map(m => ({ t: m.name, s: "Usuário · " + m.email, path: "usuarios" })),
   ].filter(r => (r.t + " " + r.s).toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+  // no celular a busca é só um ícone; tocando, ela se abre por cima da barra do topo
+  const [wide, setWide] = useState(false);
+  const pick = (path) => { go(path); setQ(""); setWide(false); };
   return (
-    <div className="a-qs">
+    <>
+    <button type="button" className="a-qs-toggle" aria-label="Buscar no painel" onClick={() => { setWide(true); setTimeout(() => ref.current?.focus(), 0); }}><AIcon name="search" size={19} /></button>
+    <div className={"a-qs" + (wide ? " wide" : "")}>
       <AIcon name="search" size={16} />
       <input ref={ref} value={q} placeholder="Buscar lugares, roteiros, eventos…" aria-label="Busca rápida"
-        onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
-        onKeyDown={(e) => { if (e.key === "Enter" && results[0]) { go(results[0].path); setQ(""); } if (e.key === "Escape") { setQ(""); e.target.blur(); } }} />
+        onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => { setOpen(false); setWide(false); }, 150)}
+        onKeyDown={(e) => { if (e.key === "Enter" && results[0]) pick(results[0].path); if (e.key === "Escape") { setQ(""); e.target.blur(); } }} />
       <kbd className="a-hide-sm">Ctrl K</kbd>
+      {wide && <button type="button" className="a-qs-close" aria-label="Fechar busca" onMouseDown={() => { setQ(""); setWide(false); }}><AIcon name="x" size={16} /></button>}
       {open && results.length > 0 && (
         <ul className="a-qs-results" role="listbox">
           {results.map(r => (
-            <li key={r.path + r.t}><button type="button" onMouseDown={() => { go(r.path); setQ(""); }}><strong>{r.t}</strong><span>{r.s}</span></button></li>
+            <li key={r.path + r.t}><button type="button" onMouseDown={() => pick(r.path)}><strong>{r.t}</strong><span>{r.s}</span></button></li>
           ))}
         </ul>
       )}
     </div>
+    </>
   );
 }
 

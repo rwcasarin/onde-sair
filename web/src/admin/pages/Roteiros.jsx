@@ -223,12 +223,12 @@ function RoteiroForm({ initial, isNew }) {
       </>}
       side={<>
         <PublishPanel coll="roteiros" draft={draft} set={set} dirty={dirty} isNew={isNew} onSave={save} validate={validate} />
-        <Card title="Prévia do card">
+        <Card title="Prévia do card" collapsible>
           <div className="a-preview" aria-hidden="true">
             <RoteiroCard r={{ ...draft, id: pid, title: draft.title || "Título do roteiro", desc: draft.desc || "Resumo do roteiro.", paradas: draft.steps.length }} />
           </div>
         </Card>
-        <Card title="Paradas">
+        <Card title="Paradas" collapsible>
           <ol className="a-steps-mini">
             {draft.steps.map((s, i) => {
               const pl = db.places.find(p => p.id === s.place);

@@ -52,7 +52,7 @@ export function MembersPage() {
       </div>
       <Card pad={false}>
         <div className="a-card-pad a-card-pad-tight">
-          <Toolbar search={q} onSearch={setQ} placeholder="Buscar por nome ou e-mail…">
+          <Toolbar search={q} onSearch={setQ} placeholder="Buscar por nome ou e-mail…" active={[status, city].filter(Boolean).length}>
             <FilterSelect label="Status" value={status} onChange={setStatus} options={[["ativo", "Ativo"], ["pendente", "Pendente"], ["bloqueado", "Bloqueado"]]} />
             <FilterSelect label="Cidade" value={city} onChange={setCity} options={db.cities.map(c => [c.id, c.name])} />
           </Toolbar>

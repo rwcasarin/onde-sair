@@ -45,7 +45,7 @@ export function HomePage() {
         actions={<><Btn icon="ext" onClick={() => openOnSite("home")}>Ver home</Btn><Btn kind="primary" icon="check" disabled={!dirty} onClick={save}>Salvar home</Btn></>} />
       {dirty && <p className="a-dirty a-dirty-bar"><i /> Alterações não salvas</p>}
 
-      <Card title="Topo da home" subtitle="Escolha o que aparece no alto da página inicial.">
+      <Card title="Topo da home" subtitle="Escolha o que aparece no alto da página inicial." collapsible defaultOpen>
         <Segmented label="Tipo de topo" value={mode} onChange={(heroMode) => set({ heroMode })}
           options={[["fixo", "Fixo · título e foto"], ["carrossel", "Carrossel de destaques"]]} />
         <p className="a-muted a-car-modehint">
@@ -58,7 +58,7 @@ export function HomePage() {
       {mode === "carrossel" && <CarouselEditor car={car} onChange={(carousel) => set({ carousel })} errors={errors} />}
 
       {mode === "fixo" && <div className="a-grid-2-1">
-        <Card title="Topo (hero)" subtitle="Título, texto e foto principal.">
+        <Card title="Topo (hero)" subtitle="Título, texto e foto principal." collapsible>
           <Textarea label="Título" value={hero.title} onChange={(title) => setHero({ title })} rows={2} hint="Use Enter para quebrar a linha. Ideal: até 2 linhas curtas." maxCount={40} />
           <Textarea label="Texto de apoio" value={hero.lede} onChange={(lede) => setHero({ lede })} rows={3} maxCount={160} />
           <div className="a-form-grid">
@@ -66,12 +66,12 @@ export function HomePage() {
             <ChipInput label="Palavras do painel geométrico" value={hero.geoWords} onChange={(geoWords) => setHero({ geoWords })} />
           </div>
         </Card>
-        <Card title="Foto do topo">
+        <Card title="Foto do topo" collapsible>
           <ImageField path={hero.img} hint="~1400×800 · pessoas em clima de rolê" ratio="16 / 10" />
         </Card>
       </div>}
 
-      <Card title="Dicas para hoje" subtitle="Até seis lugares publicados, na ordem abaixo.">
+      <Card title="Dicas para hoje" subtitle="Até seis lugares publicados, na ordem abaixo." collapsible>
         <Repeater items={draft.tips} max={6} addLabel="Adicionar dica" newItem={() => ({ place: livePlaces.find(x => !draft.tips.some(t => t.place === x.id))?.id || livePlaces[0]?.id })}
           onChange={(tips) => set({ tips })}
           render={(t, upd) => {
@@ -87,14 +87,14 @@ export function HomePage() {
       </Card>
 
       <div className="a-grid-2">
-        <Card title="Radar" subtitle="Até 3 posts publicados, na ordem abaixo.">
+        <Card title="Radar" subtitle="Até 3 posts publicados, na ordem abaixo." collapsible>
           <Repeater items={draft.storyIds.map(id => ({ id }))} max={3} addLabel="Adicionar post" newItem={() => ({ id: liveStories.find(s => !draft.storyIds.includes(s.id))?.id || liveStories[0]?.id })}
             onChange={(items) => set({ storyIds: items.map(x => x.id) })}
             render={(s, upd) => (
               <Select value={s.id} onChange={(id) => upd({ id })} options={db.stories.map(x => [x.id, x.title + (isLive(x) ? "" : " (não publicada)")])} aria-label="Post" />
             )} />
         </Card>
-        <Card title="Valores da marca" subtitle="Faixa “Lugares reais. Pessoas reais.”">
+        <Card title="Valores da marca" subtitle="Faixa “Lugares reais. Pessoas reais.”" collapsible>
           <Repeater items={draft.brandValues} max={4} addLabel="Adicionar valor" newItem={() => ({ icon: "star", text: "" })}
             onChange={(brandValues) => set({ brandValues })}
             render={(b, upd) => (
@@ -106,7 +106,7 @@ export function HomePage() {
         </Card>
       </div>
 
-      <Card title="Roteiros por vibe" subtitle="Quatro cards coloridos, cada um levando a um roteiro.">
+      <Card title="Roteiros por vibe" subtitle="Quatro cards coloridos, cada um levando a um roteiro." collapsible>
         <Repeater items={draft.vibeRoteiros} max={4} addLabel="Adicionar card" newItem={() => ({ id: "v" + Date.now().toString(36), title: "Nova vibe", desc: "", icon: "star", cls: "vibe-lavender", img: "images/home/vibe-nova.jpg", roteiro: liveRots[0]?.id })}
           onChange={(vibeRoteiros) => set({ vibeRoteiros })}
           render={(v, upd) => (
