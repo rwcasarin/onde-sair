@@ -236,7 +236,7 @@ export function Historia({ id }) {
           {(s.author || when) && <p className="story-byline">{s.author && <>Por <strong>{s.author}</strong></>}{s.author && when && " · "}{when && fmt(when)}</p>}
           <div className="place-actions story-actions">
             <div className="act-row act-sub">
-              <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+              <button className={"act-btn act-round" + (shared ? " on" : "")} onClick={share} aria-label={shared ? "Link copiado" : "Compartilhar"} title={shared ? "Link copiado" : "Compartilhar"}><Icon name={shared ? "check" : "share"} size={19} /></button>
             </div>
           </div>
         </div>

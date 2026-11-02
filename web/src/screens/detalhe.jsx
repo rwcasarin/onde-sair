@@ -6,13 +6,13 @@ import { CITIES, PLACES, ROTEIROS, TYPES, VIBE_STYLE, placeImg, roteiroImg } fro
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
 import {
-  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, PageTabs
+  HeroMedia, Crumbs, VibePill, Tag, MapArt, MiniPlaceCard, RoteiroCard, FaveButton, Footer, PageTabs, TypePill
 } from "../components/site.jsx";
 import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 import { SITE } from "../admin/store.js";
 import { PlaceMap } from "../components/placemap.jsx";
-import { instaProfile } from "../insta.js";
+import { instaProfile, instaHandle } from "../insta.js";
 import { roteiroVibes } from "../vibes.js";
 import { NotFound } from "./notfound.jsx";
 import { Lightbox } from "../components/lightbox.jsx";
@@ -126,7 +126,6 @@ function DetalheView({ p }) {
   const hours = placeHours(p);
   const today = new Date().getDay();
   const status = hours ? hoursStatus(hours) : null;
-  const typeInfo = TYPES.find(t => t.label === p.type);
   const tagList = [...new Set((p.tags || []).map(t => String(t).trim()).filter(Boolean))];
 
   return (
@@ -136,32 +135,31 @@ function DetalheView({ p }) {
         <HeroMedia img={placeImg(p.id)} note={p.note} shape="diagonal" hint="Foto do lugar · ~1400×800" />
         <div className="hero2-copy">
           <Crumbs items={[["Início", "home"], ["Lugares", "lista"], [p.bairro, "lista", { q: p.bairro }], [p.name]]} />
-          {/* vibes (pequenas) → nome → descrição → informações → ações */}
+          {/* tipo e vibes (pequenas) → nome → descrição → informações → ações */}
           <div className="place-vibes place-vibes-sm">
+            {p.type && <TypePill type={p.type} />}
             {p.affs.map(a => <VibePill key={a} aff={a} size="sm" />)}
           </div>
           <h1 className="page-title">{p.name}</h1>
           <p className="hero2-lede">{p.tagline}</p>
 
+          {/* horário → bairro (lado a lado; se não couber, quebra a linha) */}
           <ul className="place-meta">
-            <li><Icon name="pin" size={18} fill /> {p.bairro}</li>
-            {p.type && <li className="place-meta-type"><Icon name={typeInfo?.icon || "pin"} size={18} /> {p.type}</li>}
             {status && <li className={"place-meta-status" + (status.open ? " is-open" : "")}><Icon name="clock" size={18} /> {status.text}</li>}
+            {p.bairro && <li><Icon name="pin" size={18} fill /> {p.bairro}</li>}
           </ul>
 
-          {/* ações: 1ª linha — chegar e falar com o lugar; 2ª linha — ações do visitante (só ícone, texto no hover) */}
+          {/* ações: todas do mesmo tamanho, só com ícone (o nome aparece ao passar o mouse e para leitores de tela);
+              o Instagram fica no fim da descrição do lugar */}
           <div className="place-actions">
-            <div className="act-row act-main">
-              <button className="act-cta" onClick={() => goTab("chegar")}><Icon name="send" size={18} /> Como chegar</button>
-              {insta && <a className="act-btn act-round act-insta" href={insta} target="_blank" rel="noreferrer" aria-label={"Instagram " + p.insta} title={"Instagram " + p.insta}><Icon name="instagram" size={19} /></a>}
+            <div className="act-row act-icons">
               {whats && <a className="act-btn act-round act-whats" href={whats} target="_blank" rel="noreferrer" aria-label="Conversar no WhatsApp" title="WhatsApp"><Icon name="whatsapp" size={19} /></a>}
-            </div>
-            <div className="act-row act-sub">
-              {!paused && <button className={"act-btn act-sm" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Salvo" : "Salvar"}>
-                <Icon name="heart" size={17} fill={saved} /><span className="act-label">{saved ? "Salvo" : "Salvar"}</span>
+              {!paused && <button className={"act-btn act-round" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Favoritado" : "Favoritar"} title={saved ? "Favoritado" : "Favoritar"}>
+                <Icon name="heart" size={19} fill={saved} />
               </button>}
-              <AddToRoteiro place={p} className="act-btn act-sm" iconSize={17} compact />
-              <button className={"act-btn act-sm" + (shared ? " show" : "")} onClick={share} aria-label="Compartilhar"><Icon name="share" size={17} /><span className="act-label">{shared ? "Copiado!" : "Compartilhar"}</span></button>
+              <button className="act-btn act-round" onClick={() => goTab("chegar")} aria-label="Como chegar" title="Como chegar"><Icon name="send" size={19} /></button>
+              <button className={"act-btn act-round" + (shared ? " on" : "")} onClick={share} aria-label={shared ? "Link copiado" : "Compartilhar"} title={shared ? "Link copiado" : "Compartilhar"}><Icon name={shared ? "check" : "share"} size={19} /></button>
+              <AddToRoteiro place={p} className="act-btn act-round" iconSize={19} compact />
             </div>
           </div>
         </div>
@@ -176,6 +174,10 @@ function DetalheView({ p }) {
           <div className="about-text">
             <h2 className="h2t">Sobre o lugar</h2>
             {hasText(p.desc) && <RichText value={p.desc} />}
+            {/* Instagram: no fim da descrição, antes das tags */}
+            {insta && <a className="insta-btn" href={insta} target="_blank" rel="noreferrer" aria-label={`Instagram de ${p.name}: /${instaHandle(p.insta)}`}>
+              <Icon name="instagram" size={18} /> /{instaHandle(p.insta)}
+            </a>}
             {tagList.length > 0 && (
               <ul className="place-tags" aria-label="Tags">
                 {tagList.map(t => <li key={t}>{t}</li>)}

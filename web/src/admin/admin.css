@@ -844,3 +844,7 @@ a.a-paused-pill { text-decoration: none; }
   .a-hours-perday .a-day-name { grid-column: 1 / -1; padding-top: 0; }
   .a-hours-perday .a-hours-shift { flex-wrap: wrap; }
 }
+
+/* chave dentro da tabela (ex.: "Sempre ativo" nos eventos) */
+.a-toggle.a-toggle-cell { margin: 0; align-items: center; }
+.a-toggle.a-toggle-cell.disabled { opacity: .5; cursor: not-allowed; }

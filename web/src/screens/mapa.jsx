@@ -3,7 +3,7 @@ import { CITIES, VIBE_ORDER, placeImg } from "../data.js";
 import { useCityPins } from "../pins.js";
 import { Icon } from "../components/icons.jsx";
 import { ImageSlot } from "../components/image-slot.jsx";
-import { PageHead, VibePill, Footer } from "../components/site.jsx";
+import { PageHead, VibePill, Footer, typeOf } from "../components/site.jsx";
 import { PlaceMap } from "../components/placemap.jsx";
 import { useNav, useCity } from "../nav.js";
 
@@ -40,7 +40,7 @@ export function Mapa({ id }) {
                 <button className={"guide-item" + (cur?.id === p.id ? " on" : "")} onClick={() => setActive(p.id)} onDoubleClick={() => nav("detalhe", { id: p.id })}>
                   <ImageSlot className="guide-thumb" src={placeImg(p.id)} compact />
                   <span className="guide-item-text">
-                    <strong>{p.name}</strong>
+                    <strong>{typeOf(p) && <span className={"guide-type " + typeOf(p).cls} title={p.type}><Icon name={typeOf(p).icon} size={13} /></span>}{p.name}</strong>
                     <span>{p.sub} • {p.bairro}</span>
                   </span>
                 </button>
@@ -48,7 +48,7 @@ export function Mapa({ id }) {
             ))}
           </ul>
 
-          <PlaceMap className="guide-map" city={CITIES.find(c => c.id === cityId)} activeId={cur?.id} onSelect={setActive}
+          <PlaceMap className="guide-map" typed city={CITIES.find(c => c.id === cityId)} activeId={cur?.id} onSelect={setActive}
             items={list.map(p => ({ id: p.id, place: p }))} />
         </section>
       </div>

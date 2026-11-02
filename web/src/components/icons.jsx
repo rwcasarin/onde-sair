@@ -56,6 +56,17 @@ const PATHS = {
   utensils: <><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></>,
 };
 
+// o mesmo ícone em texto SVG, para elementos fora do React (pins do Google Maps)
+const attrName = (k) => k.replace(/[A-Z]/g, m => "-" + m.toLowerCase());
+function markup(el) {
+  if (!el) return "";
+  if (Array.isArray(el)) return el.map(markup).join("");
+  if (typeof el.type !== "string") return markup(el.props.children);
+  const { children, ...props } = el.props;
+  return `<${el.type} ${Object.entries(props).map(([k, v]) => `${attrName(k)}="${v}"`).join(" ")}/>`;
+}
+export const iconSvg = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${markup(PATHS[name])}</svg>`;
+
 export function Icon({ name, size = 18, fill = false, ...rest }) {
   return (
     <svg

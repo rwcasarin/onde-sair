@@ -8,7 +8,7 @@ import { ImageSlot } from "../../components/image-slot.jsx";
 import {
   AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify, can, SITE } from "../store.js";
+import { slugify, can, SITE, saveItem } from "../store.js";
 import { href } from "../../router.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
@@ -22,8 +22,10 @@ const catsOf = (db) => db.eventCategories?.length ? db.eventCategories : SEED_EV
 // Lista
 // ---------------------------------------------------------------------
 export function EventsList() {
-  const { db, user, go } = useAdmin();
+  const { db, user, go, toast } = useAdmin();
   const ep = db.settings.eventsPause;
+  // "Sempre ativo": o evento fica na agenda independente do dia e horário (grava na hora)
+  const setAlwaysOn = (e, on) => { saveItem("events", { ...e, alwaysOn: on }, user); toast(on ? "Evento sempre ativo." : "Evento volta a seguir as datas.", "success"); };
   const cats = catsOf(db);
   return (
     <ContentList
@@ -38,7 +40,7 @@ export function EventsList() {
       subtitle="A agenda da cidade. Só os publicados aparecem no site; eventos encerrados saem da agenda sozinhos."
       searchText={(e) => `${e.title} ${e.venueName || ""} ${e.bairro} ${(e.tags || []).join(" ")}`}
       filters={[
-        { key: "when", label: "Quando", options: [["proximos", "Próximos"], ["encerrados", "Encerrados"]], test: (e, v) => v === "encerrados" ? isPast(e) : !isPast(e) },
+        { key: "when", label: "Quando", options: [["proximos", "Próximos"], ["encerrados", "Encerrados"], ["sempre", "Sempre ativos"]], test: (e, v) => v === "sempre" ? !!e.alwaysOn : v === "encerrados" ? isPast(e) : !isPast(e) },
         { key: "origem", label: "Origem", options: [["site", "Enviados pelo site"], ["equipe", "Cadastrados pela equipe"]], test: (e, v) => v === "site" ? !!e.submittedBy : !e.submittedBy },
         { key: "cat", label: "Categoria", options: cats.map(c => [c.id, c.label]), test: (e, v) => e.category === v },
         { key: "vibe", label: "Vibe", options: db.vibes.map(v => [v.id, v.label]), test: (e, v) => (e.affs || []).includes(v) },
@@ -51,6 +53,17 @@ export function EventsList() {
           </span>
         ) },
         { key: "startAt", label: "Quando", width: 210, render: (e) => <span className={isPast(e) ? "a-muted" : ""}>{whenLabel(e)}{isPast(e) ? " · encerrado" : ""}</span> },
+        { key: "alwaysOn", label: "Sempre ativo", width: 120, sortValue: (e) => (e.alwaysOn ? 1 : 0), render: (e) => {
+          const allowed = can(user, "content.edit") && (can(user, "content.publish") || !["publicado", "agendado"].includes(e.status));
+          return (
+            <label className={"a-toggle a-toggle-cell" + (allowed ? "" : " disabled")} onClick={(ev) => ev.stopPropagation()}
+              title={allowed ? "Manter o evento ativo independente do dia e horário" : "Seu perfil não pode alterar eventos publicados"}>
+              <input type="checkbox" checked={!!e.alwaysOn} disabled={!allowed} onChange={(ev) => setAlwaysOn(e, ev.target.checked)}
+                aria-label={`Manter "${e.title}" sempre ativo`} />
+              <span className="a-toggle-track"><span /></span>
+            </label>
+          );
+        } },
         { key: "venueName", label: "Local", width: 180, render: (e) => db.places.find(p => p.id === e.venue)?.name || e.venueName || e.bairro || "—" },
       ]}
     />

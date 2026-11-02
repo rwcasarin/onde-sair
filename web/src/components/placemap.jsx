@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { placeImg } from "../data.js";
 import { SITE } from "../admin/store.js";
 import { loadGoogle, knownCoords, geocodePlace, cityCenter, radiusArea, MAP_STYLE } from "../maps.js";
-import { Icon } from "./icons.jsx";
+import { Icon, iconSvg } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
-import { MapArt, FaveButton } from "./site.jsx";
+import { MapArt, FaveButton, typeOf } from "./site.jsx";
 import { useNav } from "../nav.js";
 import { Loader } from "./loader.jsx";
 
@@ -41,8 +41,9 @@ export function MapCard({ place, isMain, onClose }) {
  * frame: enquadramento padrão — com mainId, raio de `radiusKm` (500 m) em volta do pin principal (página do lugar);
  *        com `city`, raio de `cityKm` (5 km) em volta do centro da cidade (Guia da cidade); sem nenhum dos dois, todos os pins (lista, roteiros).
  * route: liga os pins na ordem. card: mostra o card ao selecionar. onPick: clique no mapa devolve {lat,lng} (painel).
+ * typed: pins na cor e com o ícone do tipo do lugar (Guia da cidade).
  */
-export function PlaceMap({ items, mainId = null, activeId = null, onSelect, route = false, card = true, onPick, className = "", fallbackLabel = true, radiusKm = 0.5, city = null, cityKm = 5 }) {
+export function PlaceMap({ items, mainId = null, activeId = null, onSelect, route = false, card = true, onPick, className = "", fallbackLabel = true, radiusKm = 0.5, city = null, cityKm = 5, typed = false }) {
   const onSelectRef = useRef(onSelect); onSelectRef.current = onSelect;
   const key = SITE.mapsKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
   const [mode, setMode] = useState(key ? "loading" : "art");     // loading | google | art
@@ -105,12 +106,13 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
       } else pin.setPosition(pos);
       const kind = i.num ? "step" : i.id === mainId ? "main" : "other";
       const on = i.id === activeId;
-      pin.node.className = `gpin gpin-${kind}${on ? " on" : ""}${onSelectRef.current ? "" : " static"}`;
+      const t = typed && kind === "other" ? typeOf(i.place) : null;
+      pin.node.className = `gpin gpin-${kind}${t ? " gpin-type " + t.cls : ""}${on ? " on" : ""}${onSelectRef.current ? "" : " static"}`;
       pin.node.setAttribute("aria-label", (i.num ? i.num + ". " : "") + (i.title || i.place?.name || ""));
       pin.node.title = i.title || i.place?.name || "";
       pin.node.style.setProperty("--pin", i.num ? STEP_COLORS[(i.num - 1) % STEP_COLORS.length] : "");
       pin.node.style.zIndex = kind === "main" ? 30 : on ? 20 : 10 - (idx % 5);
-      pin.node.innerHTML = `<span class="gpin-head">${i.num ? `<b>${i.num}</b>` : ASTERISK}</span>`;
+      pin.node.innerHTML = `<span class="gpin-head">${i.num ? `<b>${i.num}</b>` : t ? iconSvg(t.icon) : ASTERISK}</span>`;
     });
     [...pins.current.keys()].forEach(id => { if (!seen.has(id)) { pins.current.get(id).setMap(null); pins.current.delete(id); } });
 
@@ -138,7 +140,7 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
         g.event.addListenerOnce(map, "idle", () => { if (map.getZoom() > 16) map.setZoom(16); });
       }
     }
-  }, [mode, coords, activeId, mainId, route, sig, center, radiusKm, cityKm]); // eslint-disable-line
+  }, [mode, coords, activeId, mainId, route, sig, center, radiusKm, cityKm, typed]); // eslint-disable-line
 
   // ao escolher um pin pela lista, traz o pin para a vista
   useEffect(() => {
@@ -156,7 +158,8 @@ export function PlaceMap({ items, mainId = null, activeId = null, onSelect, rout
       x: (i.art || i.place.map).x, y: (i.art || i.place.map).y, num: i.num, title: i.title || i.place?.name,
       label: fallbackLabel && i.id === mainId ? i.place?.name : undefined,
       active: i.id === activeId || i.id === mainId,
-      color: i.num ? STEP_COLORS[(i.num - 1) % STEP_COLORS.length] : i.id === mainId || i.id === activeId ? "var(--c-magenta)" : "#B9B2D3",
+      ...(typed && !i.num && i.id !== mainId && typeOf(i.place) ? { cls: typeOf(i.place).cls } : {}),
+      color: i.num ? STEP_COLORS[(i.num - 1) % STEP_COLORS.length] : i.id === mainId || i.id === activeId ? "var(--c-magenta)" : typed && typeOf(i.place) ? "var(--vibe-ink)" : "#B9B2D3",
       onClick: onSelect ? () => onSelect(i.id) : undefined,
     }));
     return <MapArt className={className} pins={artPins} route={route}>{cardNode}</MapArt>;
