@@ -28,7 +28,7 @@ export function EventsList() {
   const setAlwaysOn = (e, on) => { saveItem("events", { ...e, alwaysOn: on }, user); toast(on ? "Evento sempre ativo." : "Evento volta a seguir as datas.", "success"); };
   const cats = catsOf(db);
   return (
-    <ContentList
+    <ContentList publishToggle
       notice={ep?.paused && (
         <div className="a-alert tone-warn" role="status">
           <AIcon name="alert" size={16} />
