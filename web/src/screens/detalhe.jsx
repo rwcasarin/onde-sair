@@ -12,7 +12,7 @@ import { useNav, useFaves, useAccount } from "../nav.js";
 import { AddToRoteiro } from "../components/addtoroteiro.jsx";
 import { SITE } from "../admin/store.js";
 import { PlaceMap } from "../components/placemap.jsx";
-import { instaProfile } from "../insta.js";
+import { instaProfile, instaHandle } from "../insta.js";
 import { roteiroVibes } from "../vibes.js";
 import { NotFound } from "./notfound.jsx";
 import { Lightbox } from "../components/lightbox.jsx";
@@ -149,10 +149,10 @@ function DetalheView({ p }) {
             {p.bairro && <li><Icon name="pin" size={18} fill /> {p.bairro}</li>}
           </ul>
 
-          {/* ações: todas do mesmo tamanho, só com ícone (o nome aparece ao passar o mouse e para leitores de tela) */}
+          {/* ações: todas do mesmo tamanho, só com ícone (o nome aparece ao passar o mouse e para leitores de tela);
+              o Instagram fica no fim da descrição do lugar */}
           <div className="place-actions">
             <div className="act-row act-icons">
-              {insta && <a className="act-btn act-round act-insta" href={insta} target="_blank" rel="noreferrer" aria-label={"Instagram " + p.insta} title={"Instagram " + p.insta}><Icon name="instagram" size={19} /></a>}
               {whats && <a className="act-btn act-round act-whats" href={whats} target="_blank" rel="noreferrer" aria-label="Conversar no WhatsApp" title="WhatsApp"><Icon name="whatsapp" size={19} /></a>}
               {!paused && <button className={"act-btn act-round" + (saved ? " on" : "")} onClick={() => toggle(p.id)} aria-pressed={saved} aria-label={saved ? "Favoritado" : "Favoritar"} title={saved ? "Favoritado" : "Favoritar"}>
                 <Icon name="heart" size={19} fill={saved} />
@@ -174,6 +174,10 @@ function DetalheView({ p }) {
           <div className="about-text">
             <h2 className="h2t">Sobre o lugar</h2>
             {hasText(p.desc) && <RichText value={p.desc} />}
+            {/* Instagram: no fim da descrição, antes das tags */}
+            {insta && <a className="insta-btn" href={insta} target="_blank" rel="noreferrer" aria-label={`Instagram de ${p.name}: @${instaHandle(p.insta)}`}>
+              <Icon name="instagram" size={18} /> @{instaHandle(p.insta)}
+            </a>}
             {tagList.length > 0 && (
               <ul className="place-tags" aria-label="Tags">
                 {tagList.map(t => <li key={t}>{t}</li>)}

@@ -1703,3 +1703,9 @@ body.search-lock { overflow: hidden; }
 .gpin-type.on .gpin-head { width: 42px; height: 42px; background: var(--vibe-ink); border: 3px solid #fff; }
 .gpin-type .gpin-head svg { width: 58%; height: 58%; }
 .guide-type { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 7px; border-radius: 999px; background: var(--vibe-ink); color: #fff; vertical-align: -5px; flex-shrink: 0; }
+
+/* página do lugar: Instagram no fim da descrição, antes das tags */
+.insta-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; margin: 16px 0 4px; padding: 0 16px 0 12px; border: 1.5px solid var(--heading); border-radius: 999px; background: var(--paper); color: var(--heading); font-size: 14px; font-weight: 600; text-decoration: none; transition: background .25s ease, color .25s ease, border-color .25s ease; }
+.insta-btn:hover, .insta-btn:focus-visible { background: radial-gradient(circle at 30% 107%, #FDF497 0%, #FDF497 5%, #FD5949 45%, #D6249F 60%, #285AEB 90%); border-color: transparent; color: #fff; }
+.insta-btn:focus-visible { outline: 3px solid var(--c-teal); outline-offset: 2px; }
+.insta-btn + .place-tags { margin-top: 12px; }
