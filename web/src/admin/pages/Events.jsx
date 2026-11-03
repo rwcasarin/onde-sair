@@ -6,14 +6,17 @@ import { SEED_EVENT_CATEGORIES, AGE_RATINGS, eventImg, eventGallery, SEED_TYPES 
 import { EventCard } from "../../components/site.jsx";
 import { ImageSlot } from "../../components/image-slot.jsx";
 import {
-  AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, OrderedPicker, Repeater, ImageField, Segmented, Tabs, Field, PageHeader, useAdmin, useDraft,
+  AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, OrderedPicker, PillPicker, Repeater, ImageField, Segmented, Tabs, Field, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
 import { slugify, can, SITE, saveItem } from "../store.js";
 import { href } from "../../router.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
 import { eventsNav } from "./Types.jsx";
-import { parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel, sameHoursAllDays } from "../../events.js";
+import { parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel, sameHoursAllDays, isRecurring, cardWhen } from "../../events.js";
+
+const WEEKDAYS = [[1, "Seg"], [2, "Ter"], [3, "Qua"], [4, "Qui"], [5, "Sex"], [6, "Sáb"], [0, "Dom"]];
+const WEEKDAYS_LONG = [[1, "segunda"], [2, "terça"], [3, "quarta"], [4, "quinta"], [5, "sexta"], [6, "sábado"], [0, "domingo"]];
 import { autoTitle, autoDesc } from "../../seo.js";
 
 const catsOf = (db) => db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES;
@@ -40,7 +43,7 @@ export function EventsList() {
       subtitle="A agenda da cidade. Só os publicados aparecem no site; eventos encerrados saem da agenda sozinhos."
       searchText={(e) => `${e.title} ${e.venueName || ""} ${e.bairro} ${(e.tags || []).join(" ")}`}
       filters={[
-        { key: "when", label: "Quando", options: [["proximos", "Próximos"], ["encerrados", "Encerrados"], ["sempre", "Sempre ativos"]], test: (e, v) => v === "sempre" ? !!e.alwaysOn : v === "encerrados" ? isPast(e) : !isPast(e) },
+        { key: "when", label: "Quando", options: [["proximos", "Próximos"], ["encerrados", "Encerrados"], ["sempre", "Sempre ativos"], ["recorrentes", "Recorrentes"]], test: (e, v) => v === "recorrentes" ? isRecurring(e) : v === "sempre" ? !!e.alwaysOn : v === "encerrados" ? isPast(e) : !isPast(e) },
         { key: "origem", label: "Origem", options: [["site", "Enviados pelo site"], ["equipe", "Cadastrados pela equipe"]], test: (e, v) => v === "site" ? !!e.submittedBy : !e.submittedBy },
         { key: "cat", label: "Categoria", options: cats.map(c => [c.id, c.label]), test: (e, v) => e.category === v },
         { key: "vibe", label: "Vibe", options: db.vibes.map(v => [v.id, v.label]), test: (e, v) => (e.affs || []).includes(v) },
@@ -52,7 +55,7 @@ export function EventsList() {
             <span><strong>{e.title}</strong><em>{cats.find(c => c.id === e.category)?.label || "Sem categoria"}{e.submittedBy ? ` · enviado por ${e.submittedBy.name}` : ""}</em></span>
           </span>
         ) },
-        { key: "startAt", label: "Quando", width: 210, render: (e) => <span className={isPast(e) ? "a-muted" : ""}>{whenLabel(e)}{isPast(e) ? " · encerrado" : ""}</span> },
+        { key: "startAt", label: "Quando", width: 210, render: (e) => <span className={isPast(e) ? "a-muted" : ""}>{whenLabel(e)}{isPast(e) ? " · encerrado" : isRecurring(e) && cardWhen(e) ? <em className="a-when-next">próxima: {cardWhen(e).text}</em> : ""}</span> },
         { key: "alwaysOn", label: "Sempre ativo", width: 120, sortValue: (e) => (e.alwaysOn ? 1 : 0), render: (e) => {
           const allowed = can(user, "content.edit") && (can(user, "content.publish") || !["publicado", "agendado"].includes(e.status));
           return (
@@ -81,7 +84,7 @@ const blank = () => {
   const s = nextSaturday(), f = new Date(s.getTime() + 3 * 36e5);
   const day = toLocal(s).slice(0, 10);
   return {
-    dateFrom: day, dateTo: day, timeFrom: "20:00", timeTo: "23:00", perDay: false, days: {},
+    dateFrom: day, dateTo: day, timeFrom: "20:00", timeTo: "23:00", perDay: false, days: {}, repeat: "", weekdays: [], monthWeek: 1, skip: [],
     title: "", slug: "", tagline: "", desc: "", note: "", category: "", affs: [], tags: [],
     startAt: toLocal(s), endAt: toLocal(f), doors: "",
     price: { free: false, from: "", to: "", note: "" }, ticket: { required: false, url: "", label: "" },
@@ -94,7 +97,8 @@ const blank = () => {
 const RULES = [
   ["title", (d) => d.title.trim().length >= 3, "Dê um nome ao evento."],
   ["dateFrom", (d) => !!parseLocal(d.dateFrom), "Informe o primeiro dia."],
-  ["dateTo", (d) => !!parseLocal(d.dateTo) && d.dateTo >= d.dateFrom, "O último dia não pode ser antes do primeiro."],
+  ["dateTo", (d) => d.repeat ? (!d.dateTo || (!!parseLocal(d.dateTo) && d.dateTo >= d.dateFrom)) : (!!parseLocal(d.dateTo) && d.dateTo >= d.dateFrom), "A data final não pode ser antes da primeira."],
+  ["weekdays", (d) => !d.repeat || (d.weekdays || []).length > 0, "Escolha em que dia(s) da semana o evento acontece."],
   ["timeFrom", (d) => !!d.timeFrom && eventDays(d).every(x => !!x.from), "Informe o horário de início de todos os dias."],
   ["perDay", (d) => !d.perDay || eventDays(d).length < 2 || !sameHoursAllDays(eventDays(d)), "Com “Dias com horários diferentes” ligado, ao menos um dia precisa ter horário diferente dos outros. Ajuste um dia ou desligue a opção."],
   ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
@@ -128,12 +132,24 @@ function EventForm({ initial, isNew }) {
   // período e horários: guarda os dias diferentes só dentro do período e recalcula início/término
   function setSched(patch) {
     const next = { ...draft, ...patch };
-    if (next.dateTo < next.dateFrom) next.dateTo = next.dateFrom;
+    if (next.dateTo < next.dateFrom && !(next.repeat && !next.dateTo)) next.dateTo = next.dateFrom;
+    if (next.repeat) next.perDay = false;
     const inside = Object.fromEntries(Object.entries(next.days || {}).filter(([d]) => d >= next.dateFrom && d <= next.dateTo));
     const days = next.perDay ? inside : {};
-    set({ ...patch, dateTo: next.dateTo, days, ...deriveRange({ ...next, days }) });
+    set({ ...patch, dateTo: next.dateTo, perDay: next.perDay, days, ...deriveRange({ ...next, days }) });
   }
   const schedDays = eventDays(draft);
+  const recurring = !!draft.repeat;
+  // trocar entre data definida e recorrente: no recorrente a data final é opcional (vazia = sem fim)
+  function setRepeat(repeat) {
+    if (!repeat) return setSched({ repeat: "", dateTo: draft.dateTo || draft.dateFrom });
+    const dow = parseLocal(draft.dateFrom)?.getDay();
+    const weekdays = draft.weekdays?.length ? (repeat === "monthly" ? draft.weekdays.slice(0, 1) : draft.weekdays) : dow != null ? [dow] : [];
+    const dateTo = draft.repeat ? draft.dateTo : "";
+    setSched({ repeat, weekdays, dateTo });
+  }
+  const [skipDate, setSkipDate] = useState("");
+  const nextTimes = recurring ? eventDays(draft).filter(d => d.date >= toLocal(new Date()).slice(0, 10)).slice(0, 4) : [];
   const setDay = (date, patch) => {
     const cur = schedDays.find(d => d.date === date);
     setSched({ days: { ...draft.days, [date]: { from: cur.from, to: cur.to, ...patch } } });
@@ -169,7 +185,7 @@ function EventForm({ initial, isNew }) {
       main={<>
         <Tabs value={tab} onChange={setTab} tabs={[
           ["conteudo", "Conteúdo", tabErr(["title", "desc"])],
-          ["data", "Data e ingressos", tabErr(["dateFrom", "dateTo", "timeFrom", "perDay", "ticketUrl"])],
+          ["data", "Data e ingressos", tabErr(["dateFrom", "dateTo", "weekdays", "timeFrom", "perDay", "ticketUrl"])],
           ["classificacao", "Classificação", tabErr(["category", "affs"])],
           ["local", "Local", tabErr(["end", "city", "whatsapp"])],
           ["imagens", "Fotos"],
@@ -198,23 +214,54 @@ function EventForm({ initial, isNew }) {
         )}
 
         {tab === "data" && (<>
-          <Card title="Período e horários" subtitle="Um dia só ou vários dias seguidos. O horário vale para todos os dias, a não ser que você marque dias com horários diferentes.">
+          <Card title="Período e horários" subtitle={recurring ? "Evento que se repete (ex.: quiz toda terça, jazz toda quinta). O site mostra sempre a próxima data." : "Um dia só ou vários dias seguidos. O horário vale para todos os dias, a não ser que você marque dias com horários diferentes."}>
+            <Field label="Frequência">
+              <Segmented label="Frequência" value={draft.repeat || ""} onChange={setRepeat}
+                options={[["", "Datas definidas"], ["weekly", "Toda semana"], ["biweekly", "A cada 2 semanas"], ["monthly", "Uma vez por mês"]]} />
+            </Field>
+            {recurring && (<>
+              {draft.repeat === "monthly" ? (
+                <div className="a-form-grid">
+                  <Select label="Em qual semana do mês" value={String(draft.monthWeek || 1)} onChange={(v) => setSched({ monthWeek: +v })}
+                    options={[["1", "1ª"], ["2", "2ª"], ["3", "3ª"], ["4", "4ª"], ["-1", "Última"]]} />
+                  <Select label="Dia da semana" required value={String(draft.weekdays?.[0] ?? "")} error={errors.weekdays} placeholder="Escolha o dia"
+                    onChange={(v) => setSched({ weekdays: v === "" ? [] : [+v] })} options={WEEKDAYS_LONG.map(([v, l]) => [String(v), l])} />
+                </div>
+              ) : (
+                <PillPicker label="Dias da semana" error={errors.weekdays} value={draft.weekdays || []} onChange={(weekdays) => setSched({ weekdays })}
+                  options={WEEKDAYS} hint="Pode marcar mais de um (ex.: sexta e sábado)." />
+              )}
+            </>)}
             <div className="a-form-grid">
-              <Input label="Primeiro dia" required type="date" value={draft.dateFrom} error={errors.dateFrom}
+              <Input label={recurring ? "Começa em" : "Primeiro dia"} required type="date" value={draft.dateFrom} error={errors.dateFrom}
                 onChange={(dateFrom) => {
+                  if (recurring) return setSched({ dateFrom });
                   // mantém a duração do período ao mudar o primeiro dia
                   const len = Math.max(0, Math.round((parseLocal(draft.dateTo) - parseLocal(draft.dateFrom)) / 864e5)) || 0;
                   const d = parseLocal(dateFrom); if (!d) return setSched({ dateFrom });
                   d.setDate(d.getDate() + len);
                   setSched({ dateFrom, dateTo: toLocal(d).slice(0, 10) });
                 }} />
-              <Input label="Último dia" required type="date" value={draft.dateTo} min={draft.dateFrom} error={errors.dateTo}
-                onChange={(dateTo) => setSched({ dateTo })} hint="Igual ao primeiro dia para eventos de um dia só." />
+              <Input label={recurring ? "Termina em" : "Último dia"} required={!recurring} type="date" value={draft.dateTo} min={draft.dateFrom} error={errors.dateTo}
+                onChange={(dateTo) => setSched({ dateTo })} hint={recurring ? "Opcional. Em branco, o evento se repete sem data para acabar." : "Igual ao primeiro dia para eventos de um dia só."} />
               <Input label={draft.perDay ? "Abre às (padrão)" : "Abre às"} required type="time" value={draft.timeFrom} error={errors.timeFrom} onChange={(timeFrom) => setSched({ timeFrom })} />
               <Input label={draft.perDay ? "Fecha às (padrão)" : "Fecha às"} type="time" value={draft.timeTo} onChange={(timeTo) => setSched({ timeTo })}
                 hint="Se terminar depois da meia-noite, use o horário do dia seguinte (ex.: 02:00)." />
             </div>
-            {schedDays.length > 1 && (
+            {recurring && (
+              <Field label="Datas sem o evento" hint="Feriados ou semanas em que não vai acontecer.">
+                <div className="a-skipdates">
+                  <input className="a-input" type="date" value={skipDate} min={draft.dateFrom} max={draft.dateTo || undefined} onChange={(e) => setSkipDate(e.target.value)} aria-label="Data sem o evento" />
+                  <Btn size="sm" icon="plus" disabled={!skipDate || (draft.skip || []).includes(skipDate)} onClick={() => { setSched({ skip: [...(draft.skip || []), skipDate].sort() }); setSkipDate(""); }}>Adicionar</Btn>
+                </div>
+                {(draft.skip || []).length > 0 && (
+                  <div className="a-chips">{draft.skip.map(d => (
+                    <span key={d} className="a-chip">{dayLabel(d)}<button type="button" aria-label={`Remover ${dayLabel(d)}`} onClick={() => setSched({ skip: draft.skip.filter(x => x !== d) })}><AIcon name="x" size={12} /></button></span>
+                  ))}</div>
+                )}
+              </Field>
+            )}
+            {!recurring && schedDays.length > 1 && (
               <Toggle label="Dias com horários diferentes" checked={!!draft.perDay} onChange={(perDay) => setSched({ perDay })}
                 hint={draft.perDay ? "Ajuste o horário de cada dia abaixo. Os dias que você não mudar seguem o horário padrão." : "Marque para definir um horário próprio em algum dia do período."} />
             )}
@@ -238,7 +285,10 @@ function EventForm({ initial, isNew }) {
               </ul>
             )}
             <Input label="Abertura da casa" value={draft.doors} onChange={(doors) => set({ doors })} placeholder="19h30" hint="Opcional. Quando os portões abrem, se for diferente do início." />
-            {draft.dateFrom && <p className="a-hint">No site: {periodLabel(draft)}{schedDays.length === 1 ? ` · ${hoursLabel(schedDays[0])}` : ""}</p>}
+            {draft.dateFrom && <p className="a-hint">No site: {periodLabel(draft)}{recurring || schedDays.length === 1 ? ` · ${hoursLabel({ from: draft.timeFrom, to: draft.timeTo })}` : ""}</p>}
+            {recurring && isRecurring(draft) && (
+              <p className="a-hint">{nextTimes.length ? <>Próximas datas: {nextTimes.map(d => dayLabel(d.date)).join(" · ")}</> : "Nenhuma data futura com essas regras."}</p>
+            )}
           </Card>
           <Card title="Valor">
             <Toggle label="Evento gratuito" checked={!!draft.price.free} onChange={(free) => setPrice({ free })} />
