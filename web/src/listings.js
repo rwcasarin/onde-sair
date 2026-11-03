@@ -4,7 +4,7 @@
 import { PLACES, ROTEIROS, ALL_STORIES, EVENTS, TYPES, EVENT_CATEGORIES, RADAR_CATEGORIES, VIBE_ORDER, AFFINITIES, CITIES } from "./data.js";
 import { htmlToText } from "./richtext.js";
 import { matchesWhen, WEEK_ORDER, DAY_SLUGS, PERIODS as WHEN_PERIODS } from "./hours.js";
-import { WHEN, inRange, isPast, byAgenda, venueName } from "./events.js";
+import { WHEN, inRange, isPast, byAgenda, venueName, eventCats } from "./events.js";
 import { roteiroVibes, roteiroBairros } from "./vibes.js";
 import { SITE, publishedDate, slugify } from "./admin/store.js";
 import { search, shortcuts, didYouMean, kindsOn } from "./search.js";
@@ -21,7 +21,7 @@ const placeById = (id) => PLACES.find(p => p.id === id);
 const affLabel = (id) => AFFINITIES.find(a => a.id === id)?.label || id;
 const byLabel = (a, b) => a.localeCompare(b, "pt-BR");
 const ageDays = (iso) => { const t = Date.parse(iso); return Number.isNaN(t) ? Infinity : (Date.now() - t) / 864e5; };
-const catOf = (e) => EVENT_CATEGORIES.find(c => c.id === e.category);
+const catsOf = (e) => eventCats(e).map(catSlug);   // slugs das categorias do evento
 const catSlug = (c) => c.slug || fslug(c.label);
 
 // ---------------------------------------------------------------------
@@ -237,7 +237,7 @@ function eventos(f) {
   const base = anyCity.filter(e => !cityF || e.city === cityF);
   const en = engine(base, {
     quando: (e) => !when || inRange(e, (WHEN.find(w => w[0] === when) || WHEN[0])[2](now)),
-    categoria: (e) => !f.categoria.size || f.categoria.has(catOf(e) ? catSlug(catOf(e)) : ""),
+    categoria: (e) => !f.categoria.size || catsOf(e).some(c => f.categoria.has(c)),
     bairro: (e) => !f.bairro.size || f.bairro.has(fslug(e.bairro)),
     preco: (e) => !f.preco.size || f.preco.has(String(eventPriceLevel(e))),
   });
@@ -248,7 +248,7 @@ function eventos(f) {
     facets: {
       quando: WHEN.map(([value, label, fn]) => ({ value, label, count: en.count("quando", e => inRange(e, fn(now))) })),
       bairro: en.opts("bairro", bairrosOf(base, e => [e.bairro]), e => [fslug(e.bairro)]),
-      categoria: EVENT_CATEGORIES.map(c => ({ value: catSlug(c), label: c.label, count: en.count("categoria", e => catOf(e) && catSlug(catOf(e)) === catSlug(c)) })),
+      categoria: EVENT_CATEGORIES.map(c => ({ value: catSlug(c), label: c.label, count: en.count("categoria", e => catsOf(e).includes(catSlug(c))) })),
       preco: PRICE_LEVELS.map(o => ({ value: o.value, label: o.value === "0" ? "Gratuito" : o.label, count: en.count("preco", e => String(eventPriceLevel(e)) === o.value) })),
     },
     extra: { anyInCity: Object.fromEntries(CITIES.map(c => [c.id, EVENTS.some(e => e.city === c.id)])) },
@@ -286,7 +286,7 @@ function busca(f) {
     vibe: (d) => !f.vibe.size || vibesOf(d).some(a => f.vibe.has(a)),
     tipoLugar: (d) => !f.tipoLugar.size || f.tipoLugar.has(fslug(d.item.type)),
     quando: (d) => !f.quando || inRange(d.item, (WHEN.find(w => w[0] === f.quando) || WHEN[0])[2](now)),
-    categoria: (d) => !f.categoria.size || (catOf(d.item) && f.categoria.has(catSlug(catOf(d.item)))),
+    categoria: (d) => !f.categoria.size || catsOf(d.item).some(c => f.categoria.has(c)),
     tamanho: (d) => !f.tamanho.size || STOPS.some(([k, , fn]) => f.tamanho.has(k) && fn(d.item.steps?.length || 0)),
     radar: (d) => !f.radar.size || f.radar.has(fslug(d.item.tag)),
     when: (d) => matchesWhen(d.item, when),
@@ -303,7 +303,7 @@ function busca(f) {
   const facets = {};
   if (KEYS.includes("bairro")) facets.bairro = e.opts("bairro", bairrosOf(base, d => d.bairros), d => d.bairros.map(fslug));
   if (KEYS.includes("tipoLugar")) facets.tipoLugar = e.opts("tipoLugar", TIPOS(), d => [fslug(d.item.type)]);
-  if (KEYS.includes("categoria")) facets.categoria = e.opts("categoria", EVENT_CATEGORIES.map(c => [catSlug(c), c.label]), d => catOf(d.item) ? [catSlug(catOf(d.item))] : []);
+  if (KEYS.includes("categoria")) facets.categoria = e.opts("categoria", EVENT_CATEGORIES.map(c => [catSlug(c), c.label]), d => d.kind === "event" ? catsOf(d.item) : []);
   if (KEYS.includes("vibe")) facets.vibe = e.opts("vibe", VIBE_ORDER.map(id => [id, affLabel(id)]), vibesOf);
   if (KEYS.includes("tamanho")) facets.tamanho = STOPS.map(([value, label, fn]) => ({ value, label, count: e.count("tamanho", d => fn(d.item.steps?.length || 0)) }));
   if (KEYS.includes("radar")) facets.radar = e.opts("radar", RCATS, d => [fslug(d.item.tag)]);

@@ -1,7 +1,7 @@
 // Componentes compartilhados do site (v3)
 import { htmlToText, asHtml } from "../richtext.js";
 import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, EVENT_CATEGORIES, placeImg, roteiroImg, eventImg } from "../data.js";
-import { isPast, venueName, venueType, cardWhen } from "../events.js";
+import { isPast, venueName, venueType, eventCatIds, cardWhen } from "../events.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
@@ -224,7 +224,11 @@ export function EventCard({ e }) {
       </ImageSlot>
       <div className="rot-index-body">
         {/* sem categoria, vale o tipo do lugar */}
-        {(e.category || venueType(e)) && <div className="rot-index-vibes">{e.category ? <CategoryPill id={e.category} /> : <TypePill type={venueType(e)} />}</div>}
+        {/* tipo do lugar e as categorias do evento (no card, até duas etiquetas) */}
+        {(venueType(e) || eventCatIds(e).length > 0) && <div className="rot-index-vibes">
+          {venueType(e) && <TypePill type={venueType(e)} />}
+          {eventCatIds(e).slice(0, venueType(e) ? 1 : 2).map(id => <CategoryPill key={id} id={id} />)}
+        </div>}
         <h3>{e.title}</h3>
         <ul className="rot-index-meta card-sub card-sub-stack">
           {where && <li><Icon name="pin" size={14} /> {where}</li>}

@@ -3,7 +3,7 @@
 // plural, tolera um erro de digitação e pesa mais o que está no nome/título.
 import { PLACES, ROTEIROS, ALL_STORIES, EVENTS, PAGES, AFFINITIES, TYPES, EVENT_CATEGORIES, RADAR_CATEGORIES, CITIES } from "./data.js";
 import { htmlToText } from "./richtext.js";
-import { isPast, venueName } from "./events.js";
+import { isPast, venueName, venueType, eventCats } from "./events.js";
 import { roteiroVibes, roteiroBairros } from "./vibes.js";
 import { slugify, publishedDate, SITE } from "./admin/store.js";
 import { placePath, roteiroPath, storyPath, eventPath, vibePath } from "./router.js";
@@ -91,10 +91,10 @@ function docsOf() {
     fields: [field(W.title, p.name), field(W.key, p.type, p.sub, p.bairro, p.tags, (p.affs || []).map(affLabel)),
       field(W.sub, p.tagline, cityName(p.city)), field(W.text, htmlToText(p.desc || ""), p.dica, (p.reasons || []).map(r => r[1]))] }));
   if (on.has("event")) EVENTS.forEach(e => {
-    const cat = EVENT_CATEGORIES.find(c => c.id === e.category);
+    const cats = eventCats(e).map(c => c.label), cat = { label: cats[0] };
     docs.push({ kind: "event", id: e.id, item: e, title: e.title, path: eventPath(e), past: isPast(e),
       sub: [cat?.label, venueName(e) || e.bairro].filter(Boolean).join(" · "), city: e.city, bairros: e.bairro ? [e.bairro] : [], date: e.startAt || "",
-      fields: [field(W.title, e.title), field(W.key, cat?.label, venueName(e), e.bairro, e.tags, (e.affs || []).map(affLabel)),
+      fields: [field(W.title, e.title), field(W.key, cats, venueType(e), venueName(e), e.bairro, e.tags, (e.affs || []).map(affLabel)),
         field(W.sub, e.tagline, cityName(e.city)), field(W.text, htmlToText(e.desc || ""))] });
   });
   if (on.has("roteiro")) ROTEIROS.forEach(r => {

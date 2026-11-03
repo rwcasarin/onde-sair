@@ -18,7 +18,7 @@ import { eventPath } from "../router.js";
 import { usePagedFilters, useListing, listItems, labelOf, Pagination, FilterPanel, FilterBlock, SearchBlock, CheckList, CheckRow, ResultsBar, ActiveChips } from "../filters.jsx";
 import { vibeFromSlug, vibeSlug } from "./roteiroslista.jsx";
 import {
-  WHEN, inRange, isPast, byDate, whenLabel, priceLabel, cardWhen, venueType,
+  WHEN, inRange, isPast, byDate, whenLabel, priceLabel, cardWhen, venueType, eventCatIds,
   eventVenue, venueName, googleCalendarUrl, googleCoversAll, icsHref, eventDays, periodLines, dayLabel, hoursLabel, defaultDay, todayYmd, sameHoursAllDays,
 } from "../events.js";
 
@@ -195,7 +195,7 @@ export function Evento({ id }) {
 
   // outros eventos: mesma categoria ou vibes em comum, os próximos primeiro
   const more = EVENTS.filter(x => x.id !== e.id && !isPast(x))
-    .map(x => ({ x, score: (x.category === e.category ? 2 : 0) + (x.affs || []).filter(a => (e.affs || []).includes(a)).length + (x.venue && x.venue === e.venue ? 1 : 0) }))
+    .map(x => ({ x, score: (eventCatIds(x).some(c => eventCatIds(e).includes(c)) ? 2 : 0) + (x.affs || []).filter(a => (e.affs || []).includes(a)).length + (x.venue && x.venue === e.venue ? 1 : 0) }))
     .sort((m, n) => n.score - m.score || byDate(m.x, n.x)).slice(0, 4).map(m => m.x);
 
   function goTab(t) { setTab(t); document.getElementById("sec-" + t)?.scrollIntoView({ behavior: "smooth", block: "start" }); }
@@ -217,7 +217,7 @@ export function Evento({ id }) {
           <Crumbs items={[["Início", "home"], ["Eventos", "eventos"], [e.title]]} />
           <div className="place-vibes place-vibes-sm">
             {venueType(e) && <TypePill type={venueType(e)} />}
-            {e.category && <CategoryPill id={e.category} />}
+            {eventCatIds(e).map(id => <CategoryPill key={id} id={id} />)}
             {(e.affs || []).map(a => <VibePill key={a} aff={a} size="sm" />)}
           </div>
           <h1 className="page-title">{e.title}</h1>

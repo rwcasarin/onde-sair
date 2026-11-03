@@ -676,7 +676,12 @@ export function saveTypes(types, user, moves = {}) {
 }
 // Categorias de evento: os eventos guardam o id, então renomear não mexe neles; excluídas movem os eventos (moves: { idExcluída: idDestino })
 export function saveEventCategories(cats, user, moves = {}) {
-  db.events = (db.events || []).map(e => moves[e.category] ? { ...e, category: moves[e.category] } : e);
+  db.events = (db.events || []).map(e => {
+    const ids = [...new Set([...(e.categories || []), e.category].filter(Boolean))];
+    if (!ids.some(id => moves[id])) return e;
+    const categories = [...new Set(ids.map(id => moves[id] || id))];
+    return { ...e, categories, category: categories[0] || "" };
+  });
   db.eventCategories = cats;
   log(user, "atualizou", "categorias de evento", "evento"); commit();
 }
