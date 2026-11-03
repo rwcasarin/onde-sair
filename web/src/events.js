@@ -293,10 +293,8 @@ const WEEK_LONG = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", 
 const pad2 = (n) => String(n).padStart(2, "0");
 export const fmtWeekDayMonth = (date) => { const d = parseLocal(date); return d ? `${WEEK_LONG[d.getDay()]}, ${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}` : ""; };
 export function periodLines(e) {
-  if (isRecurring(e)) {
-    const first = firstOccurrence(e), start = first > todayYmd() ? `a partir de ${fmtWeekDayMonth(first)}` : "";
-    return [repeatLabel(e), e.dateTo ? [start, `até ${fmtWeekDayMonth(e.dateTo)}`].filter(Boolean).join(" ") : start].filter(Boolean);
-  }
+  // recorrente: só a regra ("Toda terça"); início e fim ficam só no painel
+  if (isRecurring(e)) return [repeatLabel(e)];
   const s = schedOf(e);
   if (!s.dateFrom) return [];
   return s.dateTo && s.dateTo !== s.dateFrom ? [`De ${fmtWeekDayMonth(s.dateFrom)}`, `até ${fmtWeekDayMonth(s.dateTo)}`] : [cap(fmtWeekDayMonth(s.dateFrom))];
