@@ -8,7 +8,7 @@ import { ImageSlot } from "../../components/image-slot.jsx";
 import {
   AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, OrderedPicker, PillPicker, Repeater, ImageField, Segmented, Tabs, Field, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify, can, SITE, saveItem } from "../store.js";
+import { slugify, can, SITE, saveItem, getDB } from "../store.js";
 import { href } from "../../router.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
@@ -52,7 +52,7 @@ export function EventsList() {
         { key: "title", label: "Evento", render: (e) => (
           <span className="a-cell-main">
             <ImageSlot className="a-thumb" src={eventImg(e.id)} compact />
-            <span><strong>{e.title}</strong><em>{cats.find(c => c.id === e.category)?.label || "Sem categoria"}{e.submittedBy ? ` · enviado por ${e.submittedBy.name}` : ""}</em></span>
+            <span><strong>{e.title}</strong><em>{cats.find(c => c.id === e.category)?.label || db.places.find(p => p.id === e.venue)?.type || e.venueType || "Sem categoria"}{e.submittedBy ? ` · enviado por ${e.submittedBy.name}` : ""}</em></span>
           </span>
         ) },
         { key: "startAt", label: "Quando", width: 210, render: (e) => <span className={isPast(e) ? "a-muted" : ""}>{whenLabel(e)}{isPast(e) ? " · encerrado" : isRecurring(e) && cardWhen(e) ? <em className="a-when-next">próxima: {cardWhen(e).text}</em> : ""}</span> },
@@ -103,7 +103,8 @@ const RULES = [
   ["perDay", (d) => !d.perDay || eventDays(d).length < 2 || !sameHoursAllDays(eventDays(d)), "Com “Dias com horários diferentes” ligado, ao menos um dia precisa ter horário diferente dos outros. Ajuste um dia ou desligue a opção."],
   ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
   ["ticketUrl", (d) => !d.ticket?.url || /^https?:\/\/\S+\.\S+/.test(d.ticket.url), "Use o link completo da venda (https://…)."],
-  ["category", (d) => !!d.category, "Escolha a categoria.", true],
+  // sem categoria, o site usa o tipo do lugar (do catálogo ou o escolhido em "Tipo do local")
+  ["category", (d) => !!d.category || !!(getDB().places.find(p => p.id === d.venue)?.type || (!d.venue && d.venueType)), "Escolha a categoria ou o tipo do local (aba Local).", true],
   ["desc", (d) => htmlToText(asHtml(d.desc || "")).length >= 40, "Escreva pelo menos 40 caracteres.", true],
   ["affs", (d) => d.affs.length > 0, "Marque ao menos uma vibe.", true],
   ["end", (d) => !!d.end.trim(), "Informe o endereço do evento.", true],
@@ -170,7 +171,7 @@ function EventForm({ initial, isNew }) {
     ["Descrição com 40+ caracteres", htmlToText(asHtml(draft.desc || "")).length >= 40],
     ["Período e horários", !!draft.dateFrom && !!draft.timeFrom],
     ["Valor ou entrada gratuita", draft.price.free || !!draft.price.from],
-    ["Categoria e vibes", !!draft.category && draft.affs.length > 0],
+    ["Categoria (ou tipo do lugar) e vibes", (!!draft.category || !!(venue?.type || (!draft.venue && draft.venueType))) && draft.affs.length > 0],
     ["Local com endereço", !!draft.end],
     ["Título e descrição SEO", !!draft.seo.title && !!draft.seo.desc],
   ];
@@ -318,8 +319,8 @@ function EventForm({ initial, isNew }) {
 
         {tab === "classificacao" && (
           <Card>
-            <Select label="Categoria" required value={draft.category} onChange={(category) => set({ category })} error={errors.category}
-              placeholder="Escolha a categoria" options={cats.map(c => [c.id, c.label])} hint="As categorias são gerenciadas em Eventos › Categorias." />
+            <Select label="Categoria" value={draft.category} onChange={(category) => set({ category })} error={errors.category}
+              placeholder="Sem categoria (usa o tipo do lugar)" options={cats.map(c => [c.id, c.label])} hint="Opcional. Sem categoria, o site mostra o tipo do lugar (ex.: Bares). As categorias são gerenciadas em Eventos › Categorias." />
             <OrderedPicker label="Vibes" error={errors.affs} hint="A ordem aqui é a ordem em que as vibes aparecem no site."
               value={draft.affs} onChange={(affs) => set({ affs })} options={db.vibes.map(v => [v.id, v.label, v.cls])} />
             <ChipInput label="Assuntos" value={draft.tags} onChange={(tags) => set({ tags })} hint="Palavras que descrevem o evento (ex.: Jazz, Cerveja artesanal). Aparecem na página e ajudam na busca."

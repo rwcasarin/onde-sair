@@ -1,7 +1,7 @@
 // Componentes compartilhados do site (v3)
 import { htmlToText, asHtml } from "../richtext.js";
 import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, EVENT_CATEGORIES, placeImg, roteiroImg, eventImg } from "../data.js";
-import { isPast, venueName, cardWhen } from "../events.js";
+import { isPast, venueName, venueType, cardWhen } from "../events.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
@@ -223,7 +223,8 @@ export function EventCard({ e }) {
         <FaveButton id={e.id} className="fave fave-float" />
       </ImageSlot>
       <div className="rot-index-body">
-        {e.category && <div className="rot-index-vibes"><CategoryPill id={e.category} /></div>}
+        {/* sem categoria, vale o tipo do lugar */}
+        {(e.category || venueType(e)) && <div className="rot-index-vibes">{e.category ? <CategoryPill id={e.category} /> : <TypePill type={venueType(e)} />}</div>}
         <h3>{e.title}</h3>
         <ul className="rot-index-meta card-sub card-sub-stack">
           {where && <li><Icon name="pin" size={14} /> {where}</li>}
