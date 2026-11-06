@@ -9,6 +9,7 @@ import { roteiroVibes, roteiroBairros } from "./vibes.js";
 import { SITE, publishedDate, slugify } from "./admin/store.js";
 import { search, shortcuts, didYouMean, kindsOn } from "./search.js";
 import { fslug, sortBy, recentOf, eventPriceLevel, PRICE_LEVELS, vibeFromSlug } from "./listutil.js";
+import { nowSP, nowMs } from "./clock.js";
 
 export const PER_PAGE = 12;
 export const STOPS = [["curto", "Até 3 paradas", (n) => n <= 3], ["longo", "4 paradas ou mais", (n) => n >= 4]];
@@ -20,7 +21,7 @@ const KINDS_VIBES = [["lugar", "Lugares"], ["roteiro", "Roteiros"]];
 const placeById = (id) => PLACES.find(p => p.id === id);
 const affLabel = (id) => AFFINITIES.find(a => a.id === id)?.label || id;
 const byLabel = (a, b) => a.localeCompare(b, "pt-BR");
-const ageDays = (iso) => { const t = Date.parse(iso); return Number.isNaN(t) ? Infinity : (Date.now() - t) / 864e5; };
+const ageDays = (iso) => { const t = Date.parse(iso); return Number.isNaN(t) ? Infinity : (nowMs() - t) / 864e5; };
 const catsOf = (e) => eventCats(e).map(catSlug);   // slugs das categorias do evento
 const catSlug = (c) => c.slug || fslug(c.label);
 
@@ -231,7 +232,7 @@ function radar(f) {
 
 function eventos(f) {
   const vibe = vibeFromSlug(f.vibe), query = f.busca, cityF = f.cidade, when = f.quando, showPast = f.encerrados;
-  const now = new Date();
+  const now = nowSP();
   const text = (e) => fslug([e.title, e.tagline, htmlToText(e.desc || ""), venueName(e), e.bairro, ...(e.tags || [])].join(" "));
   const anyCity = EVENTS.filter(e => (showPast || !isPast(e, now)) && (!vibe || (e.affs || []).includes(vibe)) && (!query || text(e).includes(fslug(query))));
   const base = anyCity.filter(e => !cityF || e.city === cityF);
@@ -265,7 +266,7 @@ function busca(f) {
   const kinds = kindsOn();
   const tab = kinds.some(k => k.id === f.tipo) ? f.tipo : "tudo";
   const K = kinds.find(k => k.id === tab);
-  const cityF = f.cidade, now = new Date();
+  const cityF = f.cidade, now = nowSP();
   const when = { agora: f.aberto, dia: f.dia, periodo: f.periodo };
   const found = query ? search(query, { kinds: kinds.map(k => k.kind) }) : { results: [], partial: false };
   // eventos encerrados só entram com o filtro ligado

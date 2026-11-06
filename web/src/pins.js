@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { PLACES } from "./data.js";
 import { REMOTE, isPartial } from "./admin/store.js";
+import { syncClock } from "./clock.js";
 
 const cache = new Map();             // cidade → pins (até recarregar a página)
 const localPins = (city) => PLACES.filter(p => p.city === city);
@@ -18,8 +19,9 @@ export function useCityPins(city, enabled = true) {
     if (cache.has(city)) { setPins(cache.get(city)); return; }
     setPins(null);
     let alive = true;
+    const t0 = Date.now();
     fetch(`/api/content?pins=${encodeURIComponent(city)}`, { headers: { accept: "application/json" } })
-      .then(r => r.json()).then(d => { cache.set(city, d.pins || []); if (alive) setPins(d.pins || []); })
+      .then(r => { syncClock(r, t0); return r.json(); }).then(d => { cache.set(city, d.pins || []); if (alive) setPins(d.pins || []); })
       .catch(() => { if (alive) setPins([]); });
     return () => { alive = false; };
   }, [city, enabled, local]);

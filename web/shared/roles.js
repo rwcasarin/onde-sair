@@ -1,3 +1,4 @@
+import { nowMs } from "../src/clock.js";
 // Papéis e permissões — compartilhado entre o painel (front) e a API (servidor)
 export const ROLES = {
   admin:   { label: "Administrador", desc: "Acesso total, inclusive equipe e configurações." },
@@ -22,7 +23,7 @@ export const ROLE_PERMS = {
 };
 export const can = (user, perm) => !!user && (ROLE_PERMS[user.role] || []).includes(perm);
 
-export const isLive = (item, now = new Date()) =>
+export const isLive = (item, now = new Date(nowMs())) =>
   item.status === "publicado" || (item.status === "agendado" && item.publishAt && new Date(item.publishAt) <= now);
 
 // Recorte público do banco: só o que o site pode ver

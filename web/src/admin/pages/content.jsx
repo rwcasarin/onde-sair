@@ -5,6 +5,7 @@ import {
 } from "../kit.jsx";
 import { toPath, href } from "../../router.js";
 import { STATUS, can, relTime, fmtDate, setStatus, removeItems, duplicateItem, saveItem, isLive, adoptNewMedia } from "../store.js";
+import { nowMs } from "../../clock.js";
 
 export const COLL = {
   places:   { one: "lugar", many: "lugares", path: "lugares", title: (x) => x.name, siteScreen: "detalhe" },
@@ -118,7 +119,7 @@ export function PublishPanel({ coll, draft, set, dirty, isNew, onSave, validate 
   const { user, confirm, go, toast, saved } = useAdmin();
   const meta = COLL[coll];
   const [scheduling, setScheduling] = useState(false);
-  const [when, setWhen] = useState(() => toLocalInput(draft.publishAt || new Date(Date.now() + 864e5).toISOString()));
+  const [when, setWhen] = useState(() => toLocalInput(draft.publishAt || new Date(nowMs() + 864e5).toISOString()));
   const canPub = can(user, "content.publish"), canDel = can(user, "content.delete");
   // celular: o painel vira uma barra fixa no rodapé; "Mais opções" abre o painel inteiro por cima
   const mobile = useMobile();
@@ -201,7 +202,7 @@ export function PublishPanel({ coll, draft, set, dirty, isNew, onSave, validate 
         <Modal title="Agendar publicação" size="sm" onClose={() => setScheduling(false)}
           footer={<><Btn onClick={() => setScheduling(false)}>Cancelar</Btn><Btn kind="primary" icon="calendar" onClick={() => {
             const iso = new Date(when).toISOString();
-            if (new Date(iso) <= new Date()) return toast("Escolha uma data no futuro.", "error");
+            if (new Date(iso) <= new Date(nowMs())) return toast("Escolha uma data no futuro.", "error");
             setScheduling(false); publish("agendado", { publishAt: iso });
           }}>Agendar</Btn></>}>
           <label className="a-label" htmlFor="sched">Data e hora</label>

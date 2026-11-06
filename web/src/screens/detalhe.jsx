@@ -18,6 +18,7 @@ import { NotFound } from "./notfound.jsx";
 import { Lightbox } from "../components/lightbox.jsx";
 import { placePhotos } from "../photos.js";
 import { currentPath, HASH_MODE } from "../router.js";
+import { nowSP } from "../clock.js";
 
 // "Rua X, 123 · Bairro · Cidade - UF" sem repetir o que já está no endereço
 const plain = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -125,7 +126,7 @@ function DetalheView({ p }) {
 
   // funcionamento: cadastrado ou convertido do texto antigo
   const hours = placeHours(p);
-  const today = new Date().getDay();
+  const today = nowSP().getDay();
   const status = hours ? hoursStatus(hours) : null;
   const tagList = [...new Set((p.tags || []).map(t => String(t).trim()).filter(Boolean))];
 

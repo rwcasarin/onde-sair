@@ -1,5 +1,6 @@
 // Eventos: datas, preço e agenda. Datas guardadas como "AAAA-MM-DDTHH:MM" no horário local.
 import { EVENT_CATEGORIES, PLACES } from "./data.js";
+import { nowSP } from "./clock.js";
 
 export const parseLocal = (s) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(s || "");
@@ -41,12 +42,12 @@ export function priceLabel(e) {
 
 // "Sempre ativo" (ligado no painel): o evento nunca encerra e vale para qualquer dia e horário
 // Recorrente sem data final nunca encerra; com data final, encerra depois da última vez.
-export const isPast = (e, now = new Date()) => {
+export const isPast = (e, now = nowSP()) => {
   if (e.alwaysOn) return false;
   if (isRecurring(e)) return !!e.dateTo && !sessions(e, now).some(x => x.end > now);
   const f = parseLocal(e.endAt) || parseLocal(e.startAt); return !!f && f < now;
 };
-export const isHappening = (e, now = new Date()) => {
+export const isHappening = (e, now = nowSP()) => {
   if (isRecurring(e)) return sessions(e, now).some(x => x.start <= now && now < x.end);
   const s = parseLocal(e.startAt), f = parseLocal(e.endAt); return !!s && !!f && s <= now && now <= f;
 };
@@ -63,12 +64,12 @@ function agendaInfo(e, now) {
   if (next) return { rank: next.date === ymd(now) ? 2 : 3, at: next.start };
   return { rank: 4, at: list[list.length - 1]?.start || 0 };
 }
-export const agendaRank = (e, now = new Date()) => agendaInfo(e, now).rank;
-export const byAgenda = (now = new Date()) => (a, b) => {
+export const agendaRank = (e, now = nowSP()) => agendaInfo(e, now).rank;
+export const byAgenda = (now = nowSP()) => (a, b) => {
   const x = agendaInfo(a, now), y = agendaInfo(b, now);
   return x.rank - y.rank || (x.rank === 4 ? y.at - x.at : x.at - y.at);
 };
-export const upcoming = (list, now = new Date()) => list.filter(e => !isPast(e, now)).sort(byAgenda(now));
+export const upcoming = (list, now = nowSP()) => list.filter(e => !isPast(e, now)).sort(byAgenda(now));
 export const eventCategory = (id) => EVENT_CATEGORIES.find(c => c.id === id);
 export const eventVenue = (e) => (e.venue && PLACES.find(p => p.id === e.venue)) || null;
 export const venueName = (e) => eventVenue(e)?.name || e.venueName || "";
@@ -123,7 +124,7 @@ const hoursText = (e) => eventDays(e).map(d => `${dayLabel(d.date)}: ${hoursLabe
 export function googleCalendarUrl(e, where, url = "") {
   if (isRecurring(e)) {
     // recorrente: a próxima vez, repetindo pela regra do evento
-    const slot = calSlots(e).find(sl => sl.end >= gcal(toLocal(new Date()))) || calSlots(e)[0];
+    const slot = calSlots(e).find(sl => sl.end >= gcal(toLocal(nowSP()))) || calSlots(e)[0];
     const q = new URLSearchParams({ action: "TEMPLATE", text: e.title, dates: slot ? `${slot.start}/${slot.end}` : "", details: [e.tagline || "", url].filter(Boolean).join("\n\n"), location: where || "", ctz: "America/Sao_Paulo" });
     const r = rrule(e); if (r) q.set("recur", "RRULE:" + r);
     return "https://calendar.google.com/calendar/render?" + q;
@@ -141,7 +142,7 @@ export function googleCalendarUrl(e, where, url = "") {
 export const googleCoversAll = (e) => { if (isRecurring(e)) return true; const d = eventDays(e); return d.length <= 1 || sameHoursAllDays(d); };
 
 // Arquivo .ics (Apple, Outlook, Google por importação): um compromisso por dia, cada um com o seu horário
-export function icsText(e, where, url = "", now = new Date()) {
+export function icsText(e, where, url = "", now = nowSP()) {
   const esc = (t = "") => String(t).replace(/[,;\\]/g, (m) => "\\" + m).replace(/\n/g, "\\n");
   const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
   const tz = ["BEGIN:VTIMEZONE", "TZID:America/Sao_Paulo", "BEGIN:STANDARD", "DTSTART:19700101T000000", "TZOFFSETFROM:-0300", "TZOFFSETTO:-0300", "TZNAME:-03", "END:STANDARD", "END:VTIMEZONE"];
@@ -250,7 +251,7 @@ function rrule(e) {
   return `FREQ=WEEKLY${e.repeat === "biweekly" ? ";INTERVAL=2" : ""};BYDAY=${w.map(d => BYDAY[d]).join(",")}${until}`;
 }
 // lista dos dias do evento, com o horário de cada um
-export function eventDays(e, now = new Date()) {
+export function eventDays(e, now = nowSP()) {
   if (isRecurring(e)) return recurringDays(e, now);
   const s = schedOf(e);
   if (!s.dateFrom || !parseLocal(s.dateFrom)) return [];
@@ -286,11 +287,11 @@ export const dayLabel = (date) => fmtDay(parseLocal(date));
 const hmLabel = (t) => { if (!t) return ""; const [h, m] = t.split(":"); return +m ? `${+h}h${m}` : `${+h}h`; };
 export const hoursLabel = (day) => day.from && day.to ? `Das ${hmLabel(day.from)} às ${hmLabel(day.to)}` : hmLabel(day.from) ? `A partir das ${hmLabel(day.from)}` : "Horário a confirmar";
 // dia mostrado por padrão: hoje (se o evento acontece hoje), senão o próximo dia, senão o primeiro
-export function defaultDay(days, now = new Date()) {
+export function defaultDay(days, now = nowSP()) {
   const today = ymd(now);
   return days.find(d => d.date === today) || days.find(d => d.date > today) || days[0];
 }
-export const todayYmd = (now = new Date()) => ymd(now);
+export const todayYmd = (now = nowSP()) => ymd(now);
 // "De sexta, 11/12" / "até domingo, 13/12" (um dia só: "Sexta, 11/12")
 const WEEK_LONG = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -311,7 +312,7 @@ export const sameHoursAllDays = (days) => days.every(d => d.from === days[0]?.fr
 const WEEK_CAP = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const ddmm = (d) => `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}`;
 // sessões reais de cada dia (o fim passa para o dia seguinte quando fecha depois da meia-noite)
-function sessions(e, now = new Date()) {
+function sessions(e, now = nowSP()) {
   return eventDays(e, now).map(d => {
     const start = parseLocal(`${d.date}T${d.from || "00:00"}`);
     let end = parseLocal(`${d.date}T${d.to || "23:59"}`);
@@ -319,7 +320,7 @@ function sessions(e, now = new Date()) {
     return { ...d, start, end };
   });
 }
-export function cardWhen(e, now = new Date()) {
+export function cardWhen(e, now = nowSP()) {
   const list = sessions(e, now);
   if (!list.length) return null;
   // bloco do calendário: dia da semana (ou HOJE/AGORA), dia, mês (com o ano se já passou) e a faixa do horário

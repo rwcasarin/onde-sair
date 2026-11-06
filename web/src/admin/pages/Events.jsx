@@ -18,6 +18,7 @@ import { eventCatIds, parseLocal, toLocal, whenLabel, priceLabel, isPast, schedO
 const WEEKDAYS = [[1, "Seg"], [2, "Ter"], [3, "Qua"], [4, "Qui"], [5, "Sex"], [6, "Sáb"], [0, "Dom"]];
 const WEEKDAYS_LONG = [[1, "segunda"], [2, "terça"], [3, "quarta"], [4, "quinta"], [5, "sexta"], [6, "sábado"], [0, "domingo"]];
 import { autoTitle, autoDesc } from "../../seo.js";
+import { nowSP } from "../../clock.js";
 
 const catsOf = (db) => db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES;
 
@@ -77,7 +78,7 @@ export function EventsList() {
 // Editor
 // ---------------------------------------------------------------------
 function nextSaturday() {
-  const d = new Date(); d.setHours(20, 0, 0, 0); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7));
+  const d = nowSP(); d.setHours(20, 0, 0, 0); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7));
   return d;
 }
 const blank = () => {
@@ -150,7 +151,7 @@ function EventForm({ initial, isNew }) {
     setSched({ repeat, weekdays, dateTo });
   }
   const [skipDate, setSkipDate] = useState("");
-  const nextTimes = recurring ? eventDays(draft).filter(d => d.date >= toLocal(new Date()).slice(0, 10)).slice(0, 4) : [];
+  const nextTimes = recurring ? eventDays(draft).filter(d => d.date >= toLocal(nowSP()).slice(0, 10)).slice(0, 4) : [];
   const setDay = (date, patch) => {
     const cur = schedDays.find(d => d.date === date);
     setSched({ days: { ...draft.days, [date]: { from: cur.from, to: cur.to, ...patch } } });
@@ -400,7 +401,7 @@ function EventForm({ initial, isNew }) {
               <div><dt>Quem enviou</dt><dd>{draft.submittedBy.name}</dd></div>
               {draft.submittedBy.email && <div><dt>E-mail da conta</dt><dd><a href={`mailto:${draft.submittedBy.email}`}>{draft.submittedBy.email}</a></dd></div>}
               {draft.contact && <div><dt>Contato informado</dt><dd>{draft.contact}</dd></div>}
-              <div><dt>Enviado em</dt><dd>{new Date(draft.submittedBy.at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</dd></div>
+              <div><dt>Enviado em</dt><dd>{new Date(draft.submittedBy.at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}</dd></div>
             </dl>
             <p className="a-hint">{draft.status === "revisao" ? "Revise os dados (e a foto, se veio) e publique para aprovar. Para recusar, arquive: a pessoa vê “Não aprovado” em Meus eventos." : "Quem enviou acompanha a situação em Meus eventos."}</p>
           </Card>

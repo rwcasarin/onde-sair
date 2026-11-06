@@ -10,6 +10,7 @@ import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { SITE } from "../admin/store.js";
 import { MenuLink } from "./ui.jsx";
 import { menuItems } from "../menus.js";
+import { nowSP } from "../clock.js";
 
 export const affById = (id) => AFFINITIES.find(a => a.id === id);
 export const placeById = (id) => PLACES.find(p => p.id === id);
@@ -349,7 +350,7 @@ export function Footer() {
           )}
         </div>
         <div className="site-footer-bottom">
-          <span>© {new Date().getFullYear()} Onde Sair. Todos os direitos reservados.</span>
+          <span>© {nowSP().getFullYear()} Onde Sair. Todos os direitos reservados.</span>
           <span className="site-footer-legal">
             {menuItems("legal").map(({ it, to }) => <MenuLink key={it.id} to={to}>{it.label}</MenuLink>)}
           </span>

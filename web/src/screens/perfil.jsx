@@ -12,7 +12,7 @@ import { roteiroVibes } from "../vibes.js";
 import { SITE } from "../admin/store.js";
 import { Loader } from "../components/loader.jsx";
 
-const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); } catch { return ""; } };
+const since = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", month: "long", year: "numeric" }); } catch { return ""; } };
 
 const TABS = [["favoritos", "Lugares favoritos"], ["favRoteiros", "Roteiros favoritos"], ["favEventos", "Eventos favoritos"], ["meus", "Meus roteiros"], ["meusEventos", "Meus eventos"], ["conta", "Dados da conta"]];
 
