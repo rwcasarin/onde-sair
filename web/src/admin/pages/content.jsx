@@ -226,12 +226,12 @@ export function useEditorSave({ coll, draft, commit, dirty, rules }) {
 
   function validate(full) {
     const e = {};
-    rules.forEach(([key, test, msg, onlyFull]) => { if ((full || !onlyFull) && !test(draft)) e[key] = msg; });
+    rules.forEach(([key, test, msg, onlyFull]) => { if ((full || !onlyFull) && !test(draft)) e[key] = typeof msg === "function" ? msg(draft) : msg; });
     setErrors(e); setTried(true);
     return Object.keys(e).length ? e : null;
   }
   // revalida enquanto o usuário corrige
-  useEffect(() => { if (tried) { const e = {}; rules.forEach(([k, t, m, f]) => { if (errors[k] !== undefined && !t(draft)) e[k] = m; }); setErrors(e); } // eslint-disable-next-line
+  useEffect(() => { if (tried) { const e = {}; rules.forEach(([k, t, m, f]) => { if (errors[k] !== undefined && !t(draft)) e[k] = typeof m === "function" ? m(draft) : m; }); setErrors(e); } // eslint-disable-next-line
   }, [draft]);
 
   function save(status, extra = {}) {
