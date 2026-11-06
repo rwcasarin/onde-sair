@@ -240,12 +240,6 @@ function recurringDays(e, now) {
 // primeira e última vez de todas (para início/término gravados)
 function firstOccurrence(e) { for (let d = e.dateFrom, i = 0; i < 400; d = addDays(d, 1), i++) if (occursOn(e, d)) return d; return e.dateFrom; }
 function lastOccurrence(e) { if (!e.dateTo) return ""; for (let d = e.dateTo, i = 0; d >= e.dateFrom && i < 400; d = addDays(d, -1), i++) if (occursOn(e, d)) return d; return e.dateTo; }
-// vezes do evento no período de um mês a partir de hoje (as que ainda não terminaram)
-export function monthDates(e, now = nowSP()) {
-  if (!isRecurring(e)) return [];
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate(), 23, 59);
-  return sessions(e, now).filter(x => x.end > now && x.start <= end);
-}
 // regra de repetição para Google Agenda e .ics
 const BYDAY = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
 function rrule(e) {

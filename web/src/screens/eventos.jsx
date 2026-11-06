@@ -18,7 +18,7 @@ import { eventPath } from "../router.js";
 import { usePagedFilters, useListing, listItems, labelOf, Pagination, FilterPanel, FilterBlock, SearchBlock, CheckList, CheckRow, ResultsBar, ActiveChips } from "../filters.jsx";
 import { vibeFromSlug, vibeSlug } from "./roteiroslista.jsx";
 import {
-  WHEN, inRange, isPast, byDate, whenLabel, priceLabel, cardWhen, venueType, eventCatIds, monthDates,
+  WHEN, inRange, isPast, byDate, whenLabel, priceLabel, cardWhen, venueType, eventCatIds,
   eventVenue, venueName, googleCalendarUrl, googleCoversAll, icsHref, eventDays, periodLines, dayLabel, hoursLabel, defaultDay, todayYmd, sameHoursAllDays,
 } from "../events.js";
 
@@ -260,12 +260,6 @@ export function Evento({ id }) {
               <div>
                 <span className="event-box-label">Quando</span>
                 {periodLines(e).map(l => <strong key={l} className="event-when-line">{l}</strong>)}
-                {/* recorrente: as datas do próximo mês */}
-                {monthDates(e).length > 0 && (
-                  <ul className="event-dates" aria-label="Datas no próximo mês">
-                    {monthDates(e).map(d => <li key={d.date} className={d.date === todayYmd() ? "is-today" : ""}>{d.date === todayYmd() ? "Hoje" : dayLabel(d.date)}</li>)}
-                  </ul>
-                )}
               </div>
             </div>
             {day && (

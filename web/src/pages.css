@@ -1749,8 +1749,3 @@ body.search-lock { overflow: hidden; }
 /* post do Radar: mesmo espaço acima e abaixo do "Voltar" */
 .story-article .page-head-eyebrow { margin-top: 10px; }
 @media (max-width: 760px) { .story-article .page-head-eyebrow { margin-top: 8px; } }
-
-/* evento recorrente: datas do próximo mês na caixa "Quando" */
-.event-dates { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 8px 0 0; padding: 0; }
-.event-dates li { padding: 3px 10px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); font-size: 12.5px; font-weight: 600; }
-.event-dates li.is-today { background: var(--primary); color: #fff; }
