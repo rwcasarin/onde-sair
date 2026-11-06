@@ -34,7 +34,7 @@ const KINDS = {
   eventCategories: (db) => ({
     title: "Eventos", crumbs: [["Painel", "/"], ["Eventos", "eventos"], ["Categorias"]], nav: eventsNav(db),
     subtitle: "Categorias de evento: aparecem como etiqueta nos cards e filtram a agenda (/eventos?categoria=…).",
-    current: db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES, items: db.events || [], owns: (x, t) => x.category === t.id,
+    current: db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES, items: db.events || [], owns: (x, t) => x.category === t.id || (x.categories || []).includes(t.id),
     one: "categoria", newLabel: "Nova categoria", saveLabel: "Salvar categorias", unit: ["evento", "eventos"], idPrefix: "c-",
     noAccess: "Só quem publica conteúdo gerencia as categorias de evento.", savedMsg: "Categorias salvas.", save: saveEventCategories,
   }),

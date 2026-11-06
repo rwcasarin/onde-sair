@@ -8,16 +8,17 @@ import { ImageSlot } from "../../components/image-slot.jsx";
 import {
   AIcon, Btn, Card, Input, Textarea, Select, Toggle, ChipInput, OrderedPicker, PillPicker, Repeater, ImageField, Segmented, Tabs, Field, PageHeader, useAdmin, useDraft,
 } from "../kit.jsx";
-import { slugify, can, SITE, saveItem } from "../store.js";
+import { slugify, can, SITE, saveItem, getDB } from "../store.js";
 import { href } from "../../router.js";
 import { ContentList, PublishPanel, useEditorSave, Checklist, EditorLayout, NotFoundItem } from "./content.jsx";
 import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
 import { eventsNav } from "./Types.jsx";
-import { parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel, sameHoursAllDays, isRecurring, cardWhen } from "../../events.js";
+import { eventCatIds, parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel, sameHoursAllDays, isRecurring, cardWhen } from "../../events.js";
 
 const WEEKDAYS = [[1, "Seg"], [2, "Ter"], [3, "Qua"], [4, "Qui"], [5, "Sex"], [6, "Sáb"], [0, "Dom"]];
 const WEEKDAYS_LONG = [[1, "segunda"], [2, "terça"], [3, "quarta"], [4, "quinta"], [5, "sexta"], [6, "sábado"], [0, "domingo"]];
 import { autoTitle, autoDesc } from "../../seo.js";
+import { nowSP } from "../../clock.js";
 
 const catsOf = (db) => db.eventCategories?.length ? db.eventCategories : SEED_EVENT_CATEGORIES;
 
@@ -45,14 +46,14 @@ export function EventsList() {
       filters={[
         { key: "when", label: "Quando", options: [["proximos", "Próximos"], ["encerrados", "Encerrados"], ["sempre", "Sempre ativos"], ["recorrentes", "Recorrentes"]], test: (e, v) => v === "recorrentes" ? isRecurring(e) : v === "sempre" ? !!e.alwaysOn : v === "encerrados" ? isPast(e) : !isPast(e) },
         { key: "origem", label: "Origem", options: [["site", "Enviados pelo site"], ["equipe", "Cadastrados pela equipe"]], test: (e, v) => v === "site" ? !!e.submittedBy : !e.submittedBy },
-        { key: "cat", label: "Categoria", options: cats.map(c => [c.id, c.label]), test: (e, v) => e.category === v },
+        { key: "cat", label: "Categoria", options: cats.map(c => [c.id, c.label]), test: (e, v) => eventCatIds(e).includes(v) },
         { key: "vibe", label: "Vibe", options: db.vibes.map(v => [v.id, v.label]), test: (e, v) => (e.affs || []).includes(v) },
       ]}
       columns={[
         { key: "title", label: "Evento", render: (e) => (
           <span className="a-cell-main">
             <ImageSlot className="a-thumb" src={eventImg(e.id)} compact />
-            <span><strong>{e.title}</strong><em>{cats.find(c => c.id === e.category)?.label || "Sem categoria"}{e.submittedBy ? ` · enviado por ${e.submittedBy.name}` : ""}</em></span>
+            <span><strong>{e.title}</strong><em>{[db.places.find(p => p.id === e.venue)?.type || (!e.venue && e.venueType), ...eventCatIds(e).map(id => cats.find(c => c.id === id)?.label)].filter(Boolean).join(" · ") || "Sem categoria"}{e.submittedBy ? ` · enviado por ${e.submittedBy.name}` : ""}</em></span>
           </span>
         ) },
         { key: "startAt", label: "Quando", width: 210, render: (e) => <span className={isPast(e) ? "a-muted" : ""}>{whenLabel(e)}{isPast(e) ? " · encerrado" : isRecurring(e) && cardWhen(e) ? <em className="a-when-next">próxima: {cardWhen(e).text}</em> : ""}</span> },
@@ -77,7 +78,7 @@ export function EventsList() {
 // Editor
 // ---------------------------------------------------------------------
 function nextSaturday() {
-  const d = new Date(); d.setHours(20, 0, 0, 0); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7));
+  const d = nowSP(); d.setHours(20, 0, 0, 0); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7));
   return d;
 }
 const blank = () => {
@@ -85,7 +86,7 @@ const blank = () => {
   const day = toLocal(s).slice(0, 10);
   return {
     dateFrom: day, dateTo: day, timeFrom: "20:00", timeTo: "23:00", perDay: false, days: {}, repeat: "", weekdays: [], monthWeek: 1, skip: [],
-    title: "", slug: "", tagline: "", desc: "", note: "", category: "", affs: [], tags: [],
+    title: "", slug: "", tagline: "", desc: "", note: "", category: "", categories: [], affs: [], tags: [],
     startAt: toLocal(s), endAt: toLocal(f), doors: "",
     price: { free: false, from: "", to: "", note: "" }, ticket: { required: false, url: "", label: "" },
     insta: "", whatsapp: "", site: "", age: "livre", reasons: [], showGallery: false,
@@ -103,7 +104,8 @@ const RULES = [
   ["perDay", (d) => !d.perDay || eventDays(d).length < 2 || !sameHoursAllDays(eventDays(d)), "Com “Dias com horários diferentes” ligado, ao menos um dia precisa ter horário diferente dos outros. Ajuste um dia ou desligue a opção."],
   ["whatsapp", (d) => !d.whatsapp || /^(55)?\d{10,11}$/.test(d.whatsapp.replace(/\D/g, "")), "Use o número com DDD, como (15) 99999-9999 ou (15) 3333-4444."],
   ["ticketUrl", (d) => !d.ticket?.url || /^https?:\/\/\S+\.\S+/.test(d.ticket.url), "Use o link completo da venda (https://…)."],
-  ["category", (d) => !!d.category, "Escolha a categoria.", true],
+  // sem categoria, o site usa o tipo do lugar (do catálogo ou o escolhido em "Tipo do local")
+  ["category", (d) => eventCatIds(d).length > 0 || !!(getDB().places.find(p => p.id === d.venue)?.type || (!d.venue && d.venueType)), "Escolha a categoria ou o tipo do local (aba Local).", true],
   ["desc", (d) => htmlToText(asHtml(d.desc || "")).length >= 40, "Escreva pelo menos 40 caracteres.", true],
   ["affs", (d) => d.affs.length > 0, "Marque ao menos uma vibe.", true],
   ["end", (d) => !!d.end.trim(), "Informe o endereço do evento.", true],
@@ -116,7 +118,7 @@ export function EventEditor({ id }) {
   const found = (db.events || []).find(e => e.id === id);
   if (!isNew && !found) return <NotFoundItem what="Evento" path="eventos" />;
   const base = blank();
-  return <EventForm initial={isNew ? { ...base, city: db.settings.defaultCity || base.city } : { ...base, ...found, ...schedOf(found), price: { ...base.price, ...found.price }, ticket: { ...base.ticket, ...found.ticket }, seo: { ...base.seo, ...found.seo } }} isNew={isNew} />;
+  return <EventForm initial={isNew ? { ...base, city: db.settings.defaultCity || base.city } : { ...base, ...found, ...schedOf(found), price: { ...base.price, ...found.price }, ticket: { ...base.ticket, ...found.ticket }, seo: { ...base.seo, ...found.seo }, categories: eventCatIds(found) }} isNew={isNew} />;
 }
 
 function EventForm({ initial, isNew }) {
@@ -149,7 +151,7 @@ function EventForm({ initial, isNew }) {
     setSched({ repeat, weekdays, dateTo });
   }
   const [skipDate, setSkipDate] = useState("");
-  const nextTimes = recurring ? eventDays(draft).filter(d => d.date >= toLocal(new Date()).slice(0, 10)).slice(0, 4) : [];
+  const nextTimes = recurring ? eventDays(draft).filter(d => d.date >= toLocal(nowSP()).slice(0, 10)).slice(0, 4) : [];
   const setDay = (date, patch) => {
     const cur = schedDays.find(d => d.date === date);
     setSched({ days: { ...draft.days, [date]: { from: cur.from, to: cur.to, ...patch } } });
@@ -163,6 +165,7 @@ function EventForm({ initial, isNew }) {
       map: p.map || draft.map, insta: draft.insta || p.insta || "", whatsapp: p.whatsapp || draft.whatsapp || "" });
   }
   const venue = db.places.find(p => p.id === draft.venue);
+  const venueTypeLabel = venue ? venue.type : draft.venueType || "";
   const changedAddress = venue && (draft.end !== (venue.end || "") || draft.bairro !== (venue.bairro || "") || (!!venue.whatsapp && (draft.whatsapp || "") !== venue.whatsapp));
 
   const checklist = [
@@ -170,7 +173,7 @@ function EventForm({ initial, isNew }) {
     ["Descrição com 40+ caracteres", htmlToText(asHtml(draft.desc || "")).length >= 40],
     ["Período e horários", !!draft.dateFrom && !!draft.timeFrom],
     ["Valor ou entrada gratuita", draft.price.free || !!draft.price.from],
-    ["Categoria e vibes", !!draft.category && draft.affs.length > 0],
+    ["Categoria (ou tipo do lugar) e vibes", (eventCatIds(draft).length > 0 || !!(venue?.type || (!draft.venue && draft.venueType))) && draft.affs.length > 0],
     ["Local com endereço", !!draft.end],
     ["Título e descrição SEO", !!draft.seo.title && !!draft.seo.desc],
   ];
@@ -318,8 +321,22 @@ function EventForm({ initial, isNew }) {
 
         {tab === "classificacao" && (
           <Card>
-            <Select label="Categoria" required value={draft.category} onChange={(category) => set({ category })} error={errors.category}
-              placeholder="Escolha a categoria" options={cats.map(c => [c.id, c.label])} hint="As categorias são gerenciadas em Eventos › Categorias." />
+            {/* o tipo do lugar entra sempre (vem do local); as categorias do evento são extras, várias */}
+            <Field label="Categorias" error={errors.category}
+              hint={`${venueTypeLabel ? "O tipo do lugar vem do Local e sempre aparece primeiro. " : "Sem lugar do catálogo, escolha o “Tipo do local” na aba Local. "}Marque quantas categorias do evento quiser. Elas são gerenciadas em Eventos › Categorias.`}>
+              <div className="a-pills" role="group" aria-label="Categorias">
+                {venueTypeLabel && <span className="a-pill on a-pill-fixed" title="Tipo do lugar (aba Local)"><AIcon name="pin" size={13} />{venueTypeLabel}</span>}
+                {cats.map(c => {
+                  const on = draft.categories.includes(c.id);
+                  return (
+                    <button key={c.id} type="button" aria-pressed={on} className={"a-pill" + (on ? " on" : "")}
+                      onClick={() => { const categories = on ? draft.categories.filter(x => x !== c.id) : [...draft.categories, c.id]; set({ categories, category: categories[0] || "" }); }}>
+                      {on && <AIcon name="check" size={13} />}{c.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
             <OrderedPicker label="Vibes" error={errors.affs} hint="A ordem aqui é a ordem em que as vibes aparecem no site."
               value={draft.affs} onChange={(affs) => set({ affs })} options={db.vibes.map(v => [v.id, v.label, v.cls])} />
             <ChipInput label="Assuntos" value={draft.tags} onChange={(tags) => set({ tags })} hint="Palavras que descrevem o evento (ex.: Jazz, Cerveja artesanal). Aparecem na página e ajudam na busca."
@@ -384,7 +401,7 @@ function EventForm({ initial, isNew }) {
               <div><dt>Quem enviou</dt><dd>{draft.submittedBy.name}</dd></div>
               {draft.submittedBy.email && <div><dt>E-mail da conta</dt><dd><a href={`mailto:${draft.submittedBy.email}`}>{draft.submittedBy.email}</a></dd></div>}
               {draft.contact && <div><dt>Contato informado</dt><dd>{draft.contact}</dd></div>}
-              <div><dt>Enviado em</dt><dd>{new Date(draft.submittedBy.at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</dd></div>
+              <div><dt>Enviado em</dt><dd>{new Date(draft.submittedBy.at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}</dd></div>
             </dl>
             <p className="a-hint">{draft.status === "revisao" ? "Revise os dados (e a foto, se veio) e publique para aprovar. Para recusar, arquive: a pessoa vê “Não aprovado” em Meus eventos." : "Quem enviou acompanha a situação em Meus eventos."}</p>
           </Card>

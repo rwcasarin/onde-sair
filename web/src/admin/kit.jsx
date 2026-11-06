@@ -72,7 +72,7 @@ export function Btn({ kind = "secondary", size, icon, children, className = "", 
 
 export function StatusBadge({ status, publishAt }) {
   const s = STATUS[status] || { label: status, tone: "gray" };
-  return <span className={"a-badge tone-" + s.tone} title={status === "agendado" && publishAt ? new Date(publishAt).toLocaleString("pt-BR") : undefined}><i />{s.label}</span>;
+  return <span className={"a-badge tone-" + s.tone} title={status === "agendado" && publishAt ? new Date(publishAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) : undefined}><i />{s.label}</span>;
 }
 export function Badge({ tone = "gray", children }) { return <span className={"a-badge tone-" + tone}><i />{children}</span>; }
 

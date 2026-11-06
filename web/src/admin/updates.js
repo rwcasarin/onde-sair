@@ -1,5 +1,6 @@
 import { SEED_EVENT_CATEGORIES } from "../data.js";
 import { VIBES as TAX_VIBES, PLACE_TYPES, vibeRecord, newTypeFor } from "../taxonomy.js";
+import { nowMs } from "../clock.js";
 // =====================================================================
 // Onde Sair · atualizações de conteúdo
 //
@@ -444,7 +445,7 @@ const UPDATES = [
 
 // Aplica no banco `d` (mutável) as atualizações ainda não registradas.
 // Devolve o que foi aplicado, para registrar na atividade.
-export function applyUpdates(d, at = new Date().toISOString()) {
+export function applyUpdates(d, at = new Date(nowMs()).toISOString()) {
   const done = new Set(d.updates || []);
   const applied = [];
   for (const u of UPDATES) {
@@ -458,7 +459,7 @@ export function applyUpdates(d, at = new Date().toISOString()) {
 }
 
 // Atualizações que dependem de baixar dados (só no painel do administrador)
-export async function applyAsyncUpdates(d, at = new Date().toISOString()) {
+export async function applyAsyncUpdates(d, at = new Date(nowMs()).toISOString()) {
   const done = new Set(d.updates || []);
   const applied = [];
   for (const u of UPDATES) {

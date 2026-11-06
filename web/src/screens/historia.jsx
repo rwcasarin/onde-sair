@@ -14,7 +14,7 @@ import { resolveMedia, publishedDate } from "../admin/store.js";
 import { mountEmbeds } from "../embeds.js";
 import { NotFound } from "./notfound.jsx";
 
-const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }); } catch { return ""; } };
+const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", day: "numeric", month: "long", year: "numeric" }); } catch { return ""; } };
 
 export function StoryCard({ s }) {
   const nav = useNav();

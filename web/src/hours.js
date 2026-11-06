@@ -1,3 +1,4 @@
+import { nowSP } from "./clock.js";
 // Horário de funcionamento dos lugares: dias da semana abertos, um horário por dia
 // e dias com horário próprio — no modelo do cadastro de eventos.
 //
@@ -60,7 +61,7 @@ export const dayShiftsLabel = (list) => span(list);
 
 // aberto agora? { open, text } — turnos que passam da meia-noite valem até o dia seguinte
 const mins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m + (t === "23:59" ? 1 : 0); };
-export function hoursStatus(h, now = new Date()) {
+export function hoursStatus(h, now = nowSP()) {
   const week = weekShifts(h);
   if (!week.some(s => s.length)) return null;
   const d = now.getDay(), t = now.getHours() * 60 + now.getMinutes();
@@ -169,7 +170,7 @@ export function openDuring(h, day, from = 0, to = 1440) {
   return spans.some(([s, e]) => s < to && e > from);
 }
 // { agora, dia, periodo } do filtro → o lugar atende?
-export function matchesWhen(p, { agora, dia, periodo } = {}, now = new Date()) {
+export function matchesWhen(p, { agora, dia, periodo } = {}, now = nowSP()) {
   if (!agora && !dia && !periodo) return true;
   const h = cachedHours(p);
   if (!h) return false;

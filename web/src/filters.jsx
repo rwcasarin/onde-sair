@@ -10,6 +10,7 @@ import { WEEK as WEEK_NAMES, WEEK_ORDER as WHEN_DAY_ORDER, DAY_SLUGS as WHEN_DAY
 export function toggleIn(set, v) { const n = new Set(set); n.has(v) ? n.delete(v) : n.add(v); return n; }
 export { fslug, PRICE_LEVELS, eventPriceLevel, recentOf, sortBy } from "./listutil.js";
 import { fslug } from "./listutil.js";
+import { nowSP, syncClock } from "./clock.js";
 
 // Ordenação: as mesmas opções em todas as páginas, mais as próprias de cada uma
 export const SORT_LABELS = { relevancia: "Mais relevantes", data: "Data (mais próximos)", az: "A–Z", preco: "Menor preço", recentes: "Mais recentes", paradas: "Menos paradas" };
@@ -191,7 +192,7 @@ export function ActiveChips({ chips, onClear }) {
 // Dia e horário (lugares): "aberto agora", dia da semana (ou hoje) e período do dia.
 // value: { agora: bool, dia: "" | "hoje" | "seg"…, periodo: "" | "manha"… }; count(patch) → nº de lugares com o filtro aplicado
 export function WhenFilter({ value, onChange, count }) {
-  const today = new Date().getDay();
+  const today = nowSP().getDay();
   const DAYS = [["hoje", `Hoje (${WEEK_NAMES[today]})`], ...WHEN_DAY_ORDER.map(d => [WHEN_DAY_SLUGS[d], WEEK_NAMES[d]])];
   return (
     <FilterBlock title="Dia e horário">
@@ -244,7 +245,9 @@ export function usePagedFilters(defs) {
 
 const listCache = new Map();          // pedido → resposta (até recarregar a página)
 async function fetchList(qs, signal) {
+  const t0 = Date.now();
   const r = await fetch("/api/content?" + qs, { signal, headers: { accept: "application/json" } });
+  syncClock(r, t0);
   if (!r.ok) throw new Error("lista " + r.status);
   return r.json();
 }

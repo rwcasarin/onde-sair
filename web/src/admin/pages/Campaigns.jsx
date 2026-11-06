@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Badge, Btn, Card, DataTable, Input, Modal, PageHeader, Segmented, Select, Textarea, Field, useAdmin, AIcon } from "../kit.jsx";
 import { saveCampaign, removeCampaign, fmtDate, relTime } from "../store.js";
+import { nowMs } from "../../clock.js";
 
 const KINDS = ["ROTEIRO NOVO", "FAVORITO", "AGENDA", "AMIGO"];
 const TONE = { enviada: "green", agendada: "blue", rascunho: "gray" };
@@ -58,7 +59,7 @@ function Composer({ initial, onClose }) {
     const e = {};
     if (!c.title.trim()) e.title = "Escreva um título.";
     if (!c.body.trim()) e.body = "Escreva a mensagem.";
-    if (status === "agendada" && (!c.scheduledAt || new Date(c.scheduledAt) <= new Date())) e.when = "Escolha uma data no futuro.";
+    if (status === "agendada" && (!c.scheduledAt || new Date(c.scheduledAt) <= new Date(nowMs()))) e.when = "Escolha uma data no futuro.";
     setErr(e);
     if (Object.keys(e).length && status !== "rascunho") return;
     if (status === "rascunho" && !c.title.trim()) return;

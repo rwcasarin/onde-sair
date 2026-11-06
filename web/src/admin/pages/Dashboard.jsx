@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { AIcon, Btn, Card, PageHeader, StatusBadge, Toolbar, FilterSelect, useAdmin, useImageStatus, Empty } from "../kit.jsx";
 import { can, relTime, fmtDate, isLive } from "../store.js";
 import { expectedImages } from "./Media.jsx";
+import { nowSP, nowMs } from "../../clock.js";
 
 // Série de exemplo para visitas (substituir pela integração de analytics)
 const VISITS = [820, 760, 910, 1040, 1380, 1620, 1490, 870, 830, 980, 1110, 1450, 1710, 1580];
@@ -21,7 +22,7 @@ export function Dashboard() {
   ];
   const drafts = [...db.places, ...db.roteiros, ...db.stories].filter(x => x.status === "rascunho").length;
   const weak = live.filter(p => !p.seo?.desc || (p.reasons || []).length < 3 || !p.dica);
-  const weekAgo = Date.now() - 7 * 864e5;
+  const weekAgo = nowMs() - 7 * 864e5;
   const newThisWeek = db.places.filter(p => new Date(p.createdAt) > weekAgo).length;
 
   const kpis = [
@@ -34,7 +35,7 @@ export function Dashboard() {
   const byVibe = db.vibes.map(v => ({ label: v.label, n: live.filter(p => p.affs.includes(v.id)).length }));
   const maxVibe = Math.max(1, ...byVibe.map(v => v.n));
   const first = user.name.split(" ")[0];
-  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  const today = nowSP().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <>
@@ -118,7 +119,7 @@ function VisitsChart({ data }) {
   const [hover, setHover] = useState(null);
   const max = Math.max(...data);
   const nice = Math.ceil(max / 500) * 500;
-  const days = data.map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (data.length - 1 - i)); return d; });
+  const days = data.map((_, i) => { const d = nowSP(); d.setDate(d.getDate() - (data.length - 1 - i)); return d; });
   const total = data.reduce((a, b) => a + b, 0);
   const lastWeek = data.slice(-7).reduce((a, b) => a + b, 0), prevWeek = data.slice(0, 7).reduce((a, b) => a + b, 0);
   const delta = Math.round(((lastWeek - prevWeek) / prevWeek) * 100);

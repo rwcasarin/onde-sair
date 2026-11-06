@@ -1,7 +1,7 @@
 // Componentes compartilhados do site (v3)
 import { htmlToText, asHtml } from "../richtext.js";
 import { AFFINITIES, CITIES, PLACES, TYPES, VIBE_STYLE, EVENT_CATEGORIES, placeImg, roteiroImg, eventImg } from "../data.js";
-import { isPast, venueName, cardWhen } from "../events.js";
+import { isPast, venueName, venueType, eventCatIds, cardWhen } from "../events.js";
 import { OSLogo, OSIcon } from "./brand.jsx";
 import { Icon } from "./icons.jsx";
 import { ImageSlot } from "./image-slot.jsx";
@@ -10,6 +10,7 @@ import { useNav, useCity, useFaves, useAccount } from "../nav.js";
 import { SITE } from "../admin/store.js";
 import { MenuLink } from "./ui.jsx";
 import { menuItems } from "../menus.js";
+import { nowSP } from "../clock.js";
 
 export const affById = (id) => AFFINITIES.find(a => a.id === id);
 export const placeById = (id) => PLACES.find(p => p.id === id);
@@ -223,7 +224,12 @@ export function EventCard({ e }) {
         <FaveButton id={e.id} className="fave fave-float" />
       </ImageSlot>
       <div className="rot-index-body">
-        {e.category && <div className="rot-index-vibes"><CategoryPill id={e.category} /></div>}
+        {/* sem categoria, vale o tipo do lugar */}
+        {/* tipo do lugar e as categorias do evento (no card, até duas etiquetas) */}
+        {(venueType(e) || eventCatIds(e).length > 0) && <div className="rot-index-vibes">
+          {venueType(e) && <TypePill type={venueType(e)} />}
+          {eventCatIds(e).slice(0, venueType(e) ? 1 : 2).map(id => <CategoryPill key={id} id={id} />)}
+        </div>}
         <h3>{e.title}</h3>
         <ul className="rot-index-meta card-sub card-sub-stack">
           {where && <li><Icon name="pin" size={14} /> {where}</li>}
@@ -344,7 +350,7 @@ export function Footer() {
           )}
         </div>
         <div className="site-footer-bottom">
-          <span>© {new Date().getFullYear()} Onde Sair. Todos os direitos reservados.</span>
+          <span>© {nowSP().getFullYear()} Onde Sair. Todos os direitos reservados.</span>
           <span className="site-footer-legal">
             {menuItems("legal").map(({ it, to }) => <MenuLink key={it.id} to={to}>{it.label}</MenuLink>)}
           </span>

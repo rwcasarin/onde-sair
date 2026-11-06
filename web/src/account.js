@@ -3,6 +3,7 @@
 import { REMOTE, api, addEventSubmission, eventSubmissionsOf, dbForSubmission, setMedia, slugify, getDB } from "./admin/store.js";
 import { cleanSubmission, SUBMIT_LIMITS } from "../shared/eventsubmit.js";
 import { cleanRoteiro, cleanRoteiros, blankStep, LIMITS } from "../shared/myroteiros.js";
+import { todaySP, nowMs } from "./clock.js";
 
 const LOCAL_USERS = "onde-sair-users";
 const LOCAL_SESSION = "onde-sair-user";
@@ -54,7 +55,7 @@ export async function signup({ name, email, password, city, marketing }) {
   else if (users.some(u => u.email === email.toLowerCase().trim())) fields.email = "Já existe uma conta com esse e-mail. Que tal entrar?";
   if (!password || password.length < 8) fields.password = "Use pelo menos 8 caracteres.";
   if (Object.keys(fields).length) return { fields };
-  const u = { id: localId(), name: name.trim(), email: email.toLowerCase().trim(), password: await hash(password), city, vibes: [], faves: [], status: "ativo", marketing: !!marketing, onboarded: false, joined: new Date().toISOString() };
+  const u = { id: localId(), name: name.trim(), email: email.toLowerCase().trim(), password: await hash(password), city, vibes: [], faves: [], status: "ativo", marketing: !!marketing, onboarded: false, joined: new Date(nowMs()).toISOString() };
   writeLocal([...users, u]);
   localStorage.setItem(LOCAL_SESSION, u.id);
   return { user: setUser(pub(u)) };
@@ -103,7 +104,7 @@ export const findMyRoteiro = (id) => myRoteiros().find(r => r.id === id);
 async function setRoteiros(list) { return updateAccount({ roteiros: cleanRoteiros(list) }); }
 
 export async function saveMyRoteiro(r) {
-  const now = new Date().toISOString();
+  const now = new Date(nowMs()).toISOString();
   const item = cleanRoteiro({ ...r, createdAt: r.createdAt || now, updatedAt: now });
   const list = myRoteiros();
   if (!list.some(x => x.id === item.id) && list.length >= LIMITS.roteiros) throw new Error(`Você chegou ao limite de ${LIMITS.roteiros} roteiros. Exclua algum para criar outro.`);
@@ -167,7 +168,6 @@ export async function changeAccountPassword(current, next) {
 
 // ---------- eventos enviados pelo usuário (vão para revisão da equipe) ----------
 const mineView = (e) => ({ id: e.id, slug: e.slug, title: e.title, status: e.status, startAt: e.startAt, endAt: e.endAt, submittedAt: e.submittedBy?.at || e.createdAt });
-const todaySP = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 
 // Devolve { event } ou { fields, message }
 export async function submitEvent(payload) {
@@ -185,7 +185,7 @@ export async function submitEvent(payload) {
   const id = "eu" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const base = slugify(event.title) || id;
   const p = event.venue && ctx.places.find(x => x.id === event.venue);
-  const at = new Date().toISOString();
+  const at = new Date(nowMs()).toISOString();
   const ev = {
     ...event, id, slug: (getDB().events || []).some(e => e.slug === base) ? `${base}-${id.slice(-4)}` : base, status: "revisao",
     geo: p?.geo || null, placeId: p?.placeId || "", map: p?.map || { x: 50, y: 50, label: "" }, tint: p?.tint || "tint-eco",

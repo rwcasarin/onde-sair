@@ -1,6 +1,7 @@
 // Carrossel de destaques da home: cadastro manual (imagem, título, descrição, data/horário e link).
 // O topo da home alterna entre o modo "fixo" (título + foto) e o "carrossel".
 import { cardWhen, parseLocal } from "./events.js";
+import { nowSP } from "./clock.js";
 
 export const CAROUSEL_DEFAULT = { autoplay: true, interval: 6, showPause: false, showSearch: true, slides: [] };
 export const SLIDE_INTERVALS = [4, 5, 6, 8, 10, 12];
@@ -23,7 +24,7 @@ function slideEnd(s) {
 }
 
 // aparece no site agora? (ativo, com título, dentro da janela de exibição e, se pedido, antes de a data passar)
-export function slideVisible(s, now = new Date()) {
+export function slideVisible(s, now = nowSP()) {
   if (!s || s.active === false || !String(s.title || "").trim()) return false;
   const from = parseLocal(s.showFrom), until = parseLocal(s.showUntil);
   if (from && now < from) return false;
@@ -31,10 +32,10 @@ export function slideVisible(s, now = new Date()) {
   if (s.hideAfter !== false) { const end = slideEnd(s); if (end && now > end) return false; }
   return true;
 }
-export const visibleSlides = (car, now = new Date()) => (car?.slides || []).filter(s => slideVisible(s, now));
+export const visibleSlides = (car, now = nowSP()) => (car?.slides || []).filter(s => slideVisible(s, now));
 
 // por que um slide não aparece (para o painel)
-export function slideStatus(s, now = new Date()) {
+export function slideStatus(s, now = nowSP()) {
   if (s.active === false) return ["gray", "Desativado"];
   if (!String(s.title || "").trim()) return ["amber", "Sem título"];
   const from = parseLocal(s.showFrom), until = parseLocal(s.showUntil);
@@ -45,7 +46,7 @@ export function slideStatus(s, now = new Date()) {
 }
 
 // selo de data no mesmo formato dos cards de eventos (dia da semana, dia, mês e horário)
-export function slideWhen(s, now = new Date()) {
+export function slideWhen(s, now = nowSP()) {
   if (!s.dateFrom) return null;
   const b = cardWhen({ dateFrom: s.dateFrom, dateTo: s.dateTo || s.dateFrom, timeFrom: s.timeFrom || "", timeTo: s.timeTo || "" }, now);
   if (!b) return null;

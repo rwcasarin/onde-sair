@@ -22,7 +22,7 @@ import { socialLinks } from "../social.js";
 const KEY = "onde-sair-cms-v1";
 const SESSION_KEY = "onde-sair-cms-session";
 const clone = (x) => JSON.parse(JSON.stringify(x));
-const now = () => new Date().toISOString();
+const now = () => new Date(nowMs()).toISOString();
 // data relativa a hoje; itens "de hoje" nunca ficam no futuro
 const daysAgo = (d, h = 10) => {
   const t = new Date(); t.setDate(t.getDate() - d); t.setHours(h, 12, 0, 0);
@@ -37,6 +37,7 @@ export const slugify = (s = "") => s.toString().normalize("NFD").replace(/[̀-ͯ
 // Papéis e permissões
 // ---------------------------------------------------------------------
 import { ROLES, PERMISSIONS, ROLE_PERMS, can, isLive } from "../../shared/roles.js";
+import { nowMs, syncClock } from "../clock.js";
 export { ROLES, PERMISSIONS, can, isLive };
 export const rolePerms = (role) => ROLE_PERMS[role] || [];
 
@@ -206,11 +207,13 @@ let base = null;                    // último estado confirmado pelo servidor (
 export const sync = { status: "idle", error: null, at: null };  // idle | saving | saved | error | conflict
 
 export async function api(path, { method = "GET", body } = {}) {
+  const t0 = Date.now();
   const r = await fetch("/api/" + path, {
     method, credentials: "same-origin",
     headers: { "x-cms": "1", ...(body ? { "content-type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
+  syncClock(r, t0);
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(data.error || "Erro " + r.status), { status: r.status, data });
   return data;
@@ -233,7 +236,9 @@ async function fetchView(path, shell, have = []) {
   const t = setTimeout(() => ctrl.abort(), 10000);
   try {
     // no-cache: o navegador sempre confere com a CDN (sem servir uma cópia velha depois de uma edição)
+    const t0 = Date.now();
     const r = await fetch(`/api/content?view=${encodeURIComponent(path)}${shell ? "" : "&shell=0"}${have.length ? "&have=" + have.sort().join(",") : ""}`, { signal: ctrl.signal, cache: "no-cache", headers: { accept: "application/json" } });
+    syncClock(r, t0);
     if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) throw new Error("conteúdo " + r.status);
     return await r.json();
   } finally { clearTimeout(t); }
@@ -437,7 +442,7 @@ function stripLegacy(d) {
 
 export function syncPublic() {
   stripLegacy(db);
-  replace(PLACES, db.places.filter(isLive));
+  replace(PLACES, db.places.filter(x => isLive(x)));
   replace(ROTEIROS, db.roteiros.filter(isLive).map(r => ({ ...r, paradas: r.steps.length })));
   // a cor da etiqueta vem sempre da categoria (gerenciada no painel)
   const catTone = (s) => (db.radarCategories || []).find(c => c.label === s.tag)?.tone || s.tone;
@@ -676,7 +681,12 @@ export function saveTypes(types, user, moves = {}) {
 }
 // Categorias de evento: os eventos guardam o id, então renomear não mexe neles; excluídas movem os eventos (moves: { idExcluída: idDestino })
 export function saveEventCategories(cats, user, moves = {}) {
-  db.events = (db.events || []).map(e => moves[e.category] ? { ...e, category: moves[e.category] } : e);
+  db.events = (db.events || []).map(e => {
+    const ids = [...new Set([...(e.categories || []), e.category].filter(Boolean))];
+    if (!ids.some(id => moves[id])) return e;
+    const categories = [...new Set(ids.map(id => moves[id] || id))];
+    return { ...e, categories, category: categories[0] || "" };
+  });
   db.eventCategories = cats;
   log(user, "atualizou", "categorias de evento", "evento"); commit();
 }
@@ -864,14 +874,14 @@ const publicUser = ({ password, ...u }) => u;
 // ---------------------------------------------------------------------
 export function relTime(iso) {
   if (!iso) return "—";
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  const diff = (nowMs() - new Date(iso).getTime()) / 1000;
   const fut = diff < 0, s = Math.abs(diff);
   const t = s < 60 ? "agora" : s < 3600 ? `${Math.round(s / 60)} min` : s < 86400 ? `${Math.round(s / 3600)} h` : `${Math.round(s / 86400)} d`;
   if (t === "agora") return t;
   return fut ? `em ${t}` : `há ${t}`;
 }
 export const fmtDate = (iso, withTime = true) => iso
-  ? new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "short", year: "numeric", ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}) })
+  ? new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "short", year: "numeric", ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}) })
   : "—";
 
 // sincroniza já na carga do módulo (antes do site renderizar)

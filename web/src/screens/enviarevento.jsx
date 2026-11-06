@@ -10,6 +10,7 @@ import { blankSubmission, cleanSubmission, submissionDays } from "../../shared/e
 import { compressImage } from "../admin/kit.jsx";
 import { dayLabel, hoursLabel, periodLines, priceLabel } from "../events.js";
 import { Busy } from "../components/loader.jsx";
+import { nowSP, todaySP } from "../clock.js";
 
 let fid = 0;
 function F({ label, hint, error, required, children }) {
@@ -24,7 +25,7 @@ function F({ label, hint, error, required, children }) {
 }
 const TABS = [["conteudo", "Conteúdo", ["title", "desc", "contact"]], ["data", "Data e ingressos", ["dateFrom", "dateTo", "timeFrom", "timeTo", "perDay", "price", "ticketUrl"]],
   ["classificacao", "Classificação", ["category", "affs"]], ["local", "Local", ["venueName", "end", "city", "whatsapp"]], ["foto", "Foto", ["image"]]];
-const nextSat = () => { const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); return d.toLocaleDateString("sv-SE"); };
+const nextSat = () => { const d = nowSP(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); return d.toLocaleDateString("sv-SE"); };
 
 export function EnviarEvento() {
   const nav = useNav();
@@ -65,7 +66,7 @@ export function EnviarEvento() {
   }
   async function send() {
     setMsg(""); setErrors({});
-    const today = new Date().toLocaleDateString("sv-SE");
+    const today = todaySP();
     const local = cleanSubmission(d, { categories: EVENT_CATEGORIES, vibes: VIBE_ORDER.map(id => ({ id })), places: PLACES, cities: CITIES, today }).errors;
     if (Object.keys(local).length) { setErrors(local); setTab(TABS.find(t => t[2].some(k => local[k]))?.[0] || tab); return; }
     setBusy(true);
