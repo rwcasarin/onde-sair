@@ -15,13 +15,6 @@ import { LocationTab, IconPicker, REASON_ICONS } from "./Places.jsx";
 import { eventsNav } from "./Types.jsx";
 import { eventCatIds, parseLocal, toLocal, whenLabel, priceLabel, isPast, schedOf, eventDays, deriveRange, periodLabel, dayLabel, hoursLabel, sameHoursAllDays, isRecurring, cardWhen } from "../../events.js";
 
-// um mês depois da data (ou de hoje, se a data já passou), em AAAA-MM-DD
-const oneMonthAfter = (date) => {
-  const today = toLocal(nowSP()).slice(0, 10);
-  const d = parseLocal(date && date > today ? date : today);
-  d.setMonth(d.getMonth() + 1);
-  return toLocal(d).slice(0, 10);
-};
 const WEEKDAYS = [[1, "Seg"], [2, "Ter"], [3, "Qua"], [4, "Qui"], [5, "Sex"], [6, "Sáb"], [0, "Dom"]];
 const WEEKDAYS_LONG = [[1, "segunda"], [2, "terça"], [3, "quarta"], [4, "quinta"], [5, "sexta"], [6, "sábado"], [0, "domingo"]];
 import { autoTitle, autoDesc } from "../../seo.js";
@@ -105,7 +98,7 @@ const blank = () => {
 const RULES = [
   ["title", (d) => d.title.trim().length >= 3, "Dê um nome ao evento."],
   ["dateFrom", (d) => !!parseLocal(d.dateFrom), "Informe o primeiro dia."],
-  ["dateTo", (d) => !!parseLocal(d.dateTo) && d.dateTo >= d.dateFrom, d => d.repeat ? "Informe até quando o evento se repete (não pode ser antes de quando começa)." : "A data final não pode ser antes da primeira."],
+  ["dateTo", (d) => d.repeat ? (!d.dateTo || (!!parseLocal(d.dateTo) && d.dateTo >= d.dateFrom)) : (!!parseLocal(d.dateTo) && d.dateTo >= d.dateFrom), "A data final não pode ser antes da primeira."],
   ["weekdays", (d) => !d.repeat || (d.weekdays || []).length > 0, "Escolha em que dia(s) da semana o evento acontece."],
   ["timeFrom", (d) => !!d.timeFrom && eventDays(d).every(x => !!x.from), "Informe o horário de início de todos os dias."],
   ["perDay", (d) => !d.perDay || eventDays(d).length < 2 || !sameHoursAllDays(eventDays(d)), "Com “Dias com horários diferentes” ligado, ao menos um dia precisa ter horário diferente dos outros. Ajuste um dia ou desligue a opção."],
@@ -141,7 +134,7 @@ function EventForm({ initial, isNew }) {
   // período e horários: guarda os dias diferentes só dentro do período e recalcula início/término
   function setSched(patch) {
     const next = { ...draft, ...patch };
-    if (next.dateTo < next.dateFrom) next.dateTo = next.repeat ? oneMonthAfter(next.dateFrom) : next.dateFrom;
+    if (next.dateTo < next.dateFrom && !(next.repeat && !next.dateTo)) next.dateTo = next.dateFrom;
     if (next.repeat) next.perDay = false;
     const inside = Object.fromEntries(Object.entries(next.days || {}).filter(([d]) => d >= next.dateFrom && d <= next.dateTo));
     const days = next.perDay ? inside : {};
@@ -154,8 +147,7 @@ function EventForm({ initial, isNew }) {
     if (!repeat) return setSched({ repeat: "", dateTo: draft.dateTo || draft.dateFrom });
     const dow = parseLocal(draft.dateFrom)?.getDay();
     const weekdays = draft.weekdays?.length ? (repeat === "monthly" ? draft.weekdays.slice(0, 1) : draft.weekdays) : dow != null ? [dow] : [];
-    // recorrente sempre tem fim: por padrão, um mês depois de começar (ou de hoje)
-    const dateTo = draft.repeat && draft.dateTo ? draft.dateTo : oneMonthAfter(draft.dateFrom);
+    const dateTo = draft.repeat ? draft.dateTo : "";
     setSched({ repeat, weekdays, dateTo });
   }
   const [skipDate, setSkipDate] = useState("");
@@ -253,8 +245,8 @@ function EventForm({ initial, isNew }) {
                   d.setDate(d.getDate() + len);
                   setSched({ dateFrom, dateTo: toLocal(d).slice(0, 10) });
                 }} />
-              <Input label={recurring ? "Repete até" : "Último dia"} required type="date" value={draft.dateTo} min={draft.dateFrom} error={errors.dateTo}
-                onChange={(dateTo) => setSched({ dateTo })} hint={recurring ? "Até quando o evento se repete. Sugestão: um mês; depois é só estender." : "Igual ao primeiro dia para eventos de um dia só."} />
+              <Input label={recurring ? "Termina em" : "Último dia"} required={!recurring} type="date" value={draft.dateTo} min={draft.dateFrom} error={errors.dateTo}
+                onChange={(dateTo) => setSched({ dateTo })} hint={recurring ? "Opcional. Em branco, o evento se repete sem data para acabar." : "Igual ao primeiro dia para eventos de um dia só."} />
               <Input label={draft.perDay ? "Abre às (padrão)" : "Abre às"} required type="time" value={draft.timeFrom} error={errors.timeFrom} onChange={(timeFrom) => setSched({ timeFrom })} />
               <Input label={draft.perDay ? "Fecha às (padrão)" : "Fecha às"} type="time" value={draft.timeTo} onChange={(timeTo) => setSched({ timeTo })}
                 hint="Se terminar depois da meia-noite, use o horário do dia seguinte (ex.: 02:00)." />
